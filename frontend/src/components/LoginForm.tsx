@@ -7,8 +7,8 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSubmit, loading, error }: LoginFormProps) {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('shadows123@');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,7 +26,7 @@ export function LoginForm({ onSubmit, loading, error }: LoginFormProps) {
             <label className="mb-1 block text-sm font-medium">Usuario</label>
             <input
               className="input"
-              placeholder="admin"
+              placeholder="Tu usuario"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
             />
