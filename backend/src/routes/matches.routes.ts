@@ -167,7 +167,7 @@ function calculateScores(item: RatingInput) {
     defense: Number(clampScore(item.defenseSuccesses * 0.4).toFixed(2)),
     attack: Number(clampScore(item.attackPoints * 1.0 - item.attackErrors * 0.5).toFixed(2)),
     blockScore: Number(clampScore(item.blockPoints * 1.0 + item.blockTouches * 0.2).toFixed(2)),
-    settingScore: Number(clampScore(item.setAssists * 0.25 - item.setErrors * 0.6).toFixed(2))
+    settingScore: Number(clampScore(item.setAssists * 0.4 - item.setErrors * 0.2).toFixed(2))
   };
 }
 
