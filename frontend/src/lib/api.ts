@@ -1,4 +1,5 @@
 import {
+  AdminUserItem,
   GlobalStats,
   LoginResponse,
   MatchItem,
@@ -7,6 +8,7 @@ import {
   TeamSettings,
   UpdateTeamSettingsPayload,
   UpdateMyProfilePayload,
+  UpdateUserPayload,
   PlayerStatsResponse,
   PlayerItem,
   PlayerSummary,
@@ -52,6 +54,15 @@ function normalizePlayer(player: PlayerItem): PlayerItem {
     user_id: toNumber(player.user_id),
     jersey_number: player.jersey_number === null ? null : toNumber(player.jersey_number),
     overall_score: toNumber(player.overall_score, 5)
+  };
+}
+
+function normalizeAdminUser(user: AdminUserItem): AdminUserItem {
+  return {
+    ...user,
+    id: toNumber(user.id),
+    player_id: user.player_id === null ? null : toNumber(user.player_id),
+    jersey_number: user.jersey_number === null ? null : toNumber(user.jersey_number)
   };
 }
 
@@ -318,6 +329,38 @@ export const api = {
       {
         method: 'POST',
         body: JSON.stringify(payload)
+      },
+      token
+    ),
+
+  getUsers: async (token: string) => {
+    const response = await request<{ users: AdminUserItem[] }>('/users', {}, token);
+    return {
+      users: response.users.map(normalizeAdminUser)
+    };
+  },
+
+  updateUser: async (token: string, userId: number, payload: UpdateUserPayload) => {
+    const response = await request<{ message: string; user: AdminUserItem }>(
+      `/users/${userId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      },
+      token
+    );
+
+    return {
+      message: response.message,
+      user: normalizeAdminUser(response.user)
+    };
+  },
+
+  deleteUser: (token: string, userId: number) =>
+    request<{ message: string }>(
+      `/users/${userId}`,
+      {
+        method: 'DELETE'
       },
       token
     ),

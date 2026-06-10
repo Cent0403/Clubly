@@ -1,4 +1,5 @@
 export type Role = 'ADMIN' | 'PLAYER';
+export type PlayerPosition = 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | 'DEFENSIVE_SPECIALIST';
 
 export interface AuthUser {
   id: number;
@@ -41,6 +42,16 @@ export interface PlayerItem {
   jersey_number: number | null;
   position: string | null;
   overall_score: number;
+}
+
+export interface AdminUserItem {
+  id: number;
+  username: string;
+  full_name: string;
+  role: Role;
+  player_id: number | null;
+  jersey_number: number | null;
+  position: string | null;
 }
 
 export interface RatingItem {
@@ -94,7 +105,16 @@ export interface CreateUserPayload {
   fullName: string;
   role: Role;
   jerseyNumber?: number;
-  position?: 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | 'DEFENSIVE_SPECIALIST';
+  position?: PlayerPosition;
+}
+
+export interface UpdateUserPayload {
+  username?: string;
+  password?: string;
+  fullName?: string;
+  role?: Role;
+  jerseyNumber?: number | null;
+  position?: PlayerPosition | null;
 }
 
 export interface UpdateMyProfilePayload {

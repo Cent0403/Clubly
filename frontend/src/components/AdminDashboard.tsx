@@ -1,9 +1,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import {
+  AdminUserItem,
   GlobalStats,
   MatchItem,
   MatchRatingRow,
+  PlayerPosition,
   PlayerHistoryItem,
   PlayerItem,
   PlayerSummary,
@@ -33,7 +35,16 @@ interface UserFormState {
   fullName: string;
   role: Role;
   jerseyNumber: string;
-  position: '' | 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | 'DEFENSIVE_SPECIALIST';
+  position: '' | PlayerPosition;
+}
+
+interface EditUserFormState {
+  username: string;
+  password: string;
+  fullName: string;
+  role: Role;
+  jerseyNumber: string;
+  position: '' | PlayerPosition;
 }
 
 const EMPTY_MATCH_FORM: MatchFormState = {
@@ -45,6 +56,15 @@ const EMPTY_MATCH_FORM: MatchFormState = {
 };
 
 const EMPTY_USER_FORM: UserFormState = {
+  username: '',
+  password: '',
+  fullName: '',
+  role: 'PLAYER',
+  jerseyNumber: '',
+  position: ''
+};
+
+const EMPTY_EDIT_USER_FORM: EditUserFormState = {
   username: '',
   password: '',
   fullName: '',
@@ -142,6 +162,9 @@ function createDefaultRating(playerId: number): RatingItem {
 }
 
 export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: AdminDashboardProps) {
+  const [users, setUsers] = useState<AdminUserItem[]>([]);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState<'ALL' | Role>('ALL');
   const [players, setPlayers] = useState<PlayerItem[]>([]);
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
@@ -157,6 +180,10 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   const [editingMatchId, setEditingMatchId] = useState<number | null>(null);
   const [loadingMatchRatings, setLoadingMatchRatings] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [editingUserForm, setEditingUserForm] = useState<EditUserFormState>(EMPTY_EDIT_USER_FORM);
+  const [savingUserEdit, setSavingUserEdit] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
   const [selectedPlayerStatId, setSelectedPlayerStatId] = useState<number | null>(null);
   const [selectedPlayerSummary, setSelectedPlayerSummary] = useState<PlayerSummary | null>(null);
   const [selectedPlayerHistory, setSelectedPlayerHistory] = useState<PlayerHistoryItem[]>([]);
@@ -171,17 +198,41 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     [matches, selectedMatchId]
   );
 
+  const filteredUsers = useMemo(() => {
+    const search = userSearchTerm.trim().toLowerCase();
+
+    return users.filter((user) => {
+      const roleMatches = userRoleFilter === 'ALL' || user.role === userRoleFilter;
+
+      if (!roleMatches) {
+        return false;
+      }
+
+      if (!search) {
+        return true;
+      }
+
+      return (
+        user.full_name.toLowerCase().includes(search) ||
+        user.username.toLowerCase().includes(search) ||
+        (user.position ?? '').toLowerCase().includes(search)
+      );
+    });
+  }, [users, userRoleFilter, userSearchTerm]);
+
   async function loadInitialData() {
     setLoading(true);
     setError(null);
 
     try {
-      const [playersRes, matchesRes, statsRes] = await Promise.all([
+      const [usersRes, playersRes, matchesRes, statsRes] = await Promise.all([
+        api.getUsers(token),
         api.getPlayers(token),
         api.getMatches(token),
         api.getGlobalStats(token)
       ]);
 
+      setUsers(usersRes.users);
       setPlayers(playersRes.players);
       setMatches(matchesRes.matches);
       setGlobalStats(statsRes);
@@ -310,6 +361,119 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     }));
   }
 
+  function loadUserIntoEditForm(user: AdminUserItem) {
+    setEditingUserId(user.id);
+    setEditingUserForm({
+      username: user.username,
+      password: '',
+      fullName: user.full_name,
+      role: user.role,
+      jerseyNumber: user.jersey_number === null ? '' : String(user.jersey_number),
+      position: (user.position as EditUserFormState['position']) ?? ''
+    });
+    setError(null);
+    setMessage(`Editando usuario: ${user.full_name}`);
+  }
+
+  async function handleUpdateUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!editingUserId) {
+      setError('Selecciona un usuario para editar.');
+      return;
+    }
+
+    if (!editingUserForm.username.trim() || !editingUserForm.fullName.trim()) {
+      setError('Username y nombre completo son obligatorios.');
+      return;
+    }
+
+    setSavingUserEdit(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const payload = {
+        username: editingUserForm.username.trim(),
+        fullName: editingUserForm.fullName.trim(),
+        role: editingUserForm.role,
+        ...(editingUserForm.password.trim() ? { password: editingUserForm.password.trim() } : {}),
+        ...(editingUserForm.role === 'PLAYER'
+          ? {
+              jerseyNumber: editingUserForm.jerseyNumber ? Number(editingUserForm.jerseyNumber) : null,
+              position: editingUserForm.position || null
+            }
+          : {})
+      };
+
+      const response = await api.updateUser(token, editingUserId, payload);
+
+      setUsers((current) => current.map((user) => (user.id === editingUserId ? response.user : user)));
+
+      const playersRes = await api.getPlayers(token);
+      setPlayers(playersRes.players);
+
+      if (selectedPlayerStatId && !playersRes.players.some((player) => player.player_id === selectedPlayerStatId)) {
+        setSelectedPlayerStatId(null);
+        setSelectedPlayerSummary(null);
+        setSelectedPlayerHistory([]);
+      }
+
+      setEditingUserForm((current) => ({ ...current, password: '' }));
+      setMessage('Usuario actualizado correctamente.');
+    } catch (updateUserError) {
+      setError((updateUserError as Error).message);
+    } finally {
+      setSavingUserEdit(false);
+    }
+  }
+
+  async function handleDeleteUser(user: AdminUserItem) {
+    const confirmDelete = window.confirm(
+      `Esta accion eliminara el usuario ${user.full_name}${user.role === 'PLAYER' ? ' y su perfil de jugador' : ''}.`
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    setDeletingUserId(user.id);
+    setError(null);
+    setMessage(null);
+
+    try {
+      await api.deleteUser(token, user.id);
+      setUsers((current) => current.filter((item) => item.id !== user.id));
+
+      if (user.player_id) {
+        setPlayers((current) => current.filter((player) => player.player_id !== user.player_id));
+        setSelectedPlayers((current) => current.filter((playerId) => playerId !== user.player_id));
+        setRatings((current) => {
+          const next = { ...current };
+          delete next[user.player_id as number];
+          return next;
+        });
+
+        if (selectedPlayerStatId === user.player_id) {
+          setSelectedPlayerStatId(null);
+          setSelectedPlayerSummary(null);
+          setSelectedPlayerHistory([]);
+        }
+      }
+
+      if (editingUserId === user.id) {
+        setEditingUserId(null);
+        setEditingUserForm(EMPTY_EDIT_USER_FORM);
+      }
+
+      setMessage('Usuario eliminado correctamente.');
+    } catch (deleteUserError) {
+      setError((deleteUserError as Error).message);
+    } finally {
+      setDeletingUserId(null);
+    }
+  }
+
   async function handleCreateUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -337,6 +501,19 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
       setMessage('Usuario creado correctamente.');
       setUserForm(EMPTY_USER_FORM);
+
+      setUsers((current) => [
+        ...current,
+        {
+          id: response.user.id,
+          username: response.user.username,
+          full_name: response.user.fullName,
+          role: response.user.role,
+          player_id: response.user.playerId,
+          jersey_number: userForm.role === 'PLAYER' && userForm.jerseyNumber ? Number(userForm.jerseyNumber) : null,
+          position: userForm.role === 'PLAYER' ? userForm.position || null : null
+        }
+      ]);
 
       if (response.user.role === 'PLAYER' && response.user.playerId) {
         setPlayers((current) => [
@@ -797,6 +974,155 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
               {creatingUser ? 'Creando usuario...' : 'Crear usuario'}
             </button>
           </form>
+
+          <div className="mt-6 border-t border-slate-200 pt-4 dark:border-slate-700">
+            <h4 className="text-base font-semibold">Editar usuario/jugador</h4>
+
+            {editingUserId ? (
+              <form className="mt-3 space-y-3" onSubmit={handleUpdateUser}>
+                <input
+                  className="input"
+                  placeholder="Username"
+                  value={editingUserForm.username}
+                  onChange={(event) => setEditingUserForm((current) => ({ ...current, username: event.target.value }))}
+                  required
+                />
+                <input
+                  className="input"
+                  placeholder="Nombre completo"
+                  value={editingUserForm.fullName}
+                  onChange={(event) => setEditingUserForm((current) => ({ ...current, fullName: event.target.value }))}
+                  required
+                />
+                <input
+                  className="input"
+                  type="password"
+                  placeholder="Nueva password (opcional)"
+                  value={editingUserForm.password}
+                  onChange={(event) => setEditingUserForm((current) => ({ ...current, password: event.target.value }))}
+                />
+                <select
+                  className="input"
+                  value={editingUserForm.role}
+                  onChange={(event) =>
+                    setEditingUserForm((current) => ({ ...current, role: event.target.value as Role }))
+                  }
+                >
+                  <option value="PLAYER">Jugador</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+
+                {editingUserForm.role === 'PLAYER' ? (
+                  <>
+                    <input
+                      className="input"
+                      type="number"
+                      min={1}
+                      placeholder="Numero de camiseta"
+                      value={editingUserForm.jerseyNumber}
+                      onChange={(event) =>
+                        setEditingUserForm((current) => ({ ...current, jerseyNumber: event.target.value }))
+                      }
+                    />
+                    <select
+                      className="input"
+                      value={editingUserForm.position}
+                      onChange={(event) =>
+                        setEditingUserForm((current) => ({
+                          ...current,
+                          position: event.target.value as EditUserFormState['position']
+                        }))
+                      }
+                    >
+                      {USER_POSITIONS.map((position) => (
+                        <option key={position || 'NONE'} value={position}>
+                          {position || 'Posicion (opcional)'}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                ) : null}
+
+                <div className="flex flex-wrap gap-2">
+                  <button className="btn-primary" type="submit" disabled={savingUserEdit}>
+                    {savingUserEdit ? 'Actualizando...' : 'Actualizar usuario'}
+                  </button>
+                  <button
+                    className="btn-muted"
+                    type="button"
+                    onClick={() => {
+                      setEditingUserId(null);
+                      setEditingUserForm(EMPTY_EDIT_USER_FORM);
+                    }}
+                  >
+                    Cancelar edicion
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                Selecciona un usuario en la lista para editar toda su informacion.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-6 border-t border-slate-200 pt-4 dark:border-slate-700">
+            <h4 className="text-base font-semibold">Usuarios registrados</h4>
+            <div className="mt-3 grid gap-2 md:grid-cols-3">
+              <input
+                className="input md:col-span-2"
+                placeholder="Buscar por nombre, username o posicion"
+                value={userSearchTerm}
+                onChange={(event) => setUserSearchTerm(event.target.value)}
+              />
+              <select
+                className="input"
+                value={userRoleFilter}
+                onChange={(event) => setUserRoleFilter(event.target.value as 'ALL' | Role)}
+              >
+                <option value="ALL">Todos los roles</option>
+                <option value="PLAYER">Solo jugadores</option>
+                <option value="ADMIN">Solo administradores</option>
+              </select>
+            </div>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              Mostrando {filteredUsers.length} de {users.length} usuarios
+            </p>
+            <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
+              {filteredUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
+                >
+                  <p className="font-semibold">{user.full_name}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
+                    @{user.username} | {user.role}
+                    {user.role === 'PLAYER'
+                      ? ` | #${user.jersey_number ?? '-'} | ${user.position ?? 'Sin posicion'}`
+                      : ''}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button className="btn-muted" type="button" onClick={() => loadUserIntoEditForm(user)}>
+                      Editar
+                    </button>
+                    <button
+                      className="btn-muted"
+                      type="button"
+                      onClick={() => void handleDeleteUser(user)}
+                      disabled={deletingUserId === user.id}
+                    >
+                      {deletingUserId === user.id ? 'Eliminando...' : 'Eliminar'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {filteredUsers.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                  No hay usuarios que coincidan con los filtros actuales.
+                </p>
+              ) : null}
+            </div>
+          </div>
         </article>
 
         <article className="card xl:col-span-3">
