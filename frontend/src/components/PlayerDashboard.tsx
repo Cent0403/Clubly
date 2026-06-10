@@ -1,0 +1,344 @@
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { api } from '../lib/api';
+import { PlayerHistoryItem, PlayerItem, PlayerSummary } from '../types';
+import { MetricBars } from './charts/MetricBars';
+import { RadarChart } from './charts/RadarChart';
+
+interface PlayerDashboardProps {
+  token: string;
+}
+
+export function PlayerDashboard({ token }: PlayerDashboardProps) {
+  const [profile, setProfile] = useState<PlayerItem | null>(null);
+  const [profileForm, setProfileForm] = useState({ fullName: '', password: '' });
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<PlayerSummary | null>(null);
+  const [history, setHistory] = useState<PlayerHistoryItem[]>([]);
+  const [selectedMatch, setSelectedMatch] = useState<PlayerHistoryItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      setError(null);
+      setProfileError(null);
+      setProfileMessage(null);
+
+      try {
+        const [statsData, profileData] = await Promise.all([api.getMyStats(token), api.getMyProfile(token)]);
+        setSummary(statsData.summary);
+        setHistory(statsData.history);
+        setSelectedMatch(statsData.history[0] ?? null);
+        setProfile(profileData.player);
+        setProfileForm((current) => ({ ...current, fullName: profileData.player.full_name }));
+      } catch (requestError) {
+        setError((requestError as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void fetchData();
+  }, [token]);
+
+  const radarMetrics = useMemo(
+    () => [
+      { label: 'Recepcion', value: summary?.avg_reception ?? 0 },
+      { label: 'Saque', value: summary?.avg_serve ?? 0 },
+      { label: 'Defensa', value: summary?.avg_defense ?? 0 },
+      { label: 'Ataque', value: summary?.avg_attack ?? 0 },
+      { label: 'Bloqueo', value: summary?.avg_block ?? 0 },
+      { label: 'Armado', value: summary?.avg_setting ?? 0 }
+    ],
+    [summary]
+  );
+
+  const bestFundament = useMemo(() => {
+    return radarMetrics.reduce(
+      (best, metric) => (metric.value > best.value ? metric : best),
+      radarMetrics[0] ?? { label: 'Recepcion', value: 0 }
+    );
+  }, [radarMetrics]);
+
+  const worstFundament = useMemo(() => {
+    return radarMetrics.reduce(
+      (worst, metric) => (metric.value < worst.value ? metric : worst),
+      radarMetrics[0] ?? { label: 'Recepcion', value: 0 }
+    );
+  }, [radarMetrics]);
+
+  const summaryCards = [
+    { label: 'Nota actual', value: summary?.overall_score ?? 0, accent: 'text-sky-500' },
+    { label: 'Partidos calificados', value: summary?.matches_rated ?? 0, accent: 'text-amber-500' },
+    {
+      label: `Mejor fundamento: ${bestFundament.label}`,
+      value: bestFundament.value,
+      accent: 'text-emerald-500'
+    },
+    {
+      label: `Peor fundamento: ${worstFundament.label}`,
+      value: worstFundament.value,
+      accent: 'text-rose-500'
+    }
+  ];
+
+  async function handleUpdateProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setProfileError(null);
+    setProfileMessage(null);
+
+    const nextFullName = profileForm.fullName.trim();
+    const nextPassword = profileForm.password.trim();
+    const fullNameChanged = nextFullName.length > 0 && nextFullName !== (profile?.full_name ?? '');
+
+    if (!fullNameChanged && nextPassword.length === 0) {
+      setProfileError('No hay cambios para guardar en el perfil.');
+      return;
+    }
+
+    setSavingProfile(true);
+
+    try {
+      const response = await api.updateMyProfile(token, {
+        fullName: fullNameChanged ? nextFullName : undefined,
+        password: nextPassword.length > 0 ? nextPassword : undefined
+      });
+
+      setProfile(response.player);
+      setSummary((current) => (current ? { ...current, full_name: response.player.full_name } : current));
+      setProfileForm({ fullName: response.player.full_name, password: '' });
+      setProfileMessage('Perfil actualizado correctamente.');
+      setIsProfileModalOpen(false);
+    } catch (updateError) {
+      setProfileError((updateError as Error).message);
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
+  if (loading) {
+    return <div className="card">Cargando dashboard de jugador...</div>;
+  }
+
+  if (error) {
+    return <div className="card text-rose-500">{error}</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <section className="grid gap-6 xl:grid-cols-5">
+        <article className="card xl:col-span-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Perfil del jugador</p>
+          <h2 className="mt-2 text-2xl font-bold">{profile?.full_name ?? summary?.full_name}</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Edita tu nombre y contrasena desde el modal.</p>
+
+          <div className="mt-4">
+            <button
+              className="btn-primary"
+              type="button"
+              onClick={() => {
+                setProfileError(null);
+                setProfileMessage(null);
+                setProfileForm((current) => ({ ...current, fullName: profile?.full_name ?? current.fullName, password: '' }));
+                setIsProfileModalOpen(true);
+              }}
+            >
+              Editar perfil
+            </button>
+          </div>
+
+          {profileMessage ? <p className="mt-3 text-sm font-medium text-emerald-500">{profileMessage}</p> : null}
+          {profileError ? <p className="mt-3 text-sm font-medium text-rose-500">{profileError}</p> : null}
+        </article>
+
+        <article className="card xl:col-span-2">
+          <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Informacion de cuenta</p>
+          <div className="mt-4 space-y-2 text-sm">
+            <p>
+              <span className="font-semibold">Usuario:</span> {profile?.username ?? summary?.username}
+            </p>
+            <p>
+              <span className="font-semibold">Rol:</span> PLAYER
+            </p>
+            <p>
+              <span className="font-semibold">Numero de camiseta:</span>{' '}
+              {profile?.jersey_number !== null && profile?.jersey_number !== undefined ? profile.jersey_number : 'No asignado'}
+            </p>
+            <p>
+              <span className="font-semibold">Posicion:</span> {profile?.position ?? 'No asignada'}
+            </p>
+            <p>
+              <span className="font-semibold">Nota global actual:</span>{' '}
+              {profile?.overall_score !== undefined ? profile.overall_score.toFixed(2) : (summary?.overall_score ?? 0).toFixed(2)}
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {summaryCards.map((card) => (
+          <article key={card.label} className="card">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{card.label}</p>
+            <p className={`mt-2 text-3xl font-extrabold ${card.accent}`}>
+              {typeof card.value === 'number' ? card.value.toFixed(2) : card.value}
+            </p>
+          </article>
+        ))}
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-5">
+        <article className="card xl:col-span-2">
+          <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Perfil</p>
+          <h2 className="mt-2 text-2xl font-bold">{summary?.full_name}</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Usuario: {summary?.username}</p>
+
+          <div className="mt-5 space-y-3">
+            <MetricBars metrics={radarMetrics} />
+          </div>
+        </article>
+
+        <article className="card flex min-h-[360px] flex-col xl:col-span-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Fundamentos</p>
+              <h3 className="text-xl font-bold">Mapa de rendimiento</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">Escala de 0 a 10</p>
+          </div>
+
+          <div className="flex flex-1 items-center justify-center py-4">
+            <RadarChart metrics={radarMetrics} />
+          </div>
+        </article>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-5">
+        <article className="card xl:col-span-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Historial</p>
+              <h3 className="text-xl font-bold">Partidos evaluados</h3>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              {history.length} registros
+            </span>
+          </div>
+
+          <div className="mt-4 max-h-80 overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+            <table className="w-full text-left text-sm">
+              <thead className="sticky top-0 bg-white/95 dark:bg-slate-900/95">
+                <tr className="text-slate-600 dark:text-slate-300">
+                  <th className="px-3 py-3">Fecha</th>
+                  <th className="px-3 py-3">Rival</th>
+                  <th className="px-3 py-3">Torneo</th>
+                  <th className="px-3 py-3">Rendimiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((match) => (
+                  <tr
+                    key={match.match_id}
+                    className={`cursor-pointer border-t border-slate-200 transition hover:bg-slate-100 dark:border-slate-800 dark:hover:bg-slate-800 ${
+                      selectedMatch?.match_id === match.match_id ? 'bg-slate-100 dark:bg-slate-800' : ''
+                    }`}
+                    onClick={() => setSelectedMatch(match)}
+                  >
+                    <td className="px-3 py-3">{match.match_date}</td>
+                    <td className="px-3 py-3">{match.opponent}</td>
+                    <td className="px-3 py-3">{match.tournament}</td>
+                    <td className="px-3 py-3 font-semibold text-sky-500">{match.match_performance.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article className="card xl:col-span-2">
+          <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Detalle</p>
+          <h3 className="text-xl font-bold">Desglose del partido</h3>
+          {selectedMatch ? (
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="rounded-2xl bg-slate-100 p-4 dark:bg-slate-800">
+                <p className="font-semibold">{selectedMatch.match_date}</p>
+                <p className="text-slate-600 dark:text-slate-300">vs {selectedMatch.opponent}</p>
+                <p className="text-slate-600 dark:text-slate-300">{selectedMatch.tournament}</p>
+                <p className="mt-3 text-2xl font-extrabold text-sky-500">
+                  {selectedMatch.match_performance.toFixed(2)}
+                </p>
+              </div>
+
+              <MetricBars
+                metrics={[
+                  { label: 'Recepcion', value: selectedMatch.reception },
+                  { label: 'Saque', value: selectedMatch.serve },
+                  { label: 'Defensa', value: selectedMatch.defense },
+                  { label: 'Ataque', value: selectedMatch.attack },
+                  { label: 'Bloqueo', value: selectedMatch.block_score },
+                  { label: 'Armado', value: selectedMatch.setting_score }
+                ]}
+              />
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+              Selecciona un partido del historial para ver su desglose exacto.
+            </p>
+          )}
+        </article>
+      </section>
+
+      {isProfileModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
+          <div className="card w-full max-w-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Editar perfil</p>
+                <h3 className="mt-1 text-xl font-bold">Actualiza tu nombre y contrasena</h3>
+              </div>
+              <button className="btn-muted" type="button" onClick={() => setIsProfileModalOpen(false)}>
+                Cerrar
+              </button>
+            </div>
+
+            <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={handleUpdateProfile}>
+              <div>
+                <label className="mb-1 block text-xs font-medium">Nombre completo</label>
+                <input
+                  className="input"
+                  value={profileForm.fullName}
+                  onChange={(event) => setProfileForm((current) => ({ ...current, fullName: event.target.value }))}
+                  placeholder="Tu nombre completo"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium">Nueva contrasena</label>
+                <input
+                  className="input"
+                  type="password"
+                  value={profileForm.password}
+                  onChange={(event) => setProfileForm((current) => ({ ...current, password: event.target.value }))}
+                  placeholder="Dejar vacio para no cambiar"
+                />
+              </div>
+
+              <div className="md:col-span-2 flex flex-wrap gap-2">
+                <button className="btn-primary" type="submit" disabled={savingProfile}>
+                  {savingProfile ? 'Guardando perfil...' : 'Guardar cambios'}
+                </button>
+                <button className="btn-muted" type="button" onClick={() => setIsProfileModalOpen(false)}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+
+            {profileError ? <p className="mt-3 text-sm font-medium text-rose-500">{profileError}</p> : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

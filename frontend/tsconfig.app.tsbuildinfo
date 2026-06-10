@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/types.ts","./src/components/admindashboard.tsx","./src/components/loginform.tsx","./src/components/playerdashboard.tsx","./src/components/charts/metricbars.tsx","./src/components/charts/radarchart.tsx","./src/hooks/usedarkmode.ts","./src/lib/api.ts"],"version":"5.9.3"}
