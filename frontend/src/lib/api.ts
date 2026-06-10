@@ -161,6 +161,7 @@ function normalizeMatchRatingRow(row: MatchRatingRow): MatchRatingRow {
     attack_points: toNumber(row.attack_points, 0),
     attack_errors: toNumber(row.attack_errors, 0),
     serve_aces: toNumber(row.serve_aces, 0),
+    serve_complicated: toNumber(row.serve_complicated, 0),
     serve_errors: toNumber(row.serve_errors, 0),
     block_points: toNumber(row.block_points, 0),
     block_touches: toNumber(row.block_touches, 0),

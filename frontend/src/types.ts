@@ -64,6 +64,7 @@ export interface RatingItem {
   attackPoints: number;
   attackErrors: number;
   serveAces: number;
+  serveComplicated: number;
   serveErrors: number;
   blockPoints: number;
   blockTouches: number;
@@ -84,6 +85,7 @@ export interface MatchRatingRow {
   attack_points: number;
   attack_errors: number;
   serve_aces: number;
+  serve_complicated: number;
   serve_errors: number;
   block_points: number;
   block_touches: number;

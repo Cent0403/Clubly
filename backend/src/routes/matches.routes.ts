@@ -21,6 +21,7 @@ interface RatingInput {
   attackPoints: number;
   attackErrors: number;
   serveAces: number;
+  serveComplicated: number;
   serveErrors: number;
   blockPoints: number;
   blockTouches: number;
@@ -61,6 +62,7 @@ function calculateNetContribution(item: RatingInput): number {
   const positivePoints =
     item.attackPoints * 1.0 +
     item.serveAces * 1.0 +
+    item.serveComplicated * 0.6 +
     item.blockPoints * 1.0 +
     item.blockTouches * 0.2 +
     item.defenseSuccesses * 0.4 +
@@ -126,7 +128,13 @@ async function ensureReceptionSchema(): Promise<void> {
           FROM information_schema.columns
           WHERE table_schema = DATABASE()
             AND table_name = 'ratings'
-            AND COLUMN_NAME IN ('reception_good', 'reception_bad', 'reception_error', 'reception_errors')
+            AND COLUMN_NAME IN (
+              'reception_good',
+              'reception_bad',
+              'reception_error',
+              'reception_errors',
+              'serve_complicated'
+            )
         `
       );
 
@@ -141,6 +149,10 @@ async function ensureReceptionSchema(): Promise<void> {
         if (existingColumns.has('reception_errors')) {
           await pool.query(`UPDATE ratings SET reception_error = reception_errors WHERE reception_errors IS NOT NULL`);
         }
+      }
+
+      if (!existingColumns.has('serve_complicated')) {
+        await pool.query(`ALTER TABLE ratings ADD COLUMN serve_complicated INT UNSIGNED NOT NULL DEFAULT 0 AFTER serve_aces`);
       }
 
       await syncMatchPerformanceGeneratedColumn();
@@ -163,7 +175,7 @@ function calculateScores(item: RatingInput) {
           item.receptionError * 0.75
       ).toFixed(2)
     ),
-    serve: Number(clampScore(item.serveAces * 1.0 - item.serveErrors * 0.5).toFixed(2)),
+    serve: Number(clampScore(item.serveAces * 1.0 + item.serveComplicated * 0.6 - item.serveErrors * 0.5).toFixed(2)),
     defense: Number(clampScore(item.defenseSuccesses * 0.4).toFixed(2)),
     attack: Number(clampScore(item.attackPoints * 1.0 - item.attackErrors * 0.5).toFixed(2)),
     blockScore: Number(clampScore(item.blockPoints * 1.0 + item.blockTouches * 0.2).toFixed(2)),
@@ -336,6 +348,7 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
       !isNonNegativeNumber(item.attackPoints) ||
       !isNonNegativeNumber(item.attackErrors) ||
       !isNonNegativeNumber(item.serveAces) ||
+      !isNonNegativeNumber(item.serveComplicated) ||
       !isNonNegativeNumber(item.serveErrors) ||
       !isNonNegativeNumber(item.blockPoints) ||
       !isNonNegativeNumber(item.blockTouches) ||
@@ -387,6 +400,7 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
             attack_points,
             attack_errors,
             serve_aces,
+            serve_complicated,
             serve_errors,
             block_points,
             block_touches,
@@ -405,12 +419,13 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
             setting_score,
             created_by
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE
             minutes_played = VALUES(minutes_played),
             attack_points = VALUES(attack_points),
             attack_errors = VALUES(attack_errors),
             serve_aces = VALUES(serve_aces),
+            serve_complicated = VALUES(serve_complicated),
             serve_errors = VALUES(serve_errors),
             block_points = VALUES(block_points),
             block_touches = VALUES(block_touches),
@@ -436,6 +451,7 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
           item.attackPoints,
           item.attackErrors,
           item.serveAces,
+          item.serveComplicated,
           item.serveErrors,
           item.blockPoints,
           item.blockTouches,
@@ -488,6 +504,7 @@ matchesRouter.get('/:id/ratings', async (req, res) => {
         r.attack_points,
         r.attack_errors,
         r.serve_aces,
+        r.serve_complicated,
         r.serve_errors,
         r.block_points,
         r.block_touches,

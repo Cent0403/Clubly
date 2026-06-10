@@ -121,6 +121,7 @@ const EVENT_FIELDS: Array<{ key: keyof Omit<RatingItem, 'playerId' | 'minutesPla
   { key: 'attackPoints', label: 'Ataque: puntos' },
   { key: 'attackErrors', label: 'Ataque: errores' },
   { key: 'serveAces', label: 'Saque: aces' },
+  { key: 'serveComplicated', label: 'Saque: complicado' },
   { key: 'serveErrors', label: 'Saque: errores' },
   { key: 'blockPoints', label: 'Bloqueo: puntos' },
   { key: 'blockTouches', label: 'Bloqueo: toques' },
@@ -146,8 +147,8 @@ const FUNDAMENT_GROUPS = [
   },
   {
     title: 'Saque',
-    description: 'Aces y errores',
-    fields: ['serveAces', 'serveErrors'] as const
+    description: 'Aces, complicados y errores',
+    fields: ['serveAces', 'serveComplicated', 'serveErrors'] as const
   },
   {
     title: 'Bloqueo',
@@ -192,6 +193,7 @@ function createDefaultRating(playerId: number): RatingItem {
     attackPoints: 0,
     attackErrors: 0,
     serveAces: 0,
+    serveComplicated: 0,
     serveErrors: 0,
     blockPoints: 0,
     blockTouches: 0,
@@ -361,6 +363,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
             attackPoints: row.attack_points,
             attackErrors: row.attack_errors,
             serveAces: row.serve_aces,
+            serveComplicated: row.serve_complicated,
             serveErrors: row.serve_errors,
             blockPoints: row.block_points,
             blockTouches: row.block_touches,
@@ -797,6 +800,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
           attackPoints: row.attack_points,
           attackErrors: row.attack_errors,
           serveAces: row.serve_aces,
+          serveComplicated: row.serve_complicated,
           serveErrors: row.serve_errors,
           blockPoints: row.block_points,
           blockTouches: row.block_touches,
