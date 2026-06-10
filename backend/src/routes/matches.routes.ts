@@ -80,6 +80,65 @@ function calculateNetContribution(item: RatingInput): number {
 
 let receptionSchemaReady: Promise<void> | null = null;
 
+const MATCH_PERFORMANCE_GENERATED_SQL = `
+  CASE
+    WHEN minutes_played = 1 THEN LEAST(
+      10.00,
+      GREATEST(
+        1.00,
+        ROUND(
+          5.00 + (
+            (
+              attack_points * 1.00 +
+              serve_aces * 1.00 +
+              block_points * 1.00 +
+              block_touches * 0.20 +
+              defense_successes * 0.40 +
+              reception_perfect * 1.00 +
+              reception_good * 0.50 +
+              reception_bad * 0.25 +
+              set_assists * 0.25 -
+              attack_errors * 0.50 -
+              serve_errors * 0.50 -
+              reception_error * 0.75 -
+              set_errors * 0.60
+            ) / 2
+          ),
+          2
+        )
+      )
+    )
+    ELSE NULL
+  END
+`;
+
+async function syncMatchPerformanceGeneratedColumn(): Promise<void> {
+  const modifyColumnSql = `
+    ALTER TABLE ratings
+    MODIFY COLUMN match_performance DECIMAL(7,2) GENERATED ALWAYS AS (
+      ${MATCH_PERFORMANCE_GENERATED_SQL}
+    ) STORED
+  `;
+
+  try {
+    await pool.query(modifyColumnSql);
+    return;
+  } catch (error) {
+    const sqlError = error as { message?: string };
+    const message = (sqlError.message ?? '').toLowerCase();
+    const isGeneratedModifyUnsupported =
+      message.includes('modifying a stored column') && message.includes('generated columns');
+
+    if (!isGeneratedModifyUnsupported) {
+      throw error;
+    }
+  }
+
+  // TiDB limitation: generated stored columns cannot be changed via ALTER in some versions.
+  // Keep existing column to avoid runtime breakage. Use table rebuild migration externally.
+  console.warn('Skipping match_performance generated column sync due to TiDB ALTER limitation.');
+}
+
 async function ensureReceptionSchema(): Promise<void> {
   if (!receptionSchemaReady) {
     receptionSchemaReady = (async () => {
@@ -106,40 +165,7 @@ async function ensureReceptionSchema(): Promise<void> {
         }
       }
 
-      await pool.query(`
-        ALTER TABLE ratings
-        MODIFY COLUMN match_performance DECIMAL(7,2) GENERATED ALWAYS AS (
-          CASE
-            WHEN minutes_played = 1 THEN LEAST(
-              10.00,
-              GREATEST(
-                1.00,
-                ROUND(
-                  5.00 + (
-                    (
-                      attack_points * 1.00 +
-                      serve_aces * 1.00 +
-                      block_points * 1.00 +
-                      block_touches * 0.20 +
-                      defense_successes * 0.40 +
-                      reception_perfect * 1.00 +
-                      reception_good * 0.50 +
-                      reception_bad * 0.25 +
-                      set_assists * 0.25 -
-                      attack_errors * 0.50 -
-                      serve_errors * 0.50 -
-                      reception_error * 0.75 -
-                      set_errors * 0.60
-                    ) / 2
-                  ),
-                  2
-                )
-              )
-            )
-            ELSE NULL
-          END
-        ) STORED
-      `);
+      await syncMatchPerformanceGeneratedColumn();
     })().catch((error) => {
       receptionSchemaReady = null;
       throw error;
