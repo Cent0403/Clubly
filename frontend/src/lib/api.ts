@@ -323,6 +323,13 @@ export const api = {
     return normalizeGlobalStats(response);
   },
 
+  getTopPlayers: async (token: string) => {
+    const response = await request<{ players: PlayerItem[] }>('/stats/top', {}, token);
+    return {
+      players: response.players.map(normalizePlayer)
+    };
+  },
+
   createUser: (token: string, payload: CreateUserPayload) =>
     request<{ message: string; user: { id: number; username: string; fullName: string; role: 'ADMIN' | 'PLAYER'; playerId: number | null } }>(
       '/users',

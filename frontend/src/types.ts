@@ -44,6 +44,10 @@ export interface PlayerItem {
   overall_score: number;
 }
 
+export interface TopPlayersResponse {
+  players: PlayerItem[];
+}
+
 export interface AdminUserItem {
   id: number;
   username: string;

@@ -83,6 +83,40 @@ const USER_POSITIONS: Array<UserFormState['position']> = [
   'DEFENSIVE_SPECIALIST'
 ];
 
+const POSITION_LABELS: Record<Exclude<UserFormState['position'], ''>, string> = {
+  SETTER: 'Colocador',
+  OUTSIDE: 'Latero',
+  OPPOSITE: 'Opuesto',
+  MIDDLE: 'Central',
+  LIBERO: 'Libero',
+  DEFENSIVE_SPECIALIST: 'Especialista en defensa'
+};
+
+const POSITION_OPTION_LABELS: Record<Exclude<UserFormState['position'], ''>, string> = {
+  SETTER: 'Colocador',
+  OUTSIDE: 'Latero',
+  OPPOSITE: 'Opuesto',
+  MIDDLE: 'Central',
+  LIBERO: 'Libero',
+  DEFENSIVE_SPECIALIST: 'Especialista en defensa'
+};
+
+function formatRole(role: Role) {
+  return role === 'ADMIN' ? 'Admin' : 'Jugador';
+}
+
+function formatPosition(position: string | null | undefined) {
+  if (!position) {
+    return 'Sin posición';
+  }
+
+  return POSITION_LABELS[position as keyof typeof POSITION_LABELS] ?? position;
+}
+
+function formatPositionOption(position: UserFormState['position']) {
+  return position === '' ? 'Posicion (opcional)' : POSITION_OPTION_LABELS[position];
+}
+
 const EVENT_FIELDS: Array<{ key: keyof Omit<RatingItem, 'playerId' | 'minutesPlayed'>; label: string }> = [
   { key: 'attackPoints', label: 'Ataque: puntos' },
   { key: 'attackErrors', label: 'Ataque: errores' },
@@ -141,6 +175,16 @@ const TOP_RANKINGS = [
   { key: 'setting', title: 'Top armado' }
 ] as const;
 
+const ADMIN_SECTIONS = [
+  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'equipo', label: 'Equipo' },
+  { key: 'usuarios', label: 'Usuarios' },
+  { key: 'partidos', label: 'Partidos' },
+  { key: 'top', label: 'Top' }
+] as const;
+
+type AdminSectionKey = (typeof ADMIN_SECTIONS)[number]['key'];
+
 function createDefaultRating(playerId: number): RatingItem {
   return {
     playerId,
@@ -162,10 +206,12 @@ function createDefaultRating(playerId: number): RatingItem {
 }
 
 export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: AdminDashboardProps) {
+  const [activeSection, setActiveSection] = useState<AdminSectionKey>('dashboard');
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'ALL' | Role>('ALL');
   const [players, setPlayers] = useState<PlayerItem[]>([]);
+  const [topPlayers, setTopPlayers] = useState<PlayerItem[]>([]);
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
@@ -243,15 +289,17 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     setError(null);
 
     try {
-      const [usersRes, playersRes, matchesRes, statsRes] = await Promise.all([
+      const [usersRes, playersRes, topPlayersRes, matchesRes, statsRes] = await Promise.all([
         api.getUsers(token),
         api.getPlayers(token),
+        api.getTopPlayers(token),
         api.getMatches(token),
         api.getGlobalStats(token)
       ]);
 
       setUsers(usersRes.users);
       setPlayers(playersRes.players);
+      setTopPlayers(topPlayersRes.players);
       setMatches(matchesRes.matches);
       setGlobalStats(statsRes);
 
@@ -276,6 +324,11 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   async function refreshGlobalStats() {
     const stats = await api.getGlobalStats(token);
     setGlobalStats(stats);
+  }
+
+  async function refreshTopPlayers() {
+    const response = await api.getTopPlayers(token);
+    setTopPlayers(response.players);
   }
 
   useEffect(() => {
@@ -321,7 +374,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
           };
         });
 
-        setSelectedPlayers(nextSelectedPlayers);
+        setSelectedPlayers([]);
         setRatings(nextRatings);
       } catch {
         setSelectedPlayers([]);
@@ -430,6 +483,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
       const playersRes = await api.getPlayers(token);
       setPlayers(playersRes.players);
+      await refreshTopPlayers();
 
       if (selectedPlayerStatId && !playersRes.players.some((player) => player.player_id === selectedPlayerStatId)) {
         setSelectedPlayerStatId(null);
@@ -478,6 +532,8 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
           setSelectedPlayerHistory([]);
         }
       }
+
+      await refreshTopPlayers();
 
       if (editingUserId === user.id) {
         setEditingUserId(null);
@@ -554,6 +610,8 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         setSelectedPlayerSummary(playerStats.summary);
         setSelectedPlayerHistory(playerStats.history);
       }
+
+      await refreshTopPlayers();
     } catch (createUserError) {
       setError((createUserError as Error).message);
     } finally {
@@ -727,6 +785,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       ]);
 
       setGlobalStats(updatedStats);
+      await refreshTopPlayers();
 
       const nextSelectedPlayers = matchRatings.ratings.map((row) => row.player_id);
       const nextRatings: Record<number, RatingItem> = {};
@@ -817,7 +876,27 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="card">
+        <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
+          {ADMIN_SECTIONS.map((section) => {
+            const isActive = activeSection === section.key;
+
+            return (
+              <button
+                key={section.key}
+                type="button"
+                className={`${isActive ? 'btn-primary' : 'btn-muted'} shrink-0`}
+                onClick={() => setActiveSection(section.key)}
+                aria-pressed={isActive}
+              >
+                {section.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className={activeSection === 'dashboard' ? 'grid gap-4 md:grid-cols-2 xl:grid-cols-3' : 'hidden'}>
         <article className="card xl:col-span-2">
           <p className="text-xs uppercase tracking-[0.2em] text-sky-500">Rendimiento de equipo</p>
           <h2 className="mt-2 text-2xl font-bold">Dashboard global</h2>
@@ -853,7 +932,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         ))}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-5">
+      <section className={activeSection === 'equipo' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
         <article className="card xl:col-span-2">
           <h3 className="text-xl font-bold">Perfil admin del equipo</h3>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
@@ -881,7 +960,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
                 <img
                   src={settingsForm.teamLogoUrl}
                   alt="Vista previa del logo"
-                  className="h-20 w-20 rounded-xl border border-slate-300 object-cover dark:border-slate-700"
+                  className="h-20 w-20 rounded-xl object-cover"
                 />
                 <button
                   className="btn-muted"
@@ -913,7 +992,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
               <img
                 src={settingsForm.teamLogoUrl}
                 alt="Logo del equipo"
-                className="h-14 w-14 rounded-xl border border-slate-200 object-cover dark:border-slate-700"
+                className="h-14 w-14 rounded-xl object-cover"
               />
             ) : null}
             <div>
@@ -924,7 +1003,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         </article>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-5">
+      <section className={activeSection === 'usuarios' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
         <article className="card xl:col-span-2">
           <h3 className="text-xl font-bold">Crear usuario</h3>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
@@ -981,7 +1060,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
                 >
                   {USER_POSITIONS.map((position) => (
                     <option key={position || 'NONE'} value={position}>
-                      {position || 'Posicion (opcional)'}
+                      {formatPositionOption(position)}
                     </option>
                   ))}
                 </select>
@@ -1076,7 +1155,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         </article>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-5">
+      <section className={activeSection === 'usuarios' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
         <article className="card xl:col-span-2">
           <h3 className="text-xl font-bold">Editar usuario/jugador</h3>
 
@@ -1111,7 +1190,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
                 }
               >
                 <option value="PLAYER">Jugador</option>
-                <option value="ADMIN">Administrador</option>
+                <option value="ADMIN">Admin</option>
               </select>
 
               {editingUserForm.role === 'PLAYER' ? (
@@ -1138,7 +1217,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
                   >
                     {USER_POSITIONS.map((position) => (
                       <option key={position || 'NONE'} value={position}>
-                        {position || 'Posicion (opcional)'}
+                          {formatPositionOption(position)}
                       </option>
                     ))}
                   </select>
@@ -1184,7 +1263,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
             >
               <option value="ALL">Todos los roles</option>
               <option value="PLAYER">Solo jugadores</option>
-              <option value="ADMIN">Solo administradores</option>
+              <option value="ADMIN">Solo Admin</option>
             </select>
           </div>
           <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -1198,8 +1277,8 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
               >
                 <p className="font-semibold">{user.full_name}</p>
                 <p className="text-xs text-slate-600 dark:text-slate-300">
-                  @{user.username} | {user.role}
-                  {user.role === 'PLAYER' ? ` | #${user.jersey_number ?? '-'} | ${user.position ?? 'Sin posicion'}` : ''}
+                  @{user.username} | {formatRole(user.role)}
+                  {user.role === 'PLAYER' ? ` | #${user.jersey_number ?? '-'} | ${formatPosition(user.position)}` : ''}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <button className="btn-muted" type="button" onClick={() => loadUserIntoEditForm(user)}>
@@ -1225,7 +1304,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         </article>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-5">
+      <section className={activeSection === 'partidos' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
         <article className="card xl:col-span-2">
           <h3 className="text-xl font-bold">Crear partido</h3>
           {editingMatchId ? (
@@ -1426,6 +1505,43 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
           {message ? <p className="mt-3 text-sm font-medium text-emerald-500">{message}</p> : null}
           {error ? <p className="mt-3 text-sm font-medium text-rose-500">{error}</p> : null}
+        </article>
+      </section>
+
+      <section className={activeSection === 'top' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
+        <article className="card xl:col-span-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-sky-500">Ranking general</p>
+              <h3 className="text-xl font-bold">Top jugadores por nota general</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Ordenado de mayor a menor según la nota global
+            </p>
+          </div>
+
+          <div className="mt-4 max-h-[34rem] space-y-2 overflow-y-auto pr-1">
+            {topPlayers.map((player, index) => (
+              <div
+                key={player.player_id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold">#{index + 1} {player.full_name}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 break-words">
+                    @{player.username} | {formatPosition(player.position)}
+                  </p>
+                </div>
+                <p className="shrink-0 text-lg font-extrabold text-sky-500">{player.overall_score.toFixed(2)}</p>
+              </div>
+            ))}
+
+            {topPlayers.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                No hay jugadores para mostrar en el ranking.
+              </p>
+            ) : null}
+          </div>
         </article>
       </section>
     </div>

@@ -6,6 +6,10 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { PlayerDashboard } from './components/PlayerDashboard';
 import { AuthUser, TeamSettings } from './types';
 
+function formatRole(role: AuthUser['role']) {
+  return role === 'ADMIN' ? 'Admin' : 'Jugador';
+}
+
 function App() {
   const { darkMode, toggleDarkMode } = useDarkMode();
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('volitics_token'));
@@ -86,7 +90,7 @@ function App() {
             <img
               src={teamSettings.teamLogoUrl}
               alt="Logo del equipo"
-              className="h-12 w-12 rounded-xl border border-slate-200 object-cover dark:border-slate-700"
+              className="h-12 w-12 object-cover"
             />
           ) : null}
 
@@ -104,7 +108,7 @@ function App() {
           {user ? (
             <>
               <span className="rounded-xl bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800">
-                {user.fullName} ({user.role})
+                {user.fullName} ({formatRole(user.role)})
               </span>
               <button className="btn-primary" onClick={handleLogout}>
                 Salir

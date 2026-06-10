@@ -8,7 +8,46 @@ interface PlayerDashboardProps {
   token: string;
 }
 
+const PLAYER_SECTIONS = [
+  { key: 'resumen', label: 'Resumen' },
+  { key: 'rendimiento', label: 'Rendimiento' },
+  { key: 'historial', label: 'Historial' },
+  { key: 'top', label: 'Top' }
+] as const;
+
+type PlayerSectionKey = (typeof PLAYER_SECTIONS)[number]['key'];
+
+const POSITION_LABELS: Record<string, string> = {
+  SETTER: 'Colocador',
+  OUTSIDE: 'Latero',
+  OPPOSITE: 'Opuesto',
+  MIDDLE: 'Central',
+  LIBERO: 'Libero',
+  DEFENSIVE_SPECIALIST: 'Especialista en defensa'
+};
+
+function formatRole(role: string | null | undefined) {
+  if (role === 'ADMIN') {
+    return 'Admin';
+  }
+
+  if (role === 'PLAYER') {
+    return 'Jugador';
+  }
+
+  return role ?? 'Sin rol';
+}
+
+function formatPosition(position: string | null | undefined) {
+  if (!position) {
+    return 'Sin posición';
+  }
+
+  return POSITION_LABELS[position] ?? position;
+}
+
 export function PlayerDashboard({ token }: PlayerDashboardProps) {
+  const [activeSection, setActiveSection] = useState<PlayerSectionKey>('resumen');
   const [profile, setProfile] = useState<PlayerItem | null>(null);
   const [profileForm, setProfileForm] = useState({ fullName: '', password: '' });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -17,6 +56,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [summary, setSummary] = useState<PlayerSummary | null>(null);
   const [history, setHistory] = useState<PlayerHistoryItem[]>([]);
+  const [topPlayers, setTopPlayers] = useState<PlayerItem[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<PlayerHistoryItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +69,14 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
       setProfileMessage(null);
 
       try {
-        const [statsData, profileData] = await Promise.all([api.getMyStats(token), api.getMyProfile(token)]);
+        const [statsData, profileData, topPlayersData] = await Promise.all([
+          api.getMyStats(token),
+          api.getMyProfile(token),
+          api.getTopPlayers(token)
+        ]);
         setSummary(statsData.summary);
         setHistory(statsData.history);
+        setTopPlayers(topPlayersData.players);
         setSelectedMatch(statsData.history[0] ?? null);
         setProfile(profileData.player);
         setProfileForm((current) => ({ ...current, fullName: profileData.player.full_name }));
@@ -130,7 +175,27 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-5">
+      <section className="card">
+        <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
+          {PLAYER_SECTIONS.map((section) => {
+            const isActive = activeSection === section.key;
+
+            return (
+              <button
+                key={section.key}
+                type="button"
+                className={`${isActive ? 'btn-primary' : 'btn-muted'} shrink-0`}
+                onClick={() => setActiveSection(section.key)}
+                aria-pressed={isActive}
+              >
+                {section.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className={activeSection === 'resumen' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
         <article className="card xl:col-span-3">
           <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Perfil del jugador</p>
           <h2 className="mt-2 text-2xl font-bold">{profile?.full_name ?? summary?.full_name}</h2>
@@ -162,14 +227,14 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
               <span className="font-semibold">Usuario:</span> {profile?.username ?? summary?.username}
             </p>
             <p>
-              <span className="font-semibold">Rol:</span> PLAYER
+              <span className="font-semibold">Rol:</span> {formatRole('PLAYER')}
             </p>
             <p>
               <span className="font-semibold">Numero de camiseta:</span>{' '}
               {profile?.jersey_number !== null && profile?.jersey_number !== undefined ? profile.jersey_number : 'No asignado'}
             </p>
             <p>
-              <span className="font-semibold">Posicion:</span> {profile?.position ?? 'No asignada'}
+              <span className="font-semibold">Posicion:</span> {formatPosition(profile?.position)}
             </p>
             <p>
               <span className="font-semibold">Nota global actual:</span>{' '}
@@ -179,7 +244,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         </article>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className={activeSection === 'resumen' ? 'grid gap-4 md:grid-cols-2 xl:grid-cols-4' : 'hidden'}>
         {summaryCards.map((card) => (
           <article key={card.label} className="card">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{card.label}</p>
@@ -190,7 +255,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         ))}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-5">
+      <section className={activeSection === 'rendimiento' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
         <article className="card xl:col-span-2">
           <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Perfil</p>
           <h2 className="mt-2 text-2xl font-bold">{summary?.full_name}</h2>
@@ -216,7 +281,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         </article>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-5">
+      <section className={activeSection === 'historial' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
         <article className="card xl:col-span-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -312,6 +377,43 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
               Selecciona un partido del historial para ver su desglose exacto.
             </p>
           )}
+        </article>
+      </section>
+
+      <section className={activeSection === 'top' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
+        <article className="card xl:col-span-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Ranking general</p>
+              <h3 className="text-xl font-bold">Top jugadores por nota general</h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Ordenado de mayor a menor según la nota global
+            </p>
+          </div>
+
+          <div className="mt-4 max-h-[34rem] space-y-2 overflow-y-auto pr-1">
+            {topPlayers.map((player, index) => (
+              <div
+                key={player.player_id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold">#{index + 1} {player.full_name}</p>
+                  <p className="break-words text-xs text-slate-600 dark:text-slate-300">
+                    @{player.username} | {formatPosition(player.position)}
+                  </p>
+                </div>
+                <p className="shrink-0 text-lg font-extrabold text-sky-500">{player.overall_score.toFixed(2)}</p>
+              </div>
+            ))}
+
+            {topPlayers.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                No hay jugadores para mostrar en el ranking.
+              </p>
+            ) : null}
+          </div>
         </article>
       </section>
 

@@ -249,4 +249,32 @@ statsRouter.get('/global', requireRole('ADMIN'), async (_req, res) => {
   });
 });
 
+statsRouter.get('/top', async (_req, res) => {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `
+      SELECT
+        p.id AS player_id,
+        u.id AS user_id,
+        u.username,
+        u.full_name,
+        p.jersey_number,
+        p.position,
+        LEAST(
+          10.00,
+          GREATEST(
+            1.00,
+            ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.match_performance END), 5.0), 2)
+          )
+        ) AS overall_score
+      FROM players p
+      JOIN users u ON u.id = p.user_id
+      LEFT JOIN ratings r ON r.player_id = p.id
+      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
+      ORDER BY overall_score DESC, u.full_name ASC
+    `
+  );
+
+  res.json({ players: rows });
+});
+
 export { statsRouter };
