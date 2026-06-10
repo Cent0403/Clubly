@@ -974,155 +974,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
               {creatingUser ? 'Creando usuario...' : 'Crear usuario'}
             </button>
           </form>
-
-          <div className="mt-6 border-t border-slate-200 pt-4 dark:border-slate-700">
-            <h4 className="text-base font-semibold">Editar usuario/jugador</h4>
-
-            {editingUserId ? (
-              <form className="mt-3 space-y-3" onSubmit={handleUpdateUser}>
-                <input
-                  className="input"
-                  placeholder="Username"
-                  value={editingUserForm.username}
-                  onChange={(event) => setEditingUserForm((current) => ({ ...current, username: event.target.value }))}
-                  required
-                />
-                <input
-                  className="input"
-                  placeholder="Nombre completo"
-                  value={editingUserForm.fullName}
-                  onChange={(event) => setEditingUserForm((current) => ({ ...current, fullName: event.target.value }))}
-                  required
-                />
-                <input
-                  className="input"
-                  type="password"
-                  placeholder="Nueva password (opcional)"
-                  value={editingUserForm.password}
-                  onChange={(event) => setEditingUserForm((current) => ({ ...current, password: event.target.value }))}
-                />
-                <select
-                  className="input"
-                  value={editingUserForm.role}
-                  onChange={(event) =>
-                    setEditingUserForm((current) => ({ ...current, role: event.target.value as Role }))
-                  }
-                >
-                  <option value="PLAYER">Jugador</option>
-                  <option value="ADMIN">Administrador</option>
-                </select>
-
-                {editingUserForm.role === 'PLAYER' ? (
-                  <>
-                    <input
-                      className="input"
-                      type="number"
-                      min={1}
-                      placeholder="Numero de camiseta"
-                      value={editingUserForm.jerseyNumber}
-                      onChange={(event) =>
-                        setEditingUserForm((current) => ({ ...current, jerseyNumber: event.target.value }))
-                      }
-                    />
-                    <select
-                      className="input"
-                      value={editingUserForm.position}
-                      onChange={(event) =>
-                        setEditingUserForm((current) => ({
-                          ...current,
-                          position: event.target.value as EditUserFormState['position']
-                        }))
-                      }
-                    >
-                      {USER_POSITIONS.map((position) => (
-                        <option key={position || 'NONE'} value={position}>
-                          {position || 'Posicion (opcional)'}
-                        </option>
-                      ))}
-                    </select>
-                  </>
-                ) : null}
-
-                <div className="flex flex-wrap gap-2">
-                  <button className="btn-primary" type="submit" disabled={savingUserEdit}>
-                    {savingUserEdit ? 'Actualizando...' : 'Actualizar usuario'}
-                  </button>
-                  <button
-                    className="btn-muted"
-                    type="button"
-                    onClick={() => {
-                      setEditingUserId(null);
-                      setEditingUserForm(EMPTY_EDIT_USER_FORM);
-                    }}
-                  >
-                    Cancelar edicion
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Selecciona un usuario en la lista para editar toda su informacion.
-              </p>
-            )}
-          </div>
-
-          <div className="mt-6 border-t border-slate-200 pt-4 dark:border-slate-700">
-            <h4 className="text-base font-semibold">Usuarios registrados</h4>
-            <div className="mt-3 grid gap-2 md:grid-cols-3">
-              <input
-                className="input md:col-span-2"
-                placeholder="Buscar por nombre, username o posicion"
-                value={userSearchTerm}
-                onChange={(event) => setUserSearchTerm(event.target.value)}
-              />
-              <select
-                className="input"
-                value={userRoleFilter}
-                onChange={(event) => setUserRoleFilter(event.target.value as 'ALL' | Role)}
-              >
-                <option value="ALL">Todos los roles</option>
-                <option value="PLAYER">Solo jugadores</option>
-                <option value="ADMIN">Solo administradores</option>
-              </select>
-            </div>
-            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              Mostrando {filteredUsers.length} de {users.length} usuarios
-            </p>
-            <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
-              {filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
-                >
-                  <p className="font-semibold">{user.full_name}</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-300">
-                    @{user.username} | {user.role}
-                    {user.role === 'PLAYER'
-                      ? ` | #${user.jersey_number ?? '-'} | ${user.position ?? 'Sin posicion'}`
-                      : ''}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button className="btn-muted" type="button" onClick={() => loadUserIntoEditForm(user)}>
-                      Editar
-                    </button>
-                    <button
-                      className="btn-muted"
-                      type="button"
-                      onClick={() => void handleDeleteUser(user)}
-                      disabled={deletingUserId === user.id}
-                    >
-                      {deletingUserId === user.id ? 'Eliminando...' : 'Eliminar'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {filteredUsers.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                  No hay usuarios que coincidan con los filtros actuales.
-                </p>
-              ) : null}
-            </div>
-          </div>
         </article>
 
         <article className="card xl:col-span-3">
@@ -1204,6 +1055,155 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
               </table>
             </div>
           ) : null}
+        </article>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-5">
+        <article className="card xl:col-span-2">
+          <h3 className="text-xl font-bold">Editar usuario/jugador</h3>
+
+          {editingUserId ? (
+            <form className="mt-3 space-y-3" onSubmit={handleUpdateUser}>
+              <input
+                className="input"
+                placeholder="Username"
+                value={editingUserForm.username}
+                onChange={(event) => setEditingUserForm((current) => ({ ...current, username: event.target.value }))}
+                required
+              />
+              <input
+                className="input"
+                placeholder="Nombre completo"
+                value={editingUserForm.fullName}
+                onChange={(event) => setEditingUserForm((current) => ({ ...current, fullName: event.target.value }))}
+                required
+              />
+              <input
+                className="input"
+                type="password"
+                placeholder="Nueva password (opcional)"
+                value={editingUserForm.password}
+                onChange={(event) => setEditingUserForm((current) => ({ ...current, password: event.target.value }))}
+              />
+              <select
+                className="input"
+                value={editingUserForm.role}
+                onChange={(event) =>
+                  setEditingUserForm((current) => ({ ...current, role: event.target.value as Role }))
+                }
+              >
+                <option value="PLAYER">Jugador</option>
+                <option value="ADMIN">Administrador</option>
+              </select>
+
+              {editingUserForm.role === 'PLAYER' ? (
+                <>
+                  <input
+                    className="input"
+                    type="number"
+                    min={1}
+                    placeholder="Numero de camiseta"
+                    value={editingUserForm.jerseyNumber}
+                    onChange={(event) =>
+                      setEditingUserForm((current) => ({ ...current, jerseyNumber: event.target.value }))
+                    }
+                  />
+                  <select
+                    className="input"
+                    value={editingUserForm.position}
+                    onChange={(event) =>
+                      setEditingUserForm((current) => ({
+                        ...current,
+                        position: event.target.value as EditUserFormState['position']
+                      }))
+                    }
+                  >
+                    {USER_POSITIONS.map((position) => (
+                      <option key={position || 'NONE'} value={position}>
+                        {position || 'Posicion (opcional)'}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              ) : null}
+
+              <div className="flex flex-wrap gap-2">
+                <button className="btn-primary" type="submit" disabled={savingUserEdit}>
+                  {savingUserEdit ? 'Actualizando...' : 'Actualizar usuario'}
+                </button>
+                <button
+                  className="btn-muted"
+                  type="button"
+                  onClick={() => {
+                    setEditingUserId(null);
+                    setEditingUserForm(EMPTY_EDIT_USER_FORM);
+                  }}
+                >
+                  Cancelar edicion
+                </button>
+              </div>
+            </form>
+          ) : (
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              Selecciona un usuario en la lista para editar toda su informacion.
+            </p>
+          )}
+        </article>
+
+        <article className="card xl:col-span-3">
+          <h3 className="text-xl font-bold">Usuarios registrados</h3>
+          <div className="mt-3 grid gap-2 md:grid-cols-3">
+            <input
+              className="input md:col-span-2"
+              placeholder="Buscar por nombre, username o posicion"
+              value={userSearchTerm}
+              onChange={(event) => setUserSearchTerm(event.target.value)}
+            />
+            <select
+              className="input"
+              value={userRoleFilter}
+              onChange={(event) => setUserRoleFilter(event.target.value as 'ALL' | Role)}
+            >
+              <option value="ALL">Todos los roles</option>
+              <option value="PLAYER">Solo jugadores</option>
+              <option value="ADMIN">Solo administradores</option>
+            </select>
+          </div>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            Mostrando {filteredUsers.length} de {users.length} usuarios
+          </p>
+          <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
+            {filteredUsers.map((user) => (
+              <div
+                key={user.id}
+                className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
+              >
+                <p className="font-semibold">{user.full_name}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  @{user.username} | {user.role}
+                  {user.role === 'PLAYER' ? ` | #${user.jersey_number ?? '-'} | ${user.position ?? 'Sin posicion'}` : ''}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button className="btn-muted" type="button" onClick={() => loadUserIntoEditForm(user)}>
+                    Editar
+                  </button>
+                  <button
+                    className="btn-muted"
+                    type="button"
+                    onClick={() => void handleDeleteUser(user)}
+                    disabled={deletingUserId === user.id}
+                  >
+                    {deletingUserId === user.id ? 'Eliminando...' : 'Eliminar'}
+                  </button>
+                </div>
+              </div>
+            ))}
+            {filteredUsers.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                No hay usuarios que coincidan con los filtros actuales.
+              </p>
+            ) : null}
+          </div>
         </article>
       </section>
 
