@@ -218,7 +218,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
 
       <section className="grid gap-6 xl:grid-cols-5">
         <article className="card xl:col-span-3">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Historial</p>
               <h3 className="text-xl font-bold">Partidos evaluados</h3>
@@ -228,8 +228,32 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
             </span>
           </div>
 
-          <div className="mt-4 max-h-80 overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 space-y-3 md:hidden">
+            {history.map((match) => (
+              <button
+                key={match.match_id}
+                type="button"
+                className={`w-full rounded-2xl border p-3 text-left transition ${
+                  selectedMatch?.match_id === match.match_id
+                    ? 'border-sky-500 bg-sky-50 dark:border-sky-400 dark:bg-slate-800'
+                    : 'border-slate-200 bg-white/70 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60 dark:hover:bg-slate-800'
+                }`}
+                onClick={() => setSelectedMatch(match)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">{match.match_date}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-200">vs {match.opponent}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 break-words">{match.tournament}</p>
+                  </div>
+                  <p className="shrink-0 text-base font-bold text-sky-500">{match.match_performance.toFixed(2)}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 hidden max-h-80 overflow-auto rounded-2xl border border-slate-200 dark:border-slate-800 md:block">
+            <table className="w-full min-w-[620px] text-left text-sm">
               <thead className="sticky top-0 bg-white/95 dark:bg-slate-900/95">
                 <tr className="text-slate-600 dark:text-slate-300">
                   <th className="px-3 py-3">Fecha</th>
@@ -249,7 +273,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
                   >
                     <td className="px-3 py-3">{match.match_date}</td>
                     <td className="px-3 py-3">{match.opponent}</td>
-                    <td className="px-3 py-3">{match.tournament}</td>
+                    <td className="px-3 py-3 break-words">{match.tournament}</td>
                     <td className="px-3 py-3 font-semibold text-sky-500">{match.match_performance.toFixed(2)}</td>
                   </tr>
                 ))}
@@ -266,7 +290,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
               <div className="rounded-2xl bg-slate-100 p-4 dark:bg-slate-800">
                 <p className="font-semibold">{selectedMatch.match_date}</p>
                 <p className="text-slate-600 dark:text-slate-300">vs {selectedMatch.opponent}</p>
-                <p className="text-slate-600 dark:text-slate-300">{selectedMatch.tournament}</p>
+                <p className="break-words text-slate-600 dark:text-slate-300">{selectedMatch.tournament}</p>
                 <p className="mt-3 text-2xl font-extrabold text-sky-500">
                   {selectedMatch.match_performance.toFixed(2)}
                 </p>
