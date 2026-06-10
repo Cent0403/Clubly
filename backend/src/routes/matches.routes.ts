@@ -64,15 +64,15 @@ function calculateNetContribution(item: RatingInput): number {
     item.blockPoints * 1.0 +
     item.blockTouches * 0.2 +
     item.defenseSuccesses * 0.4 +
-    item.receptionPerfect * 0.3 +
-    item.receptionGood * 0.15 +
+    item.receptionPerfect * 1.0 +
+    item.receptionGood * 0.5 +
+    item.receptionBad * 0.25 +
     item.setAssists * 0.25;
 
   const negativePoints =
     item.attackErrors * 0.5 +
     item.serveErrors * 0.5 +
-    item.receptionBad * 0.2 +
-    item.receptionError * 0.5 +
+    item.receptionError * 0.75 +
     item.setErrors * 0.6;
 
   return positivePoints - negativePoints;
@@ -122,13 +122,13 @@ async function ensureReceptionSchema(): Promise<void> {
                       block_points * 1.00 +
                       block_touches * 0.20 +
                       defense_successes * 0.40 +
-                      reception_perfect * 0.30 +
-                      reception_good * 0.15 +
+                      reception_perfect * 1.00 +
+                      reception_good * 0.50 +
+                      reception_bad * 0.25 +
                       set_assists * 0.25 -
                       attack_errors * 0.50 -
                       serve_errors * 0.50 -
-                      reception_bad * 0.20 -
-                      reception_error * 0.50 -
+                      reception_error * 0.75 -
                       set_errors * 0.60
                     ) / 2
                   ),
@@ -153,10 +153,10 @@ function calculateScores(item: RatingInput) {
   return {
     reception: Number(
       clampScore(
-        item.receptionPerfect * 0.3 +
-          item.receptionGood * 0.15 -
-          item.receptionBad * 0.2 -
-          item.receptionError * 0.5
+        item.receptionPerfect * 1.0 +
+          item.receptionGood * 0.5 +
+          item.receptionBad * 0.25 -
+          item.receptionError * 0.75
       ).toFixed(2)
     ),
     serve: Number(clampScore(item.serveAces * 1.0 - item.serveErrors * 0.5).toFixed(2)),

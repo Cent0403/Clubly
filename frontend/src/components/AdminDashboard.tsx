@@ -169,6 +169,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
+  const [evaluationPlayerSearchTerm, setEvaluationPlayerSearchTerm] = useState('');
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
   const [ratings, setRatings] = useState<Record<number, RatingItem>>({});
   const [saving, setSaving] = useState(false);
@@ -219,6 +220,23 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       );
     });
   }, [users, userRoleFilter, userSearchTerm]);
+
+  const filteredEvaluationPlayers = useMemo(() => {
+    const search = evaluationPlayerSearchTerm.trim().toLowerCase();
+
+    if (!search) {
+      return players;
+    }
+
+    return players.filter((player) => {
+      return (
+        player.full_name.toLowerCase().includes(search) ||
+        player.username.toLowerCase().includes(search) ||
+        (player.position ?? '').toLowerCase().includes(search) ||
+        String(player.jersey_number ?? '').includes(search)
+      );
+    });
+  }, [evaluationPlayerSearchTerm, players]);
 
   async function loadInitialData() {
     setLoading(true);
@@ -1285,6 +1303,18 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
             </select>
           </div>
 
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <input
+              className="input w-full md:w-80"
+              placeholder="Buscar jugador por nombre, usuario, posicion o camiseta"
+              value={evaluationPlayerSearchTerm}
+              onChange={(event) => setEvaluationPlayerSearchTerm(event.target.value)}
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Mostrando {filteredEvaluationPlayers.length} de {players.length} jugadores
+            </p>
+          </div>
+
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
             {selectedMatch
               ? `Partido: ${selectedMatch.match_date} vs ${selectedMatch.opponent}`
@@ -1296,7 +1326,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
           ) : null}
 
           <div className="mt-4 grid max-h-[34rem] gap-4 overflow-y-auto pr-1">
-            {players.map((player) => {
+            {filteredEvaluationPlayers.map((player) => {
               const active = selectedPlayers.includes(player.player_id);
               const playerRating = ratings[player.player_id] ?? createDefaultRating(player.player_id);
 
@@ -1366,6 +1396,11 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
                 </div>
               );
             })}
+            {filteredEvaluationPlayers.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                No hay jugadores que coincidan con la busqueda.
+              </p>
+            ) : null}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
