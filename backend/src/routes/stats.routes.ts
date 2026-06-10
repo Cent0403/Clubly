@@ -153,16 +153,36 @@ statsRouter.get('/global', requireRole('ADMIN'), async (_req, res) => {
   const [teamRows] = await pool.query<RowDataPacket[]>(
     `
       SELECT
-        ROUND(COALESCE(AVG(LEAST(10.00, GREATEST(1.00, v.avg_overall))), 5.0), 2) AS team_overall_avg,
-        LEAST(10.00, ROUND(COALESCE(AVG(v.avg_reception), 0.0), 2)) AS team_reception_avg,
-        LEAST(10.00, ROUND(COALESCE(AVG(v.avg_serve), 0.0), 2)) AS team_serve_avg,
-        LEAST(10.00, ROUND(COALESCE(AVG(v.avg_defense), 0.0), 2)) AS team_defense_avg,
-        LEAST(10.00, ROUND(COALESCE(AVG(v.avg_attack), 0.0), 2)) AS team_attack_avg,
-        LEAST(10.00, ROUND(COALESCE(AVG(v.avg_block), 0.0), 2)) AS team_block_avg,
-        LEAST(10.00, ROUND(COALESCE(AVG(v.avg_setting), 0.0), 2)) AS team_setting_avg,
-        COUNT(*) AS roster_size
-      FROM players p
-      JOIN v_player_fundament_averages v ON v.player_id = p.id
+        ROUND(
+          (
+            fundamentals.team_reception_avg +
+            fundamentals.team_serve_avg +
+            fundamentals.team_defense_avg +
+            fundamentals.team_attack_avg +
+            fundamentals.team_block_avg +
+            fundamentals.team_setting_avg
+          ) / 6,
+          2
+        ) AS team_overall_avg,
+        fundamentals.team_reception_avg,
+        fundamentals.team_serve_avg,
+        fundamentals.team_defense_avg,
+        fundamentals.team_attack_avg,
+        fundamentals.team_block_avg,
+        fundamentals.team_setting_avg,
+        fundamentals.roster_size
+      FROM (
+        SELECT
+          LEAST(10.00, ROUND(COALESCE(AVG(v.avg_reception), 0.0) + 5.0, 2)) AS team_reception_avg,
+          LEAST(10.00, ROUND(COALESCE(AVG(v.avg_serve), 0.0) + 5.0, 2)) AS team_serve_avg,
+          LEAST(10.00, ROUND(COALESCE(AVG(v.avg_defense), 0.0) + 5.0, 2)) AS team_defense_avg,
+          LEAST(10.00, ROUND(COALESCE(AVG(v.avg_attack), 0.0) + 5.0, 2)) AS team_attack_avg,
+          LEAST(10.00, ROUND(COALESCE(AVG(v.avg_block), 0.0) + 5.0, 2)) AS team_block_avg,
+          LEAST(10.00, ROUND(COALESCE(AVG(v.avg_setting), 0.0) + 5.0, 2)) AS team_setting_avg,
+          COUNT(*) AS roster_size
+        FROM players p
+        JOIN v_player_fundament_averages v ON v.player_id = p.id
+      ) fundamentals
     `
   );
 
