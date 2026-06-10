@@ -103,34 +103,12 @@ CREATE TABLE ratings (
   block_score DECIMAL(6,2) NOT NULL,
   setting_score DECIMAL(6,2) NOT NULL,
 
-  -- Metodo B: base 5.0 mas rendimiento neto dividido entre 2, con piso 1.0 y tope 10.0.
+  -- Nota general por partido: suma de fundamentos / 4 + 5 (si tuvo minutos).
   match_performance DECIMAL(7,2) GENERATED ALWAYS AS (
     CASE
-      WHEN minutes_played = 1 THEN LEAST(
-        10.00,
-        GREATEST(
-          1.00,
-          ROUND(
-            5.00 + (
-              (
-                attack_points * 1.00 +
-                serve_aces * 1.00 +
-                block_points * 1.00 +
-                block_touches * 0.20 +
-                defense_successes * 0.40 +
-                reception_perfect * 1.00 +
-                reception_good * 0.50 +
-                reception_bad * 0.25 +
-                set_assists * 0.25 -
-                attack_errors * 0.50 -
-                serve_errors * 0.50 -
-                reception_error * 0.75 -
-                set_errors * 0.60
-              ) / 2
-            ),
-            2
-          )
-        )
+      WHEN minutes_played = 1 THEN ROUND(
+        ((reception + serve + defense + attack + block_score + setting_score) / 4) + 5,
+        2
       )
       ELSE NULL
     END
