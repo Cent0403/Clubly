@@ -4,7 +4,7 @@ import { useDarkMode } from './hooks/useDarkMode';
 import { LoginForm } from './components/LoginForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { PlayerDashboard } from './components/PlayerDashboard';
-import { AuthUser } from './types';
+import { AuthUser, TeamSettings } from './types';
 
 function App() {
   const { darkMode, toggleDarkMode } = useDarkMode();
@@ -13,6 +13,23 @@ function App() {
   const [loadingSession, setLoadingSession] = useState(true);
   const [loggingIn, setLoggingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [teamSettings, setTeamSettings] = useState<TeamSettings>({
+    teamName: 'Volitics',
+    teamLogoUrl: null
+  });
+
+  useEffect(() => {
+    async function loadTeamSettings() {
+      try {
+        const response = await api.getTeamSettings();
+        setTeamSettings(response.settings);
+      } catch {
+        setTeamSettings({ teamName: 'Volitics', teamLogoUrl: null });
+      }
+    }
+
+    void loadTeamSettings();
+  }, []);
 
   useEffect(() => {
     async function recoverSession() {
@@ -64,9 +81,19 @@ function App() {
   return (
     <main className="mx-auto min-h-screen max-w-7xl p-4 md:p-6">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-white/70 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/60">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Volitics</h1>
+        <div className="flex items-center gap-3">
+          {teamSettings.teamLogoUrl ? (
+            <img
+              src={teamSettings.teamLogoUrl}
+              alt="Logo del equipo"
+              className="h-12 w-12 rounded-xl border border-slate-200 object-cover dark:border-slate-700"
+            />
+          ) : null}
+
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{teamSettings.teamName}</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300">Plataforma de estadisticas de voleibol</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -90,7 +117,7 @@ function App() {
       {!user || !token ? (
         <LoginForm onSubmit={handleLogin} loading={loggingIn} error={error} />
       ) : user.role === 'ADMIN' ? (
-        <AdminDashboard token={token} />
+        <AdminDashboard token={token} teamSettings={teamSettings} onTeamSettingsUpdated={setTeamSettings} />
       ) : (
         <PlayerDashboard token={token} />
       )}

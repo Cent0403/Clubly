@@ -13,6 +13,16 @@ export interface LoginResponse {
   user: AuthUser;
 }
 
+export interface TeamSettings {
+  teamName: string;
+  teamLogoUrl: string | null;
+}
+
+export interface UpdateTeamSettingsPayload {
+  teamName?: string;
+  teamLogoUrl?: string | null;
+}
+
 export interface MatchItem {
   id: number;
   match_date: string;

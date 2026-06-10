@@ -4,6 +4,8 @@ import {
   MatchItem,
   MatchRatingRow,
   CreateUserPayload,
+  TeamSettings,
+  UpdateTeamSettingsPayload,
   UpdateMyProfilePayload,
   PlayerStatsResponse,
   PlayerItem,
@@ -191,6 +193,35 @@ async function request<T>(
 }
 
 export const api = {
+  getTeamSettings: async () => {
+    const response = await request<{ settings: TeamSettings }>('/settings');
+    return {
+      settings: {
+        teamName: response.settings?.teamName || 'Volitics',
+        teamLogoUrl: response.settings?.teamLogoUrl ?? null
+      }
+    };
+  },
+
+  updateTeamSettings: async (token: string, payload: UpdateTeamSettingsPayload) => {
+    const response = await request<{ message: string; settings: TeamSettings }>(
+      '/settings',
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      },
+      token
+    );
+
+    return {
+      message: response.message,
+      settings: {
+        teamName: response.settings?.teamName || 'Volitics',
+        teamLogoUrl: response.settings?.teamLogoUrl ?? null
+      }
+    };
+  },
+
   login: (username: string, password: string) =>
     request<LoginResponse>('/auth/login', {
       method: 'POST',

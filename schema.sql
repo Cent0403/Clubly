@@ -20,6 +20,14 @@ CREATE TABLE users (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+CREATE TABLE app_settings (
+  id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+  team_name VARCHAR(120) NOT NULL DEFAULT 'Volitics',
+  team_logo_url LONGTEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 CREATE TABLE players (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL UNIQUE,
@@ -205,6 +213,12 @@ DELIMITER ;
 
 INSERT INTO users (username, password_hash, role, full_name) VALUES
 ('admin', SHA2('shadows123@', 256), 'ADMIN', 'admin');
+
+INSERT INTO app_settings (id, team_name, team_logo_url) VALUES
+(1, 'Volitics', NULL)
+ON DUPLICATE KEY UPDATE
+  team_name = VALUES(team_name),
+  team_logo_url = VALUES(team_logo_url);
 
 -- Optional view for easier analytics queries.
 CREATE OR REPLACE VIEW v_player_fundament_averages AS

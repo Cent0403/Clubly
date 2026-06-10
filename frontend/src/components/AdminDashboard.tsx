@@ -8,12 +8,15 @@ import {
   PlayerItem,
   PlayerSummary,
   RatingItem,
-  Role
+  Role,
+  TeamSettings
 } from '../types';
 import { MetricBars } from './charts/MetricBars';
 
 interface AdminDashboardProps {
   token: string;
+  teamSettings: TeamSettings;
+  onTeamSettingsUpdated: (settings: TeamSettings) => void;
 }
 
 interface MatchFormState {
@@ -138,7 +141,7 @@ function createDefaultRating(playerId: number): RatingItem {
   };
 }
 
-export function AdminDashboard({ token }: AdminDashboardProps) {
+export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: AdminDashboardProps) {
   const [players, setPlayers] = useState<PlayerItem[]>([]);
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
@@ -158,6 +161,10 @@ export function AdminDashboard({ token }: AdminDashboardProps) {
   const [selectedPlayerSummary, setSelectedPlayerSummary] = useState<PlayerSummary | null>(null);
   const [selectedPlayerHistory, setSelectedPlayerHistory] = useState<PlayerHistoryItem[]>([]);
   const [loadingPlayerStats, setLoadingPlayerStats] = useState(false);
+  const [settingsForm, setSettingsForm] = useState<TeamSettings>(teamSettings);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
@@ -192,6 +199,10 @@ export function AdminDashboard({ token }: AdminDashboardProps) {
   useEffect(() => {
     void loadInitialData();
   }, []);
+
+  useEffect(() => {
+    setSettingsForm(teamSettings);
+  }, [teamSettings]);
 
   async function refreshGlobalStats() {
     const stats = await api.getGlobalStats(token);
@@ -560,6 +571,51 @@ export function AdminDashboard({ token }: AdminDashboardProps) {
     }
   }
 
+  async function handleSaveTeamSettings(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSettingsError(null);
+    setSettingsMessage(null);
+
+    const nextName = settingsForm.teamName.trim();
+    if (!nextName) {
+      setSettingsError('El nombre del equipo no puede estar vacio.');
+      return;
+    }
+
+    setSavingSettings(true);
+
+    try {
+      const response = await api.updateTeamSettings(token, {
+        teamName: nextName,
+        teamLogoUrl: settingsForm.teamLogoUrl
+      });
+
+      onTeamSettingsUpdated(response.settings);
+      setSettingsForm(response.settings);
+      setSettingsMessage('Personalizacion del equipo guardada correctamente.');
+    } catch (updateError) {
+      setSettingsError((updateError as Error).message);
+    } finally {
+      setSavingSettings(false);
+    }
+  }
+
+  function handleTeamLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : null;
+      if (result) {
+        setSettingsForm((current) => ({ ...current, teamLogoUrl: result }));
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
   if (loading) {
     return <div className="card">Cargando panel administrador...</div>;
   }
@@ -600,6 +656,77 @@ export function AdminDashboard({ token }: AdminDashboardProps) {
             </ol>
           </article>
         ))}
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-5">
+        <article className="card xl:col-span-2">
+          <h3 className="text-xl font-bold">Perfil admin del equipo</h3>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            Personaliza el nombre y el logo visibles en toda la plataforma.
+          </p>
+
+          <form className="mt-4 space-y-3" onSubmit={handleSaveTeamSettings}>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Nombre del equipo</label>
+              <input
+                className="input"
+                value={settingsForm.teamName}
+                onChange={(event) => setSettingsForm((current) => ({ ...current, teamName: event.target.value }))}
+                placeholder="Nombre del equipo"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium">Logo del equipo</label>
+              <input className="input" type="file" accept="image/*" onChange={handleTeamLogoFileChange} />
+            </div>
+
+            {settingsForm.teamLogoUrl ? (
+              <div className="space-y-2">
+                <img
+                  src={settingsForm.teamLogoUrl}
+                  alt="Vista previa del logo"
+                  className="h-20 w-20 rounded-xl border border-slate-300 object-cover dark:border-slate-700"
+                />
+                <button
+                  className="btn-muted"
+                  type="button"
+                  onClick={() => setSettingsForm((current) => ({ ...current, teamLogoUrl: null }))}
+                >
+                  Quitar logo
+                </button>
+              </div>
+            ) : null}
+
+            <button className="btn-primary w-full" type="submit" disabled={savingSettings}>
+              {savingSettings ? 'Guardando personalizacion...' : 'Guardar personalizacion'}
+            </button>
+          </form>
+
+          {settingsMessage ? <p className="mt-3 text-sm font-medium text-emerald-500">{settingsMessage}</p> : null}
+          {settingsError ? <p className="mt-3 text-sm font-medium text-rose-500">{settingsError}</p> : null}
+        </article>
+
+        <article className="card xl:col-span-3">
+          <h3 className="text-xl font-bold">Vista previa de marca</h3>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            Asi se mostrara el encabezado de la plataforma para todos los usuarios.
+          </p>
+
+          <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/70 p-4 dark:border-slate-700 dark:bg-slate-900/70">
+            {settingsForm.teamLogoUrl ? (
+              <img
+                src={settingsForm.teamLogoUrl}
+                alt="Logo del equipo"
+                className="h-14 w-14 rounded-xl border border-slate-200 object-cover dark:border-slate-700"
+              />
+            ) : null}
+            <div>
+              <p className="text-xl font-bold">{settingsForm.teamName || 'Volitics'}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Plataforma de estadisticas de voleibol</p>
+            </div>
+          </div>
+        </article>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-5">
