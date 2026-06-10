@@ -21,7 +21,13 @@ statsRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
         p.id AS player_id,
         u.full_name,
         u.username,
-        LEAST(10.00, GREATEST(1.00, p.overall_score)) AS overall_score,
+        LEAST(
+          10.00,
+          GREATEST(
+            1.00,
+            ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.match_performance END), 5.0), 2)
+          )
+        ) AS overall_score,
         LEAST(10.00, ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.reception END), 0.0), 2)) AS avg_reception,
         LEAST(10.00, ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.serve END), 0.0), 2)) AS avg_serve,
         LEAST(10.00, ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.defense END), 0.0), 2)) AS avg_defense,
@@ -33,7 +39,7 @@ statsRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
       JOIN users u ON u.id = p.user_id
       LEFT JOIN ratings r ON r.player_id = p.id
       WHERE p.id = ?
-      GROUP BY p.id, u.full_name, u.username, p.overall_score
+      GROUP BY p.id, u.full_name, u.username
     `,
     [playerId]
   );
@@ -55,6 +61,7 @@ statsRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
       FROM ratings r
       JOIN matches m ON m.id = r.match_id
       WHERE r.player_id = ?
+        AND r.minutes_played = 1
       ORDER BY m.match_date DESC, m.id DESC
     `,
     [playerId]
@@ -85,7 +92,13 @@ statsRouter.get('/player/:playerId', async (req, res) => {
         p.id AS player_id,
         u.full_name,
         u.username,
-        LEAST(10.00, GREATEST(1.00, p.overall_score)) AS overall_score,
+        LEAST(
+          10.00,
+          GREATEST(
+            1.00,
+            ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.match_performance END), 5.0), 2)
+          )
+        ) AS overall_score,
         LEAST(10.00, ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.reception END), 0.0), 2)) AS avg_reception,
         LEAST(10.00, ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.serve END), 0.0), 2)) AS avg_serve,
         LEAST(10.00, ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.defense END), 0.0), 2)) AS avg_defense,
@@ -97,7 +110,7 @@ statsRouter.get('/player/:playerId', async (req, res) => {
       JOIN users u ON u.id = p.user_id
       LEFT JOIN ratings r ON r.player_id = p.id
       WHERE p.id = ?
-      GROUP BY p.id, u.full_name, u.username, p.overall_score
+      GROUP BY p.id, u.full_name, u.username
     `,
     [playerId]
   );
@@ -140,7 +153,7 @@ statsRouter.get('/global', requireRole('ADMIN'), async (_req, res) => {
   const [teamRows] = await pool.query<RowDataPacket[]>(
     `
       SELECT
-        ROUND(AVG(LEAST(10.00, GREATEST(1.00, p.overall_score))), 2) AS team_overall_avg,
+        ROUND(COALESCE(AVG(LEAST(10.00, GREATEST(1.00, v.avg_overall))), 5.0), 2) AS team_overall_avg,
         LEAST(10.00, ROUND(COALESCE(AVG(v.avg_reception), 0.0), 2)) AS team_reception_avg,
         LEAST(10.00, ROUND(COALESCE(AVG(v.avg_serve), 0.0), 2)) AS team_serve_avg,
         LEAST(10.00, ROUND(COALESCE(AVG(v.avg_defense), 0.0), 2)) AS team_defense_avg,

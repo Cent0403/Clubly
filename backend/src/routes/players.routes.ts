@@ -33,9 +33,17 @@ playersRouter.get('/', requireRole('ADMIN'), async (_req, res) => {
         u.full_name,
         p.jersey_number,
         p.position,
-        p.overall_score
+        LEAST(
+          10.00,
+          GREATEST(
+            1.00,
+            ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.match_performance END), 5.0), 2)
+          )
+        ) AS overall_score
       FROM players p
       JOIN users u ON u.id = p.user_id
+      LEFT JOIN ratings r ON r.player_id = p.id
+      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
       ORDER BY u.full_name ASC
     `
   );
@@ -58,10 +66,18 @@ playersRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
         u.full_name,
         p.jersey_number,
         p.position,
-        p.overall_score
+        LEAST(
+          10.00,
+          GREATEST(
+            1.00,
+            ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.match_performance END), 5.0), 2)
+          )
+        ) AS overall_score
       FROM players p
       JOIN users u ON u.id = p.user_id
+      LEFT JOIN ratings r ON r.player_id = p.id
       WHERE p.id = ?
+      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
       LIMIT 1
     `,
     [req.user.playerId]
@@ -126,10 +142,18 @@ playersRouter.patch('/me', requireRole('PLAYER'), async (req, res) => {
         u.full_name,
         p.jersey_number,
         p.position,
-        p.overall_score
+        LEAST(
+          10.00,
+          GREATEST(
+            1.00,
+            ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.match_performance END), 5.0), 2)
+          )
+        ) AS overall_score
       FROM players p
       JOIN users u ON u.id = p.user_id
+      LEFT JOIN ratings r ON r.player_id = p.id
       WHERE p.id = ?
+      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
       LIMIT 1
     `,
     [req.user.playerId]
