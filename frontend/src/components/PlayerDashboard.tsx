@@ -607,7 +607,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
           {matchRatingsLoading ? (
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">Cargando top del partido...</p>
           ) : matchRatings.length > 0 ? (
-            <div className="mt-4 max-h-[34rem] space-y-2 overflow-y-auto pr-1">
+            <div className="mt-4 max-h-full space-y-2 overflow-y-auto pr-1">
               {matchRatings.map((r, idx) => (
                 <div
                   key={r.player_id}
