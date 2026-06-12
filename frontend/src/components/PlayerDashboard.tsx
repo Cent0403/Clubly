@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
-import { PlayerHistoryItem, PlayerItem, PlayerSummary } from '../types';
+import { PlayerHistoryItem, PlayerItem, PlayerSummary, MatchRatingRow } from '../types';
 import { MetricBars } from './charts/MetricBars';
 import { RadarChart } from './charts/RadarChart';
 
@@ -60,6 +60,8 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
   const [selectedMatch, setSelectedMatch] = useState<PlayerHistoryItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [matchRatings, setMatchRatings] = useState<MatchRatingRow[]>([]);
+  const [matchRatingsLoading, setMatchRatingsLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -89,6 +91,27 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
 
     void fetchData();
   }, [token]);
+
+  useEffect(() => {
+    async function fetchMatchRatings() {
+      if (!selectedMatch) {
+        setMatchRatings([]);
+        return;
+      }
+
+      setMatchRatingsLoading(true);
+      try {
+        const data = await api.getMatchRatings(token, selectedMatch.match_id);
+        setMatchRatings(data.ratings.sort((a, b) => b.match_performance - a.match_performance));
+      } catch (err) {
+        setMatchRatings([]);
+      } finally {
+        setMatchRatingsLoading(false);
+      }
+    }
+
+    void fetchMatchRatings();
+  }, [selectedMatch, token]);
 
   const radarMetrics = useMemo(
     () => [
@@ -229,6 +252,31 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         </article>
 
         <article className="card xl:col-span-2">
+          <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Top</p>
+          <h3 className="text-xl font-bold">Top del partido</h3>
+          {matchRatingsLoading ? (
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">Cargando top del partido...</p>
+          ) : matchRatings.length > 0 ? (
+            <div className="mt-4 max-h-[34rem] space-y-2 overflow-y-auto pr-1">
+              {matchRatings.slice(0, 3).map((r, idx) => (
+                <div
+                  key={r.player_id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold">#{idx + 1} {r.full_name}</p>
+                    <p className="break-words text-xs text-slate-600 dark:text-slate-300">{r.minutes_played ? 'Titular' : 'No jugó'}</p>
+                  </div>
+                  <p className="shrink-0 text-lg font-extrabold text-sky-500">{(Math.min(Number(r.match_performance ?? 0), 10)).toFixed(2)}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">Selecciona un partido para ver el top de ese partido.</p>
+          )}
+        </article>
+
+        <article className="card xl:col-span-2">
           <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Informacion de cuenta</p>
           <div className="mt-4 space-y-2 text-sm">
             <p>
@@ -250,6 +298,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
             </p>
           </div>
         </article>
+        
       </section>
 
       <section className={activeSection === 'resumen' ? 'grid gap-4 md:grid-cols-2 xl:grid-cols-4' : 'hidden'}>
@@ -319,7 +368,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
                     <p className="text-sm text-slate-700 dark:text-slate-200">vs {match.opponent}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 break-words">{match.tournament}</p>
                   </div>
-                  <p className="shrink-0 text-base font-bold text-sky-500">{match.match_performance.toFixed(2)}</p>
+                  <p className="shrink-0 text-base font-bold text-sky-500">{(Math.min(Number(match.match_performance ?? 0), 10)).toFixed(2)}</p>
                 </div>
               </button>
             ))}
@@ -347,7 +396,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
                     <td className="px-3 py-3">{match.match_date}</td>
                     <td className="px-3 py-3">{match.opponent}</td>
                     <td className="px-3 py-3 break-words">{match.tournament}</td>
-                    <td className="px-3 py-3 font-semibold text-sky-500">{match.match_performance.toFixed(2)}</td>
+                      <td className="px-3 py-3 font-semibold text-sky-500">{(Math.min(Number(match.match_performance ?? 0), 10)).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -365,7 +414,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
                 <p className="text-slate-600 dark:text-slate-300">vs {selectedMatch.opponent}</p>
                 <p className="break-words text-slate-600 dark:text-slate-300">{selectedMatch.tournament}</p>
                 <p className="mt-3 text-2xl font-extrabold text-sky-500">
-                  Nota: {selectedMatch.match_performance.toFixed(2)}/10
+                  Nota: {Math.min(Number(selectedMatch.match_performance ?? 0), 10).toFixed(2)}/10
                 </p>
               </div>
 
@@ -564,7 +613,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
                   <div className="border-t-2 border-sky-300 pt-2 dark:border-sky-800">
                     <div className="flex justify-between px-2 text-sm font-extrabold">
                       <span>TOTAL</span>
-                      <span className="text-sky-600 dark:text-sky-400">{selectedMatch.match_performance.toFixed(2)}/10</span>
+                      <span className="text-sky-600 dark:text-sky-400">{Math.min(Number(selectedMatch.match_performance ?? 0), 10).toFixed(2)}/10</span>
                     </div>
                   </div>
                 </div>
