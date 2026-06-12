@@ -557,9 +557,9 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
                 <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">ARMADO</p>
                 <div className="space-y-1">
                   <div className="flex justify-between px-2">
-                    <span>Armadas × 0.4</span>
+                    <span>Armadas × 0.3</span>
                     <span className="font-mono">
-                      {selectedMatch.set_assists} × 0.4 = <span className="font-semibold text-emerald-500">{(selectedMatch.set_assists * 0.4).toFixed(2)}</span>
+                      {selectedMatch.set_assists} × 0.3 = <span className="font-semibold text-emerald-500">{(selectedMatch.set_assists * 0.3).toFixed(2)}</span>
                     </span>
                   </div>
                   <div className="flex justify-between px-2 text-rose-500">

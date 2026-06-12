@@ -60,30 +60,6 @@ function clampScore(value: number): number {
   return Math.max(0, Math.min(10, value));
 }
 
-function calculateNetContribution(item: RatingInput): number {
-  const positivePoints =
-    item.attackPoints * 1.0 +
-    item.attackComplicated * 0.4 +
-    item.serveAces * 1.0 +
-    item.serveComplicated * 0.6 +
-    item.servePasarlo * 0.2 +
-    item.blockPoints * 1.0 +
-    item.blockTouches * 0.2 +
-    item.defenseSuccesses * 0.4 +
-    item.receptionPerfect * 1.0 +
-    item.receptionGood * 0.5 +
-    item.receptionBad * 0.25 +
-    item.setAssists * 0.25;
-
-  const negativePoints =
-    item.attackErrors * 0.5 +
-    item.serveErrors * 0.5 +
-    item.receptionError * 0.75 +
-    item.setErrors * 0.6;
-
-  return positivePoints - negativePoints;
-}
-
 let receptionSchemaReady: Promise<void> | null = null;
 
 const MATCH_PERFORMANCE_GENERATED_SQL = `
@@ -198,7 +174,7 @@ function calculateScores(item: RatingInput) {
     defense: Number(clampScore(item.defenseSuccesses * 0.4).toFixed(2)),
     attack: Number(clampScore(item.attackPoints * 1.0 + item.attackComplicated * 0.4 - item.attackErrors * 0.5).toFixed(2)),
     blockScore: Number(clampScore(item.blockPoints * 1.0 + item.blockTouches * 0.2).toFixed(2)),
-    settingScore: Number(clampScore(item.setAssists * 0.4 - item.setErrors * 0.2).toFixed(2))
+    settingScore: Number(clampScore(item.setAssists * 0.3 - item.setErrors * 0.2).toFixed(2))
   };
 }
 
