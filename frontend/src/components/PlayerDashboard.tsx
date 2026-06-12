@@ -175,25 +175,33 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
 
   return (
     <div className="space-y-6">
-      <section className="card">
-        <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
-          {PLAYER_SECTIONS.map((section) => {
-            const isActive = activeSection === section.key;
+      <div className="relative -mx-4 px-4 md:mx-0 md:px-0">
+        <section className="card">
+          <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
+            {PLAYER_SECTIONS.map((section) => {
+              const isActive = activeSection === section.key;
 
-            return (
-              <button
-                key={section.key}
-                type="button"
-                className={`${isActive ? 'btn-primary' : 'btn-muted'} shrink-0`}
-                onClick={() => setActiveSection(section.key)}
-                aria-pressed={isActive}
-              >
-                {section.label}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={section.key}
+                  type="button"
+                  className={`${isActive ? 'btn-primary' : 'btn-muted'} shrink-0`}
+                  onClick={() => setActiveSection(section.key)}
+                  aria-pressed={isActive}
+                >
+                  {section.label}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-1 text-slate-500 md:hidden">
+          <span className="text-xs font-bold">‹</span>
         </div>
-      </section>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1 text-slate-500 md:hidden">
+          <span className="text-xs font-bold">›</span>
+        </div>
+      </div>
 
       <section className={activeSection === 'resumen' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
         <article className="card xl:col-span-3">
@@ -351,14 +359,45 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
           <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Detalle</p>
           <h3 className="text-xl font-bold">Desglose del partido</h3>
           {selectedMatch ? (
-            <div className="mt-4 space-y-3 text-sm">
+            <div className="mt-4 space-y-4 text-sm">
               <div className="rounded-2xl bg-slate-100 p-4 dark:bg-slate-800">
                 <p className="font-semibold">{selectedMatch.match_date}</p>
                 <p className="text-slate-600 dark:text-slate-300">vs {selectedMatch.opponent}</p>
                 <p className="break-words text-slate-600 dark:text-slate-300">{selectedMatch.tournament}</p>
                 <p className="mt-3 text-2xl font-extrabold text-sky-500">
-                  {selectedMatch.match_performance.toFixed(2)}
+                  Nota: {selectedMatch.match_performance.toFixed(2)}/10
                 </p>
+              </div>
+
+              <div className="space-y-2 rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+                <p className="font-semibold text-slate-700 dark:text-slate-300">Desglose por fundamentales</p>
+                
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
+                    <span>Recepción</span>
+                    <span className="font-semibold text-sky-500">{selectedMatch.reception.toFixed(2)}/10</span>
+                  </div>
+                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
+                    <span>Saque</span>
+                    <span className="font-semibold text-sky-500">{selectedMatch.serve.toFixed(2)}/10</span>
+                  </div>
+                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
+                    <span>Defensa</span>
+                    <span className="font-semibold text-sky-500">{selectedMatch.defense.toFixed(2)}/10</span>
+                  </div>
+                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
+                    <span>Ataque</span>
+                    <span className="font-semibold text-sky-500">{selectedMatch.attack.toFixed(2)}/10</span>
+                  </div>
+                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
+                    <span>Bloqueo</span>
+                    <span className="font-semibold text-sky-500">{selectedMatch.block_score.toFixed(2)}/10</span>
+                  </div>
+                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
+                    <span>Armado</span>
+                    <span className="font-semibold text-sky-500">{selectedMatch.setting_score.toFixed(2)}/10</span>
+                  </div>
+                </div>
               </div>
 
               <MetricBars
@@ -375,6 +414,196 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
           ) : (
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
               Selecciona un partido del historial para ver su desglose exacto.
+            </p>
+          )}
+        </article>
+
+        <article className="card xl:col-span-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Acciones</p>
+          <h3 className="text-xl font-bold">Punto por punto</h3>
+          {selectedMatch ? (
+            <div className="mt-4 space-y-3 text-xs">
+              <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+                <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">ATAQUE</p>
+                <div className="space-y-1">
+                  <div className="flex justify-between px-2">
+                    <span>Puntos anotados × 1.0</span>
+                    <span className="font-mono">
+                      {selectedMatch.attack_points} × 1.0 = <span className="font-semibold text-emerald-500">{(selectedMatch.attack_points * 1.0).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2">
+                    <span>Ataques complicados × 0.4</span>
+                    <span className="font-mono">
+                      {selectedMatch.attack_complicated} × 0.4 = <span className="font-semibold text-emerald-500">{(selectedMatch.attack_complicated * 0.4).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2 text-rose-500">
+                    <span>Errores × 0.5</span>
+                    <span className="font-mono">
+                      {selectedMatch.attack_errors} × 0.5 = <span className="font-semibold">-{(selectedMatch.attack_errors * 0.5).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
+                    <div className="flex justify-between px-2 font-semibold">
+                      <span>Nota Ataque (1-10)</span>
+                      <span className="text-sky-500">{selectedMatch.attack.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+                <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">SAQUE</p>
+                <div className="space-y-1">
+                  <div className="flex justify-between px-2">
+                    <span>Aces × 1.0</span>
+                    <span className="font-mono">
+                      {selectedMatch.serve_aces} × 1.0 = <span className="font-semibold text-emerald-500">{(selectedMatch.serve_aces * 1.0).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2">
+                    <span>Saques complicados × 0.6</span>
+                    <span className="font-mono">
+                      {selectedMatch.serve_complicated} × 0.6 = <span className="font-semibold text-emerald-500">{(selectedMatch.serve_complicated * 0.6).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2">
+                    <span>Pasarlos × 0.2</span>
+                    <span className="font-mono">
+                      {selectedMatch.serve_pasarlo} × 0.2 = <span className="font-semibold text-emerald-500">{(selectedMatch.serve_pasarlo * 0.2).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2 text-rose-500">
+                    <span>Errores × 0.5</span>
+                    <span className="font-mono">
+                      {selectedMatch.serve_errors} × 0.5 = <span className="font-semibold">-{(selectedMatch.serve_errors * 0.5).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
+                    <div className="flex justify-between px-2 font-semibold">
+                      <span>Nota Saque (1-10)</span>
+                      <span className="text-sky-500">{selectedMatch.serve.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+                <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">RECEPCIÓN</p>
+                <div className="space-y-1">
+                  <div className="flex justify-between px-2">
+                    <span>Perfectas × 1.0</span>
+                    <span className="font-mono">
+                      {selectedMatch.reception_perfect} × 1.0 = <span className="font-semibold text-emerald-500">{(selectedMatch.reception_perfect * 1.0).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2">
+                    <span>Buenas × 0.5</span>
+                    <span className="font-mono">
+                      {selectedMatch.reception_good} × 0.5 = <span className="font-semibold text-emerald-500">{(selectedMatch.reception_good * 0.5).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2">
+                    <span>Malas × 0.25</span>
+                    <span className="font-mono">
+                      {selectedMatch.reception_bad} × 0.25 = <span className="font-semibold text-emerald-500">{(selectedMatch.reception_bad * 0.25).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2 text-rose-500">
+                    <span>Errores × 0.75</span>
+                    <span className="font-mono">
+                      {selectedMatch.reception_error} × 0.75 = <span className="font-semibold">-{(selectedMatch.reception_error * 0.75).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
+                    <div className="flex justify-between px-2 font-semibold">
+                      <span>Nota Recepción (1-10)</span>
+                      <span className="text-sky-500">{selectedMatch.reception.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+                <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">DEFENSA & BLOQUEO</p>
+                <div className="space-y-1">
+                  <div className="flex justify-between px-2">
+                    <span>Defensas × 0.4</span>
+                    <span className="font-mono">
+                      {selectedMatch.defense_successes} × 0.4 = <span className="font-semibold text-emerald-500">{(selectedMatch.defense_successes * 0.4).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2">
+                    <span>Bloqueos × 1.0</span>
+                    <span className="font-mono">
+                      {selectedMatch.block_points} × 1.0 = <span className="font-semibold text-emerald-500">{(selectedMatch.block_points * 1.0).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2">
+                    <span>Toques en bloqueo × 0.2</span>
+                    <span className="font-mono">
+                      {selectedMatch.block_touches} × 0.2 = <span className="font-semibold text-emerald-500">{(selectedMatch.block_touches * 0.2).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
+                    <div className="flex justify-between px-2 font-semibold">
+                      <span>Nota Bloqueo (1-10)</span>
+                      <span className="text-sky-500">{selectedMatch.block_score.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between px-2 font-semibold">
+                      <span>Nota Defensa (1-10)</span>
+                      <span className="text-sky-500">{selectedMatch.defense.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+                <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">ARMADO</p>
+                <div className="space-y-1">
+                  <div className="flex justify-between px-2">
+                    <span>Armadas × 0.4</span>
+                    <span className="font-mono">
+                      {selectedMatch.set_assists} × 0.4 = <span className="font-semibold text-emerald-500">{(selectedMatch.set_assists * 0.4).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-2 text-rose-500">
+                    <span>Errores × 0.2</span>
+                    <span className="font-mono">
+                      {selectedMatch.set_errors} × 0.2 = <span className="font-semibold">-{(selectedMatch.set_errors * 0.2).toFixed(2)}</span>
+                    </span>
+                  </div>
+                  <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
+                    <div className="flex justify-between px-2 font-semibold">
+                      <span>Nota Armado (1-10)</span>
+                      <span className="text-sky-500">{selectedMatch.setting_score.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border-2 border-sky-500 bg-sky-50 p-3 dark:bg-slate-900/50">
+                <p className="mb-3 font-semibold text-sky-700 dark:text-sky-400">NOTA FINAL DEL PARTIDO</p>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between px-2">
+                    <span>(Recepción + Saque + Defensa + Ataque + Bloqueo + Armado) / 4 + 5</span>
+                  </div>
+                  <div className="flex justify-between px-2 font-mono">
+                    <span>({selectedMatch.reception.toFixed(2)} + {selectedMatch.serve.toFixed(2)} + {selectedMatch.defense.toFixed(2)} + {selectedMatch.attack.toFixed(2)} + {selectedMatch.block_score.toFixed(2)} + {selectedMatch.setting_score.toFixed(2)}) / 4 + 5</span>
+                  </div>
+                  <div className="border-t-2 border-sky-300 pt-2 dark:border-sky-800">
+                    <div className="flex justify-between px-2 text-sm font-extrabold">
+                      <span>TOTAL</span>
+                      <span className="text-sky-600 dark:text-sky-400">{selectedMatch.match_performance.toFixed(2)}/10</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+              Selecciona un partido para ver el desglose detallado de cada acción.
             </p>
           )}
         </article>

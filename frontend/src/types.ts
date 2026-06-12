@@ -163,6 +163,22 @@ export interface PlayerHistoryItem {
   block_score: number;
   setting_score: number;
   match_performance: number;
+  attack_points: number;
+  attack_complicated: number;
+  attack_errors: number;
+  serve_aces: number;
+  serve_complicated: number;
+  serve_pasarlo: number;
+  serve_errors: number;
+  block_points: number;
+  block_touches: number;
+  defense_successes: number;
+  reception_perfect: number;
+  reception_good: number;
+  reception_bad: number;
+  reception_error: number;
+  set_assists: number;
+  set_errors: number;
 }
 
 export interface GlobalStats {

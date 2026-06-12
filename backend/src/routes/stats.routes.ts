@@ -57,7 +57,23 @@ statsRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
         r.attack,
         r.block_score,
         r.setting_score,
-        LEAST(10.00, GREATEST(1.00, r.match_performance)) AS match_performance
+        LEAST(10.00, GREATEST(1.00, r.match_performance)) AS match_performance,
+        r.attack_points,
+        r.attack_complicated,
+        r.attack_errors,
+        r.serve_aces,
+        r.serve_complicated,
+        r.serve_pasarlo,
+        r.serve_errors,
+        r.block_points,
+        r.block_touches,
+        r.defense_successes,
+        r.reception_perfect,
+        r.reception_good,
+        r.reception_bad,
+        r.reception_error,
+        r.set_assists,
+        r.set_errors
       FROM ratings r
       JOIN matches m ON m.id = r.match_id
       WHERE r.player_id = ?
@@ -133,7 +149,23 @@ statsRouter.get('/player/:playerId', async (req, res) => {
         r.attack,
         r.block_score,
         r.setting_score,
-        LEAST(10.00, GREATEST(1.00, r.match_performance)) AS match_performance
+        LEAST(10.00, GREATEST(1.00, r.match_performance)) AS match_performance,
+        r.attack_points,
+        r.attack_complicated,
+        r.attack_errors,
+        r.serve_aces,
+        r.serve_complicated,
+        r.serve_pasarlo,
+        r.serve_errors,
+        r.block_points,
+        r.block_touches,
+        r.defense_successes,
+        r.reception_perfect,
+        r.reception_good,
+        r.reception_bad,
+        r.reception_error,
+        r.set_assists,
+        r.set_errors
       FROM ratings r
       JOIN matches m ON m.id = r.match_id
       WHERE r.player_id = ?
