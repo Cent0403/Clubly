@@ -615,7 +615,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
                 >
                   <div className="min-w-0">
                     <p className="font-semibold">#{idx + 1} {r.full_name}</p>
-                    <p className="break-words text-xs text-slate-600 dark:text-slate-300">{r.minutes_played ? 'Titular' : 'No jugó'}</p>
+                    <p className="break-words text-xs text-slate-600 dark:text-slate-300">{r.minutes_played ? 'Tuvo minutos' : 'No jugó'}</p>
                   </div>
                   <p className="shrink-0 text-lg font-extrabold text-sky-500">{(Math.min(Number(r.match_performance ?? 0), 10)).toFixed(2)}</p>
                 </div>
