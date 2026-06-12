@@ -63,8 +63,10 @@ export interface RatingItem {
   minutesPlayed: boolean;
   attackPoints: number;
   attackErrors: number;
+  attackComplicated: number;
   serveAces: number;
   serveComplicated: number;
+  servePasarlo: number;
   serveErrors: number;
   blockPoints: number;
   blockTouches: number;
@@ -84,8 +86,10 @@ export interface MatchRatingRow {
   minutes_played: number;
   attack_points: number;
   attack_errors: number;
+  attack_complicated: number;
   serve_aces: number;
   serve_complicated: number;
+  serve_pasarlo: number;
   serve_errors: number;
   block_points: number;
   block_touches: number;

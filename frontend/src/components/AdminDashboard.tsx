@@ -119,9 +119,11 @@ function formatPositionOption(position: UserFormState['position']) {
 
 const EVENT_FIELDS: Array<{ key: keyof Omit<RatingItem, 'playerId' | 'minutesPlayed'>; label: string }> = [
   { key: 'attackPoints', label: 'Ataque: puntos' },
+  { key: 'attackComplicated', label: 'Ataque: complicado' },
   { key: 'attackErrors', label: 'Ataque: errores' },
   { key: 'serveAces', label: 'Saque: aces' },
   { key: 'serveComplicated', label: 'Saque: complicado' },
+  { key: 'servePasarlo', label: 'Saque: pasarlo' },
   { key: 'serveErrors', label: 'Saque: errores' },
   { key: 'blockPoints', label: 'Bloqueo: puntos' },
   { key: 'blockTouches', label: 'Bloqueo: toques' },
@@ -143,12 +145,12 @@ const FUNDAMENT_GROUPS = [
   {
     title: 'Ataque',
     description: 'Puntos y errores',
-    fields: ['attackPoints', 'attackErrors'] as const
+    fields: ['attackPoints', 'attackComplicated', 'attackErrors'] as const
   },
   {
     title: 'Saque',
     description: 'Aces, complicados y errores',
-    fields: ['serveAces', 'serveComplicated', 'serveErrors'] as const
+    fields: ['serveAces', 'serveComplicated', 'servePasarlo', 'serveErrors'] as const
   },
   {
     title: 'Bloqueo',
@@ -191,9 +193,11 @@ function createDefaultRating(playerId: number): RatingItem {
     playerId,
     minutesPlayed: true,
     attackPoints: 0,
+    attackComplicated: 0,
     attackErrors: 0,
     serveAces: 0,
     serveComplicated: 0,
+    servePasarlo: 0,
     serveErrors: 0,
     blockPoints: 0,
     blockTouches: 0,
@@ -361,9 +365,11 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
             playerId: row.player_id,
             minutesPlayed: row.minutes_played === 1,
             attackPoints: row.attack_points,
+            attackComplicated: row.attack_complicated,
             attackErrors: row.attack_errors,
             serveAces: row.serve_aces,
             serveComplicated: row.serve_complicated,
+            servePasarlo: row.serve_pasarlo,
             serveErrors: row.serve_errors,
             blockPoints: row.block_points,
             blockTouches: row.block_touches,
@@ -798,9 +804,11 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
           playerId: row.player_id,
           minutesPlayed: row.minutes_played === 1,
           attackPoints: row.attack_points,
+          attackComplicated: row.attack_complicated,
           attackErrors: row.attack_errors,
           serveAces: row.serve_aces,
           serveComplicated: row.serve_complicated,
+          servePasarlo: row.serve_pasarlo,
           serveErrors: row.serve_errors,
           blockPoints: row.block_points,
           blockTouches: row.block_touches,

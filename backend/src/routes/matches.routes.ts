@@ -20,8 +20,10 @@ interface RatingInput {
   minutesPlayed: boolean;
   attackPoints: number;
   attackErrors: number;
+  attackComplicated: number;
   serveAces: number;
   serveComplicated: number;
+  servePasarlo: number;
   serveErrors: number;
   blockPoints: number;
   blockTouches: number;
@@ -61,8 +63,10 @@ function clampScore(value: number): number {
 function calculateNetContribution(item: RatingInput): number {
   const positivePoints =
     item.attackPoints * 1.0 +
+    item.attackComplicated * 0.4 +
     item.serveAces * 1.0 +
     item.serveComplicated * 0.6 +
+    item.servePasarlo * 0.2 +
     item.blockPoints * 1.0 +
     item.blockTouches * 0.2 +
     item.defenseSuccesses * 0.4 +
@@ -132,8 +136,10 @@ async function ensureReceptionSchema(): Promise<void> {
               'reception_good',
               'reception_bad',
               'reception_error',
-              'reception_errors',
-              'serve_complicated'
+                'reception_errors',
+                'serve_complicated',
+                'attack_complicated',
+                'serve_pasarlo'
             )
         `
       );
@@ -153,6 +159,14 @@ async function ensureReceptionSchema(): Promise<void> {
 
       if (!existingColumns.has('serve_complicated')) {
         await pool.query(`ALTER TABLE ratings ADD COLUMN serve_complicated INT UNSIGNED NOT NULL DEFAULT 0 AFTER serve_aces`);
+      }
+
+      if (!existingColumns.has('attack_complicated')) {
+        await pool.query(`ALTER TABLE ratings ADD COLUMN attack_complicated INT UNSIGNED NOT NULL DEFAULT 0 AFTER attack_points`);
+      }
+
+      if (!existingColumns.has('serve_pasarlo')) {
+        await pool.query(`ALTER TABLE ratings ADD COLUMN serve_pasarlo INT UNSIGNED NOT NULL DEFAULT 0 AFTER serve_complicated`);
       }
 
       await syncMatchPerformanceGeneratedColumn();
@@ -175,9 +189,11 @@ function calculateScores(item: RatingInput) {
           item.receptionError * 0.75
       ).toFixed(2)
     ),
-    serve: Number(clampScore(item.serveAces * 1.0 + item.serveComplicated * 0.6 - item.serveErrors * 0.5).toFixed(2)),
+    serve: Number(
+      clampScore(item.serveAces * 1.0 + item.serveComplicated * 0.6 + item.servePasarlo * 0.2 - item.serveErrors * 0.5).toFixed(2)
+    ),
     defense: Number(clampScore(item.defenseSuccesses * 0.4).toFixed(2)),
-    attack: Number(clampScore(item.attackPoints * 1.0 - item.attackErrors * 0.5).toFixed(2)),
+    attack: Number(clampScore(item.attackPoints * 1.0 + item.attackComplicated * 0.4 - item.attackErrors * 0.5).toFixed(2)),
     blockScore: Number(clampScore(item.blockPoints * 1.0 + item.blockTouches * 0.2).toFixed(2)),
     settingScore: Number(clampScore(item.setAssists * 0.4 - item.setErrors * 0.2).toFixed(2))
   };
@@ -346,9 +362,11 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
       item.playerId <= 0 ||
       typeof item.minutesPlayed !== 'boolean' ||
       !isNonNegativeNumber(item.attackPoints) ||
+      !isNonNegativeNumber(item.attackComplicated) ||
       !isNonNegativeNumber(item.attackErrors) ||
       !isNonNegativeNumber(item.serveAces) ||
       !isNonNegativeNumber(item.serveComplicated) ||
+      !isNonNegativeNumber(item.servePasarlo) ||
       !isNonNegativeNumber(item.serveErrors) ||
       !isNonNegativeNumber(item.blockPoints) ||
       !isNonNegativeNumber(item.blockTouches) ||
@@ -398,9 +416,11 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
             player_id,
             minutes_played,
             attack_points,
+            attack_complicated,
             attack_errors,
             serve_aces,
             serve_complicated,
+            serve_pasarlo,
             serve_errors,
             block_points,
             block_touches,
@@ -419,13 +439,15 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
             setting_score,
             created_by
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE
             minutes_played = VALUES(minutes_played),
             attack_points = VALUES(attack_points),
+            attack_complicated = VALUES(attack_complicated),
             attack_errors = VALUES(attack_errors),
             serve_aces = VALUES(serve_aces),
             serve_complicated = VALUES(serve_complicated),
+            serve_pasarlo = VALUES(serve_pasarlo),
             serve_errors = VALUES(serve_errors),
             block_points = VALUES(block_points),
             block_touches = VALUES(block_touches),
@@ -449,9 +471,11 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
           item.playerId,
           item.minutesPlayed ? 1 : 0,
           item.attackPoints,
+          item.attackComplicated,
           item.attackErrors,
           item.serveAces,
           item.serveComplicated,
+          item.servePasarlo,
           item.serveErrors,
           item.blockPoints,
           item.blockTouches,
@@ -502,9 +526,11 @@ matchesRouter.get('/:id/ratings', async (req, res) => {
         u.full_name,
         r.minutes_played,
         r.attack_points,
+          r.attack_complicated,
         r.attack_errors,
         r.serve_aces,
         r.serve_complicated,
+          r.serve_pasarlo,
         r.serve_errors,
         r.block_points,
         r.block_touches,

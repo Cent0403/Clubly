@@ -82,9 +82,11 @@ CREATE TABLE ratings (
 
   -- Raw event counters captured by admin.
   attack_points INT UNSIGNED NOT NULL DEFAULT 0,
+  attack_complicated INT UNSIGNED NOT NULL DEFAULT 0,
   attack_errors INT UNSIGNED NOT NULL DEFAULT 0,
   serve_aces INT UNSIGNED NOT NULL DEFAULT 0,
   serve_complicated INT UNSIGNED NOT NULL DEFAULT 0,
+  serve_pasarlo INT UNSIGNED NOT NULL DEFAULT 0,
   serve_errors INT UNSIGNED NOT NULL DEFAULT 0,
   block_points INT UNSIGNED NOT NULL DEFAULT 0,
   block_touches INT UNSIGNED NOT NULL DEFAULT 0,
@@ -134,54 +136,6 @@ CREATE TABLE ratings (
   INDEX idx_ratings_player (player_id),
   INDEX idx_ratings_match (match_id)
 ) ENGINE=InnoDB;
-
--- =============================================
--- Triggers: keep players.overall_score synced with rating history.
--- Rule: if player has no ratings, score remains base 5.0.
--- =============================================
-
-DELIMITER $$
-
-CREATE TRIGGER trg_ratings_after_insert
-AFTER INSERT ON ratings
-FOR EACH ROW
-BEGIN
-  UPDATE players p
-  SET p.overall_score = (
-    SELECT COALESCE(ROUND(AVG(r.match_performance), 2), 5.00)
-    FROM ratings r
-    WHERE r.player_id = NEW.player_id
-  )
-  WHERE p.id = NEW.player_id;
-END$$
-
-CREATE TRIGGER trg_ratings_after_update
-AFTER UPDATE ON ratings
-FOR EACH ROW
-BEGIN
-  UPDATE players p
-  SET p.overall_score = (
-    SELECT COALESCE(ROUND(AVG(r.match_performance), 2), 5.00)
-    FROM ratings r
-    WHERE r.player_id = NEW.player_id
-  )
-  WHERE p.id = NEW.player_id;
-END$$
-
-CREATE TRIGGER trg_ratings_after_delete
-AFTER DELETE ON ratings
-FOR EACH ROW
-BEGIN
-  UPDATE players p
-  SET p.overall_score = (
-    SELECT COALESCE(ROUND(AVG(r.match_performance), 2), 5.00)
-    FROM ratings r
-    WHERE r.player_id = OLD.player_id
-  )
-  WHERE p.id = OLD.player_id;
-END$$
-
-DELIMITER ;
 
 -- =============================================
 -- Seed data
