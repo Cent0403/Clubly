@@ -88,9 +88,12 @@ let receptionSchemaReady: Promise<void> | null = null;
 
 const MATCH_PERFORMANCE_GENERATED_SQL = `
   CASE
-    WHEN minutes_played = 1 THEN ROUND(
-      ((reception + serve + defense + attack + block_score + setting_score) / 4) + 5,
-      2
+    WHEN minutes_played = 1 THEN LEAST(
+      10.00,
+      ROUND(
+        ((reception + serve + defense + attack + block_score + setting_score) / 4) + 5,
+        2
+      )
     )
     ELSE NULL
   END

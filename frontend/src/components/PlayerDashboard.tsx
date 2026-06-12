@@ -252,31 +252,6 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         </article>
 
         <article className="card xl:col-span-2">
-          <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Top</p>
-          <h3 className="text-xl font-bold">Top del partido</h3>
-          {matchRatingsLoading ? (
-            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">Cargando top del partido...</p>
-          ) : matchRatings.length > 0 ? (
-            <div className="mt-4 max-h-[34rem] space-y-2 overflow-y-auto pr-1">
-              {matchRatings.slice(0, 3).map((r, idx) => (
-                <div
-                  key={r.player_id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold">#{idx + 1} {r.full_name}</p>
-                    <p className="break-words text-xs text-slate-600 dark:text-slate-300">{r.minutes_played ? 'Titular' : 'No jugó'}</p>
-                  </div>
-                  <p className="shrink-0 text-lg font-extrabold text-sky-500">{(Math.min(Number(r.match_performance ?? 0), 10)).toFixed(2)}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">Selecciona un partido para ver el top de ese partido.</p>
-          )}
-        </article>
-
-        <article className="card xl:col-span-2">
           <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Informacion de cuenta</p>
           <div className="mt-4 space-y-2 text-sm">
             <p>
@@ -435,6 +410,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
             </p>
           )}
         </article>
+        
 
         <article className="card xl:col-span-3">
           <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Acciones</p>
@@ -623,6 +599,30 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
               Selecciona un partido para ver el desglose detallado de cada acción.
             </p>
+          )}
+        </article>
+        <article className="card xl:col-span-2">
+          <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Top</p>
+          <h3 className="text-xl font-bold">Top del partido</h3>
+          {matchRatingsLoading ? (
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">Cargando top del partido...</p>
+          ) : matchRatings.length > 0 ? (
+            <div className="mt-4 max-h-[34rem] space-y-2 overflow-y-auto pr-1">
+              {matchRatings.slice(0, 3).map((r, idx) => (
+                <div
+                  key={r.player_id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold">#{idx + 1} {r.full_name}</p>
+                    <p className="break-words text-xs text-slate-600 dark:text-slate-300">{r.minutes_played ? 'Titular' : 'No jugó'}</p>
+                  </div>
+                  <p className="shrink-0 text-lg font-extrabold text-sky-500">{(Math.min(Number(r.match_performance ?? 0), 10)).toFixed(2)}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">Selecciona un partido para ver el top de ese partido.</p>
           )}
         </article>
       </section>
