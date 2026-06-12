@@ -369,37 +369,6 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
                 </p>
               </div>
 
-              <div className="space-y-2 rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
-                <p className="font-semibold text-slate-700 dark:text-slate-300">Desglose por fundamentales</p>
-                
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
-                    <span>Recepción</span>
-                    <span className="font-semibold text-sky-500">{selectedMatch.reception.toFixed(2)}/10</span>
-                  </div>
-                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
-                    <span>Saque</span>
-                    <span className="font-semibold text-sky-500">{selectedMatch.serve.toFixed(2)}/10</span>
-                  </div>
-                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
-                    <span>Defensa</span>
-                    <span className="font-semibold text-sky-500">{selectedMatch.defense.toFixed(2)}/10</span>
-                  </div>
-                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
-                    <span>Ataque</span>
-                    <span className="font-semibold text-sky-500">{selectedMatch.attack.toFixed(2)}/10</span>
-                  </div>
-                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
-                    <span>Bloqueo</span>
-                    <span className="font-semibold text-sky-500">{selectedMatch.block_score.toFixed(2)}/10</span>
-                  </div>
-                  <div className="flex justify-between rounded bg-slate-50 p-2 dark:bg-slate-800">
-                    <span>Armado</span>
-                    <span className="font-semibold text-sky-500">{selectedMatch.setting_score.toFixed(2)}/10</span>
-                  </div>
-                </div>
-              </div>
-
               <MetricBars
                 metrics={[
                   { label: 'Recepcion', value: selectedMatch.reception },
