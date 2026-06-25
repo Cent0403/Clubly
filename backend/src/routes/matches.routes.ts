@@ -154,20 +154,42 @@ async function ensureReceptionSchema(): Promise<void> {
 }
 
 function calculateScores(item: RatingInput) {
+  const finalizeScore = (score: number) => {
+    const clamped = clampScore(score);
+    return Number(Math.min(clamped, 10).toFixed(2));
+  };
+
   return {
-    reception: Number(
-      clampScore(
-        item.receptionPerfect * 1.0 +
-          item.receptionGood * 0.5 +
-          item.receptionBad * 0.25 -
-          item.receptionError * 0.75
-      ).toFixed(2)
+    reception: finalizeScore(
+      item.receptionPerfect * 1.0 +
+        item.receptionGood * 0.5 +
+        item.receptionBad * 0.25 -
+        item.receptionError * 0.75
     ),
-    serve: Number(clampScore(item.serveAces * 1.0 - item.serveErrors * 0.5).toFixed(2)),
-    defense: Number(clampScore(item.defenseSuccesses * 0.4).toFixed(2)),
-    attack: Number(clampScore(item.attackPoints * 1.0 - item.attackErrors * 0.5).toFixed(2)),
-    blockScore: Number(clampScore(item.blockPoints * 1.0 + item.blockTouches * 0.2).toFixed(2)),
-    settingScore: Number(clampScore(item.setAssists * 0.4 - item.setErrors * 0.2).toFixed(2))
+    
+    serve: finalizeScore(
+      item.serveAces * 1.0 - 
+        item.serveErrors * 0.5
+    ),
+    
+    defense: finalizeScore(
+      item.defenseSuccesses * 0.4
+    ),
+    
+    attack: finalizeScore(
+      item.attackPoints * 1.0 - 
+        item.attackErrors * 0.5
+    ),
+    
+    blockScore: finalizeScore(
+      item.blockPoints * 1.0 + 
+        item.blockTouches * 0.2
+    ),
+    
+    settingScore: finalizeScore(
+      item.setAssists * 0.4 - 
+        item.setErrors * 0.2
+    )
   };
 }
 
