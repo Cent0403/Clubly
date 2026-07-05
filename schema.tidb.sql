@@ -1,8 +1,8 @@
 -- TiDB Cloud compatible schema for Clubly
--- Run this inside the target database (for example: volleyball_stats)
+-- Run this inside the target database (for example: clubly)
 
 -- Optional, if your SQL editor is not already scoped to the DB:
--- USE volleyball_stats;
+-- USE clubly;
 
 -- =============================================
 -- Core tables

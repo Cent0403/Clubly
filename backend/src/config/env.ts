@@ -27,7 +27,7 @@ export const env = {
   dbPort: Number(getEnv('DB_PORT', '3306')),
   dbUser: getEnv('DB_USER', 'root'),
   dbPassword: getEnv('DB_PASSWORD', ''),
-  dbName: getEnv('DB_NAME', 'volleyball_stats'),
+  dbName: getEnv('DB_NAME', 'clubly'),
   dbSsl: toBoolean(process.env.DB_SSL, false),
   jwtSecret: getEnv('JWT_SECRET', 'super_secret_change_me'),
   jwtExpiresIn: getEnv('JWT_EXPIRES_IN', '8h')

@@ -1,9 +1,9 @@
 -- Volleyball team statistics management schema
 -- MySQL 8.0+
 
-DROP DATABASE IF EXISTS volleyball_stats;
-CREATE DATABASE volleyball_stats CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE volleyball_stats;
+DROP DATABASE IF EXISTS clubly;
+CREATE DATABASE clubly CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE clubly;
 
 -- =============================================
 -- Core tables
