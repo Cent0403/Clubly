@@ -1,5 +1,4 @@
--- Volleyball team statistics management schema
--- MySQL 8.0+
+-- Clubly -- MySQL 8.0+
 
 DROP DATABASE IF EXISTS clubly;
 CREATE DATABASE clubly CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
