@@ -3,8 +3,8 @@ import { api } from './lib/api';
 import { useDarkMode } from './hooks/useDarkMode';
 import { LoginForm } from './components/LoginForm';
 import { AdminDashboard } from './components/AdminDashboard';
-import { PlayerDashboard } from './components/PlayerDashboard';
 import { AuthUser, TeamSettings } from './types';
+import { PlayerDashboard } from './components/PlayerDashboard';
 
 function formatRole(role: AuthUser['role']) {
   return role === 'ADMIN' ? 'Admin' : 'Jugador';
