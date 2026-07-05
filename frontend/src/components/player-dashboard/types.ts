@@ -1,0 +1,57 @@
+import { MatchRatingRow, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../../types';
+
+export interface PlayerDashboardProps {
+  token: string;
+}
+
+export interface ProfileFormState {
+  fullName: string;
+  password: string;
+}
+
+export interface PlayerSection {
+  key: 'resumen' | 'rendimiento' | 'historial' | 'top';
+  label: string;
+}
+
+export type PlayerSectionKey = PlayerSection['key'];
+
+export interface RadarMetric {
+  label: string;
+  value: number;
+}
+
+export interface SummaryCard {
+  label: string;
+  value: number;
+  accent: string;
+}
+
+export interface SummarySectionProps {
+  active: boolean;
+  profile: PlayerItem | null;
+  summary: PlayerSummary | null;
+  profileMessage: string | null;
+  profileError: string | null;
+  onOpenProfileModal: () => void;
+}
+
+export interface PerformanceSectionProps {
+  active: boolean;
+  summary: PlayerSummary | null;
+  radarMetrics: RadarMetric[];
+}
+
+export interface TopSectionProps {
+  active: boolean;
+  topPlayers: PlayerItem[];
+}
+
+export interface HistorySectionProps {
+  active: boolean;
+  history: PlayerHistoryItem[];
+  selectedMatch: PlayerHistoryItem | null;
+  matchRatings: MatchRatingRow[];
+  matchRatingsLoading: boolean;
+  onSelectMatch: (match: PlayerHistoryItem) => void;
+}
