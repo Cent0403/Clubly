@@ -20,7 +20,7 @@ async function ensureSettingsTable() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS app_settings (
       id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
-      team_name VARCHAR(120) NOT NULL DEFAULT 'Volitics',
+      team_name VARCHAR(120) NOT NULL DEFAULT 'Clubly',
       team_logo_url LONGTEXT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -29,7 +29,7 @@ async function ensureSettingsTable() {
 
   await pool.query(`
     INSERT INTO app_settings (id, team_name)
-    VALUES (1, 'Volitics')
+    VALUES (1, 'Clubly')
     ON DUPLICATE KEY UPDATE id = id
   `);
 }
@@ -46,7 +46,7 @@ settingsRouter.get('/', async (_req, res) => {
     `
   );
 
-  const settings = rows[0] ?? { id: 1, team_name: 'Volitics', team_logo_url: null };
+  const settings = rows[0] ?? { id: 1, team_name: 'Clubly', team_logo_url: null };
 
   res.json({
     settings: {
@@ -105,7 +105,7 @@ settingsRouter.put('/', requireAuth, requireRole('ADMIN'), async (req, res) => {
     `
   );
 
-  const settings = rows[0] ?? { id: 1, team_name: 'Volitics', team_logo_url: null };
+  const settings = rows[0] ?? { id: 1, team_name: 'Clubly', team_logo_url: null };
 
   res.json({
     message: 'Team settings updated successfully',

@@ -211,7 +211,7 @@ export const api = {
     const response = await request<{ settings: TeamSettings }>('/settings');
     return {
       settings: {
-        teamName: response.settings?.teamName || 'Volitics',
+        teamName: response.settings?.teamName || 'Clubly',
         teamLogoUrl: response.settings?.teamLogoUrl ?? null
       }
     };
@@ -230,7 +230,7 @@ export const api = {
     return {
       message: response.message,
       settings: {
-        teamName: response.settings?.teamName || 'Volitics',
+        teamName: response.settings?.teamName || 'Clubly',
         teamLogoUrl: response.settings?.teamLogoUrl ?? null
       }
     };

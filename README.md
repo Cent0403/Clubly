@@ -1,6 +1,6 @@
-# Volitics
+# Clubly
 
-Plataforma de estadisticas de voleibol con backend en Node.js/TypeScript y frontend en React/TypeScript.
+Plataforma de manejo de Clubes Deportivos de Voleibol con backend en Node.js/TypeScript y frontend en React/TypeScript.
 
 ## Estructura
 

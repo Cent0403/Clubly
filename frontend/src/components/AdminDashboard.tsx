@@ -1008,7 +1008,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
               />
             ) : null}
             <div>
-              <p className="text-xl font-bold">{settingsForm.teamName || 'Volitics'}</p>
+              <p className="text-xl font-bold">{settingsForm.teamName || 'Clubly'}</p>
               <p className="text-sm text-slate-600 dark:text-slate-300">Plataforma de estadisticas de voleibol</p>
             </div>
           </div>

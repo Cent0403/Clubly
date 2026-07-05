@@ -1,4 +1,4 @@
--- TiDB Cloud compatible schema for Volitics
+-- TiDB Cloud compatible schema for Clubly
 -- Run this inside the target database (for example: volleyball_stats)
 
 -- Optional, if your SQL editor is not already scoped to the DB:
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS app_settings (
   id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
-  team_name VARCHAR(120) NOT NULL DEFAULT 'Volitics',
+  team_name VARCHAR(120) NOT NULL DEFAULT 'Clubly',
   team_logo_url LONGTEXT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -145,7 +145,7 @@ ON DUPLICATE KEY UPDATE
   is_active = 1;
 
 INSERT INTO app_settings (id, team_name, team_logo_url)
-VALUES (1, 'Volitics', NULL)
+VALUES (1, 'Clubly', NULL)
 ON DUPLICATE KEY UPDATE
   team_name = VALUES(team_name),
   team_logo_url = VALUES(team_logo_url);

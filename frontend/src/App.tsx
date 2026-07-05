@@ -12,13 +12,13 @@ function formatRole(role: AuthUser['role']) {
 
 function App() {
   const { darkMode, toggleDarkMode } = useDarkMode();
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('volitics_token'));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('clubly_token'));
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
   const [loggingIn, setLoggingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [teamSettings, setTeamSettings] = useState<TeamSettings>({
-    teamName: 'Volitics',
+    teamName: 'Clubly',
     teamLogoUrl: null
   });
 
@@ -28,7 +28,7 @@ function App() {
         const response = await api.getTeamSettings();
         setTeamSettings(response.settings);
       } catch {
-        setTeamSettings({ teamName: 'Volitics', teamLogoUrl: null });
+        setTeamSettings({ teamName: 'Clubly', teamLogoUrl: null });
       }
     }
 
@@ -46,7 +46,7 @@ function App() {
         const response = await api.me(token);
         setUser(response.user);
       } catch {
-        localStorage.removeItem('volitics_token');
+        localStorage.removeItem('clubly_token');
         setToken(null);
       } finally {
         setLoadingSession(false);
@@ -62,7 +62,7 @@ function App() {
 
     try {
       const response = await api.login(username, password);
-      localStorage.setItem('volitics_token', response.token);
+      localStorage.setItem('clubly_token', response.token);
       setToken(response.token);
       setUser(response.user);
     } catch (loginError) {
@@ -73,7 +73,7 @@ function App() {
   }
 
   function handleLogout() {
-    localStorage.removeItem('volitics_token');
+    localStorage.removeItem('clubly_token');
     setUser(null);
     setToken(null);
   }
