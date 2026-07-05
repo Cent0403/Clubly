@@ -9,12 +9,19 @@ import { usersRouter } from './routes/users.routes';
 
 export const app = express();
 
+function normalizeOrigin(value: string) {
+  return value.trim().replace(/\/+$/, '');
+}
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://www.shadowsvc.club/',
+  'https://shadowsvc.club',
+  'https://www.shadowsvc.club',
   process.env.FRONTEND_URL
-].filter((origin): origin is string => Boolean(origin));
+]
+  .filter((origin): origin is string => Boolean(origin))
+  .map(normalizeOrigin);
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
@@ -23,7 +30,7 @@ const corsOptions: cors.CorsOptions = {
       return;
     }
 
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.includes(normalizeOrigin(origin))) {
       callback(null, true);
       return;
     }
