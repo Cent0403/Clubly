@@ -12,7 +12,7 @@ export const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://clubly-black.vercel.app',
+  'https://www.shadowsvc.club/',
   process.env.FRONTEND_URL
 ].filter((origin): origin is string => Boolean(origin));
 
