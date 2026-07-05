@@ -5,7 +5,6 @@ import {
   GlobalStats,
   MatchItem,
   MatchRatingRow,
-  PlayerPosition,
   PlayerHistoryItem,
   PlayerItem,
   PlayerSummary,
@@ -13,203 +12,15 @@ import {
   Role,
   TeamSettings
 } from '../types';
-import { MetricBars } from './charts/MetricBars';
-
-interface AdminDashboardProps {
-  token: string;
-  teamSettings: TeamSettings;
-  onTeamSettingsUpdated: (settings: TeamSettings) => void;
-}
-
-interface MatchFormState {
-  matchDate: string;
-  opponent: string;
-  tournament: string;
-  location: string;
-  notes: string;
-}
-
-interface UserFormState {
-  username: string;
-  password: string;
-  fullName: string;
-  role: Role;
-  jerseyNumber: string;
-  position: '' | PlayerPosition;
-}
-
-interface EditUserFormState {
-  username: string;
-  password: string;
-  fullName: string;
-  role: Role;
-  jerseyNumber: string;
-  position: '' | PlayerPosition;
-}
-
-const EMPTY_MATCH_FORM: MatchFormState = {
-  matchDate: '',
-  opponent: '',
-  tournament: '',
-  location: '',
-  notes: ''
-};
-
-const EMPTY_USER_FORM: UserFormState = {
-  username: '',
-  password: '',
-  fullName: '',
-  role: 'PLAYER',
-  jerseyNumber: '',
-  position: ''
-};
-
-const EMPTY_EDIT_USER_FORM: EditUserFormState = {
-  username: '',
-  password: '',
-  fullName: '',
-  role: 'PLAYER',
-  jerseyNumber: '',
-  position: ''
-};
-
-const USER_POSITIONS: Array<UserFormState['position']> = [
-  '',
-  'SETTER',
-  'OUTSIDE',
-  'OPPOSITE',
-  'MIDDLE',
-  'LIBERO',
-  'DEFENSIVE_SPECIALIST'
-];
-
-const POSITION_LABELS: Record<Exclude<UserFormState['position'], ''>, string> = {
-  SETTER: 'Colocador',
-  OUTSIDE: 'Latero',
-  OPPOSITE: 'Opuesto',
-  MIDDLE: 'Central',
-  LIBERO: 'Libero',
-  DEFENSIVE_SPECIALIST: 'Especialista en defensa'
-};
-
-const POSITION_OPTION_LABELS: Record<Exclude<UserFormState['position'], ''>, string> = {
-  SETTER: 'Colocador',
-  OUTSIDE: 'Latero',
-  OPPOSITE: 'Opuesto',
-  MIDDLE: 'Central',
-  LIBERO: 'Libero',
-  DEFENSIVE_SPECIALIST: 'Especialista en defensa'
-};
-
-function formatRole(role: Role) {
-  return role === 'ADMIN' ? 'Admin' : 'Jugador';
-}
-
-function formatPosition(position: string | null | undefined) {
-  if (!position) {
-    return 'Sin posición';
-  }
-
-  return POSITION_LABELS[position as keyof typeof POSITION_LABELS] ?? position;
-}
-
-function formatPositionOption(position: UserFormState['position']) {
-  return position === '' ? 'Posicion (opcional)' : POSITION_OPTION_LABELS[position];
-}
-
-const EVENT_FIELDS: Array<{ key: keyof Omit<RatingItem, 'playerId' | 'minutesPlayed'>; label: string }> = [
-  { key: 'attackPoints', label: 'Ataque: puntos' },
-  { key: 'attackComplicated', label: 'Ataque: complicado' },
-  { key: 'attackErrors', label: 'Ataque: errores' },
-  { key: 'serveAces', label: 'Saque: aces' },
-  { key: 'serveComplicated', label: 'Saque: complicado' },
-  { key: 'servePasarlo', label: 'Saque: pasarlo' },
-  { key: 'serveErrors', label: 'Saque: errores' },
-  { key: 'blockPoints', label: 'Bloqueo: puntos' },
-  { key: 'blockTouches', label: 'Bloqueo: toques' },
-  { key: 'defenseSuccesses', label: 'Defensa: exitosas' },
-  { key: 'receptionPerfect', label: 'Recepcion: perfectas' },
-  { key: 'receptionGood', label: 'Recepcion: buenas' },
-  { key: 'receptionBad', label: 'Recepcion: malas' },
-  { key: 'receptionError', label: 'Recepcion: errores' },
-  { key: 'setAssists', label: 'Armado: asistencias' },
-  { key: 'setErrors', label: 'Armado: errores' }
-];
-
-const FUNDAMENT_GROUPS = [
-  {
-    title: 'Recepcion',
-    description: 'Perfectas, buenas, malas y error',
-    fields: ['receptionPerfect', 'receptionGood', 'receptionBad', 'receptionError'] as const
-  },
-  {
-    title: 'Ataque',
-    description: 'Puntos y errores',
-    fields: ['attackPoints', 'attackComplicated', 'attackErrors'] as const
-  },
-  {
-    title: 'Saque',
-    description: 'Aces, complicados y errores',
-    fields: ['serveAces', 'serveComplicated', 'servePasarlo', 'serveErrors'] as const
-  },
-  {
-    title: 'Bloqueo',
-    description: 'Puntos y toques',
-    fields: ['blockPoints', 'blockTouches'] as const
-  },
-  {
-    title: 'Defensa',
-    description: 'Defensas exitosas',
-    fields: ['defenseSuccesses'] as const
-  },
-  {
-    title: 'Armado',
-    description: 'Asistencias y errores',
-    fields: ['setAssists', 'setErrors'] as const
-  }
-] as const;
-
-const TOP_RANKINGS = [
-  { key: 'reception', title: 'Top recepción' },
-  { key: 'serve', title: 'Top saque' },
-  { key: 'defense', title: 'Top defensa' },
-  { key: 'attack', title: 'Top ataque' },
-  { key: 'block', title: 'Top bloqueo' },
-  { key: 'setting', title: 'Top armado' }
-] as const;
-
-const ADMIN_SECTIONS = [
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'equipo', label: 'Equipo' },
-  { key: 'usuarios', label: 'Usuarios' },
-  { key: 'partidos', label: 'Partidos' },
-  { key: 'top', label: 'Top' }
-] as const;
-
-type AdminSectionKey = (typeof ADMIN_SECTIONS)[number]['key'];
-
-function createDefaultRating(playerId: number): RatingItem {
-  return {
-    playerId,
-    minutesPlayed: true,
-    attackPoints: 0,
-    attackComplicated: 0,
-    attackErrors: 0,
-    serveAces: 0,
-    serveComplicated: 0,
-    servePasarlo: 0,
-    serveErrors: 0,
-    blockPoints: 0,
-    blockTouches: 0,
-    defenseSuccesses: 0,
-    receptionPerfect: 0,
-    receptionGood: 0,
-    receptionBad: 0,
-    receptionError: 0,
-    setAssists: 0,
-    setErrors: 0
-  };
-}
+import { EMPTY_EDIT_USER_FORM, EMPTY_MATCH_FORM, EMPTY_USER_FORM, createDefaultRating } from './admin-dashboard/constants';
+import { DashboardSection } from './admin-dashboard/sections/DashboardSection';
+import { MatchesSection } from './admin-dashboard/sections/MatchesSection';
+import { SectionTabs } from './admin-dashboard/sections/SectionTabs';
+import { TeamSettingsSection } from './admin-dashboard/sections/TeamSettingsSection';
+import { TopSection } from './admin-dashboard/sections/TopSection';
+import { UsersSection } from './admin-dashboard/sections/UsersSection';
+import { AdminDashboardProps, AdminSectionKey, EditUserFormState, MatchFormState, UserFormState } from './admin-dashboard/types';
+import { mapMatchRatingRowToRating } from './admin-dashboard/utils';
 
 export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: AdminDashboardProps) {
   const [activeSection, setActiveSection] = useState<AdminSectionKey>('dashboard');
@@ -327,11 +138,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     setSettingsForm(teamSettings);
   }, [teamSettings]);
 
-  async function refreshGlobalStats() {
-    const stats = await api.getGlobalStats(token);
-    setGlobalStats(stats);
-  }
-
   async function refreshTopPlayers() {
     const response = await api.getTopPlayers(token);
     setTopPlayers(response.players);
@@ -361,26 +167,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
         response.ratings.forEach((row: MatchRatingRow) => {
           nextSelectedPlayers.push(row.player_id);
-          nextRatings[row.player_id] = {
-            playerId: row.player_id,
-            minutesPlayed: row.minutes_played === 1,
-            attackPoints: row.attack_points,
-            attackComplicated: row.attack_complicated,
-            attackErrors: row.attack_errors,
-            serveAces: row.serve_aces,
-            serveComplicated: row.serve_complicated,
-            servePasarlo: row.serve_pasarlo,
-            serveErrors: row.serve_errors,
-            blockPoints: row.block_points,
-            blockTouches: row.block_touches,
-            defenseSuccesses: row.defense_successes,
-            receptionPerfect: row.reception_perfect,
-            receptionGood: row.reception_good,
-            receptionBad: row.reception_bad,
-            receptionError: row.reception_error,
-            setAssists: row.set_assists,
-            setErrors: row.set_errors
-          };
+          nextRatings[row.player_id] = mapMatchRatingRowToRating(row);
         });
 
         setSelectedPlayers([]);
@@ -800,26 +587,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       const nextRatings: Record<number, RatingItem> = {};
 
       matchRatings.ratings.forEach((row) => {
-        nextRatings[row.player_id] = {
-          playerId: row.player_id,
-          minutesPlayed: row.minutes_played === 1,
-          attackPoints: row.attack_points,
-          attackComplicated: row.attack_complicated,
-          attackErrors: row.attack_errors,
-          serveAces: row.serve_aces,
-          serveComplicated: row.serve_complicated,
-          servePasarlo: row.serve_pasarlo,
-          serveErrors: row.serve_errors,
-          blockPoints: row.block_points,
-          blockTouches: row.block_touches,
-          defenseSuccesses: row.defense_successes,
-          receptionPerfect: row.reception_perfect,
-          receptionGood: row.reception_good,
-          receptionBad: row.reception_bad,
-          receptionError: row.reception_error,
-          setAssists: row.set_assists,
-          setErrors: row.set_errors
-        };
+        nextRatings[row.player_id] = mapMatchRatingRowToRating(row);
       });
 
       setSelectedPlayers(nextSelectedPlayers);
@@ -888,674 +656,98 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
   return (
     <div className="space-y-6">
-      <section className="card">
-        <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
-          {ADMIN_SECTIONS.map((section) => {
-            const isActive = activeSection === section.key;
+      <SectionTabs activeSection={activeSection} onSelectSection={setActiveSection} />
 
-            return (
-              <button
-                key={section.key}
-                type="button"
-                className={`${isActive ? 'btn-primary' : 'btn-muted'} shrink-0`}
-                onClick={() => setActiveSection(section.key)}
-                aria-pressed={isActive}
-              >
-                {section.label}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <DashboardSection active={activeSection === 'dashboard'} globalStats={globalStats} />
 
-      <section className={activeSection === 'dashboard' ? 'grid gap-4 md:grid-cols-2 xl:grid-cols-3' : 'hidden'}>
-        <article className="card xl:col-span-2">
-          <p className="text-xs uppercase tracking-[0.2em] text-sky-500">Rendimiento de equipo</p>
-          <h2 className="mt-2 text-2xl font-bold">Dashboard global</h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Promedio general del roster: {globalStats?.teamOverview.team_overall_avg?.toFixed(2) ?? '0.00'}
-          </p>
-          <div className="mt-4">
-            <MetricBars
-              metrics={[
-                { label: 'Recepcion', value: globalStats?.teamOverview.team_reception_avg ?? 0 },
-                { label: 'Saque', value: globalStats?.teamOverview.team_serve_avg ?? 0 },
-                { label: 'Defensa', value: globalStats?.teamOverview.team_defense_avg ?? 0 },
-                { label: 'Ataque', value: globalStats?.teamOverview.team_attack_avg ?? 0 },
-                { label: 'Bloqueo', value: globalStats?.teamOverview.team_block_avg ?? 0 },
-                { label: 'Armado', value: globalStats?.teamOverview.team_setting_avg ?? 0 }
-              ]}
-            />
-          </div>
-        </article>
+      <TeamSettingsSection
+        active={activeSection === 'personalización'}
+        settingsForm={settingsForm}
+        savingSettings={savingSettings}
+        settingsMessage={settingsMessage}
+        settingsError={settingsError}
+        onSettingsFormChange={(updater) => setSettingsForm(updater)}
+        onSaveTeamSettings={handleSaveTeamSettings}
+        onTeamLogoFileChange={handleTeamLogoFileChange}
+      />
 
-        {TOP_RANKINGS.map((ranking) => (
-          <article key={ranking.key} className="card">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">{ranking.title}</h3>
-            <ol className="mt-3 space-y-2 text-sm">
-              {(globalStats?.topPlayers[ranking.key] ?? []).map((item) => (
-                <li key={item.full_name} className="flex justify-between rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-800">
-                  <span>{item.full_name}</span>
-                  <span className="font-semibold">{item.score.toFixed(2)}</span>
-                </li>
-              ))}
-            </ol>
-          </article>
-        ))}
-      </section>
+      <UsersSection
+        active={activeSection === 'usuarios'}
+        userForm={userForm}
+        creatingUser={creatingUser}
+        onUserFormChange={(updater) => setUserForm(updater)}
+        onCreateUser={handleCreateUser}
+        selectedPlayerStatId={selectedPlayerStatId}
+        players={players}
+        loadingPlayerStats={loadingPlayerStats}
+        selectedPlayerSummary={selectedPlayerSummary}
+        selectedPlayerHistory={selectedPlayerHistory}
+        onSelectedPlayerStatChange={setSelectedPlayerStatId}
+        onLoadPlayerStats={handleLoadPlayerStats}
+        editingUserId={editingUserId}
+        editingUserForm={editingUserForm}
+        savingUserEdit={savingUserEdit}
+        users={users}
+        filteredUsers={filteredUsers}
+        userSearchTerm={userSearchTerm}
+        userRoleFilter={userRoleFilter}
+        deletingUserId={deletingUserId}
+        onEditingUserFormChange={(updater) => setEditingUserForm(updater)}
+        onUpdateUser={handleUpdateUser}
+        onCancelEditUser={() => {
+          setEditingUserId(null);
+          setEditingUserForm(EMPTY_EDIT_USER_FORM);
+        }}
+        onUserSearchTermChange={setUserSearchTerm}
+        onUserRoleFilterChange={setUserRoleFilter}
+        onLoadUserIntoEditForm={loadUserIntoEditForm}
+        onDeleteUser={(user) => {
+          void handleDeleteUser(user);
+        }}
+      />
 
-      <section className={activeSection === 'equipo' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
-        <article className="card xl:col-span-2">
-          <h3 className="text-xl font-bold">Perfil admin del equipo</h3>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Personaliza el nombre y el logo visibles en toda la plataforma.
-          </p>
+      <MatchesSection
+        active={activeSection === 'partidos'}
+        editingMatchId={editingMatchId}
+        matchForm={matchForm}
+        selectedMatchId={selectedMatchId}
+        selectedMatch={selectedMatch}
+        matches={matches}
+        players={players}
+        filteredEvaluationPlayers={filteredEvaluationPlayers}
+        evaluationPlayerSearchTerm={evaluationPlayerSearchTerm}
+        selectedPlayers={selectedPlayers}
+        ratings={ratings}
+        loadingMatchRatings={loadingMatchRatings}
+        saving={saving}
+        message={message}
+        error={error}
+        onMatchFormChange={(updater) => setMatchForm(updater)}
+        onCreateMatch={handleCreateMatch}
+        onUpdateMatch={handleUpdateMatch}
+        onClearMatchForm={() => {
+          setEditingMatchId(null);
+          setMatchForm(EMPTY_MATCH_FORM);
+        }}
+        onSelectedMatchChange={setSelectedMatchId}
+        onEvaluationPlayerSearchTermChange={setEvaluationPlayerSearchTerm}
+        onTogglePlayer={togglePlayer}
+        onUpdateMinutesPlayed={updateMinutesPlayed}
+        onUpdateEventCount={updateEventCount}
+        onSaveEvaluation={() => {
+          void handleSaveEvaluation();
+        }}
+        onLoadMatchForEdit={handleLoadMatchForEdit}
+        onDeleteMatch={() => {
+          void handleDeleteMatch();
+        }}
+        onClearSelection={() => {
+          setSelectedPlayers([]);
+          setRatings({});
+        }}
+      />
 
-          <form className="mt-4 space-y-3" onSubmit={handleSaveTeamSettings}>
-            <div>
-              <label className="mb-1 block text-xs font-medium">Nombre del equipo</label>
-              <input
-                className="input"
-                value={settingsForm.teamName}
-                onChange={(event) => setSettingsForm((current) => ({ ...current, teamName: event.target.value }))}
-                placeholder="Nombre del equipo"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-medium">Logo del equipo</label>
-              <input className="input" type="file" accept="image/*" onChange={handleTeamLogoFileChange} />
-            </div>
-
-            {settingsForm.teamLogoUrl ? (
-              <div className="space-y-2">
-                <img
-                  src={settingsForm.teamLogoUrl}
-                  alt="Vista previa del logo"
-                  className="h-20 w-20 rounded-xl object-cover"
-                />
-                <button
-                  className="btn-muted"
-                  type="button"
-                  onClick={() => setSettingsForm((current) => ({ ...current, teamLogoUrl: null }))}
-                >
-                  Quitar logo
-                </button>
-              </div>
-            ) : null}
-
-            <button className="btn-primary w-full" type="submit" disabled={savingSettings}>
-              {savingSettings ? 'Guardando personalizacion...' : 'Guardar personalizacion'}
-            </button>
-          </form>
-
-          {settingsMessage ? <p className="mt-3 text-sm font-medium text-emerald-500">{settingsMessage}</p> : null}
-          {settingsError ? <p className="mt-3 text-sm font-medium text-rose-500">{settingsError}</p> : null}
-        </article>
-
-        <article className="card xl:col-span-3">
-          <h3 className="text-xl font-bold">Vista previa de marca</h3>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Asi se mostrara el encabezado de la plataforma para todos los usuarios.
-          </p>
-
-          <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/70 p-4 dark:border-slate-700 dark:bg-slate-900/70">
-            {settingsForm.teamLogoUrl ? (
-              <img
-                src={settingsForm.teamLogoUrl}
-                alt="Logo del equipo"
-                className="h-14 w-14 rounded-xl object-cover"
-              />
-            ) : null}
-            <div>
-              <p className="text-xl font-bold">{settingsForm.teamName || 'Clubly'}</p>
-              <p className="text-sm text-slate-600 dark:text-slate-300">Plataforma de estadisticas de voleibol</p>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section className={activeSection === 'usuarios' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
-        <article className="card xl:col-span-2">
-          <h3 className="text-xl font-bold">Crear usuario</h3>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            El administrador puede crear cuentas y asignar rol de Admin o Jugador.
-          </p>
-          <form className="mt-4 space-y-3" onSubmit={handleCreateUser}>
-            <input
-              className="input"
-              placeholder="Username"
-              value={userForm.username}
-              onChange={(event) => setUserForm((s) => ({ ...s, username: event.target.value }))}
-              required
-            />
-            <input
-              className="input"
-              type="password"
-              placeholder="Password"
-              value={userForm.password}
-              onChange={(event) => setUserForm((s) => ({ ...s, password: event.target.value }))}
-              required
-            />
-            <input
-              className="input"
-              placeholder="Nombre completo"
-              value={userForm.fullName}
-              onChange={(event) => setUserForm((s) => ({ ...s, fullName: event.target.value }))}
-              required
-            />
-            <select
-              className="input"
-              value={userForm.role}
-              onChange={(event) => setUserForm((s) => ({ ...s, role: event.target.value as Role }))}
-            >
-              <option value="PLAYER">Jugador</option>
-              <option value="ADMIN">Administrador</option>
-            </select>
-
-            {userForm.role === 'PLAYER' ? (
-              <>
-                <input
-                  className="input"
-                  type="number"
-                  min={1}
-                  placeholder="Numero de camiseta (opcional)"
-                  value={userForm.jerseyNumber}
-                  onChange={(event) => setUserForm((s) => ({ ...s, jerseyNumber: event.target.value }))}
-                />
-                <select
-                  className="input"
-                  value={userForm.position}
-                  onChange={(event) =>
-                    setUserForm((s) => ({ ...s, position: event.target.value as UserFormState['position'] }))
-                  }
-                >
-                  {USER_POSITIONS.map((position) => (
-                    <option key={position || 'NONE'} value={position}>
-                      {formatPositionOption(position)}
-                    </option>
-                  ))}
-                </select>
-              </>
-            ) : null}
-
-            <button className="btn-primary w-full" type="submit" disabled={creatingUser}>
-              {creatingUser ? 'Creando usuario...' : 'Crear usuario'}
-            </button>
-          </form>
-        </article>
-
-        <article className="card xl:col-span-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-xl font-bold">Estadisticas jugador por jugador</h3>
-            <div className="flex gap-2">
-              <select
-                className="input w-72"
-                value={selectedPlayerStatId ?? ''}
-                onChange={(event) => setSelectedPlayerStatId(Number(event.target.value))}
-              >
-                <option value="" disabled>
-                  Selecciona un jugador
-                </option>
-                {players.map((player) => (
-                  <option key={player.player_id} value={player.player_id}>
-                    {player.full_name}
-                  </option>
-                ))}
-              </select>
-              <button className="btn-muted" onClick={handleLoadPlayerStats} disabled={loadingPlayerStats}>
-                {loadingPlayerStats ? 'Cargando...' : 'Ver stats'}
-              </button>
-            </div>
-          </div>
-
-          {selectedPlayerSummary ? (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl bg-slate-100 p-4 dark:bg-slate-800">
-                <p className="text-sm font-semibold">{selectedPlayerSummary.full_name}</p>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                  Nota general: {selectedPlayerSummary.overall_score.toFixed(2)}
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Partidos calificados: {selectedPlayerSummary.matches_rated}
-                </p>
-              </div>
-
-              <div>
-                <MetricBars
-                  metrics={[
-                    { label: 'Recepcion', value: selectedPlayerSummary.avg_reception },
-                    { label: 'Saque', value: selectedPlayerSummary.avg_serve },
-                    { label: 'Defensa', value: selectedPlayerSummary.avg_defense },
-                    { label: 'Ataque', value: selectedPlayerSummary.avg_attack },
-                    { label: 'Bloqueo', value: selectedPlayerSummary.avg_block },
-                    { label: 'Armado', value: selectedPlayerSummary.avg_setting }
-                  ]}
-                />
-              </div>
-            </div>
-          ) : (
-            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
-              Selecciona un jugador y presiona "Ver stats".
-            </p>
-          )}
-
-          {selectedPlayerHistory.length > 0 ? (
-            <div className="mt-4 max-h-56 overflow-y-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="sticky top-0 bg-white/90 dark:bg-slate-900/90">
-                  <tr className="text-slate-600 dark:text-slate-300">
-                    <th className="px-2 py-2">Fecha</th>
-                    <th className="px-2 py-2">Rival</th>
-                    <th className="px-2 py-2">Torneo</th>
-                    <th className="px-2 py-2">Nota</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedPlayerHistory.map((item) => (
-                    <tr key={item.match_id} className="border-t border-slate-200 dark:border-slate-800">
-                      <td className="px-2 py-2">{item.match_date}</td>
-                      <td className="px-2 py-2">{item.opponent}</td>
-                      <td className="px-2 py-2">{item.tournament}</td>
-                      <td className="px-2 py-2 font-semibold text-sky-500">{item.match_performance.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : null}
-        </article>
-      </section>
-
-      <section className={activeSection === 'usuarios' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
-        <article className="card xl:col-span-2">
-          <h3 className="text-xl font-bold">Editar usuario/jugador</h3>
-
-          {editingUserId ? (
-            <form className="mt-3 space-y-3" onSubmit={handleUpdateUser}>
-              <input
-                className="input"
-                placeholder="Username"
-                value={editingUserForm.username}
-                onChange={(event) => setEditingUserForm((current) => ({ ...current, username: event.target.value }))}
-                required
-              />
-              <input
-                className="input"
-                placeholder="Nombre completo"
-                value={editingUserForm.fullName}
-                onChange={(event) => setEditingUserForm((current) => ({ ...current, fullName: event.target.value }))}
-                required
-              />
-              <input
-                className="input"
-                type="password"
-                placeholder="Nueva password (opcional)"
-                value={editingUserForm.password}
-                onChange={(event) => setEditingUserForm((current) => ({ ...current, password: event.target.value }))}
-              />
-              <select
-                className="input"
-                value={editingUserForm.role}
-                onChange={(event) =>
-                  setEditingUserForm((current) => ({ ...current, role: event.target.value as Role }))
-                }
-              >
-                <option value="PLAYER">Jugador</option>
-                <option value="ADMIN">Admin</option>
-              </select>
-
-              {editingUserForm.role === 'PLAYER' ? (
-                <>
-                  <input
-                    className="input"
-                    type="number"
-                    min={1}
-                    placeholder="Numero de camiseta"
-                    value={editingUserForm.jerseyNumber}
-                    onChange={(event) =>
-                      setEditingUserForm((current) => ({ ...current, jerseyNumber: event.target.value }))
-                    }
-                  />
-                  <select
-                    className="input"
-                    value={editingUserForm.position}
-                    onChange={(event) =>
-                      setEditingUserForm((current) => ({
-                        ...current,
-                        position: event.target.value as EditUserFormState['position']
-                      }))
-                    }
-                  >
-                    {USER_POSITIONS.map((position) => (
-                      <option key={position || 'NONE'} value={position}>
-                          {formatPositionOption(position)}
-                      </option>
-                    ))}
-                  </select>
-                </>
-              ) : null}
-
-              <div className="flex flex-wrap gap-2">
-                <button className="btn-primary" type="submit" disabled={savingUserEdit}>
-                  {savingUserEdit ? 'Actualizando...' : 'Actualizar usuario'}
-                </button>
-                <button
-                  className="btn-muted"
-                  type="button"
-                  onClick={() => {
-                    setEditingUserId(null);
-                    setEditingUserForm(EMPTY_EDIT_USER_FORM);
-                  }}
-                >
-                  Cancelar edicion
-                </button>
-              </div>
-            </form>
-          ) : (
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-              Selecciona un usuario en la lista para editar toda su informacion.
-            </p>
-          )}
-        </article>
-
-        <article className="card xl:col-span-3">
-          <h3 className="text-xl font-bold">Usuarios registrados</h3>
-          <div className="mt-3 grid gap-2 md:grid-cols-3">
-            <input
-              className="input md:col-span-2"
-              placeholder="Buscar por nombre, username o posicion"
-              value={userSearchTerm}
-              onChange={(event) => setUserSearchTerm(event.target.value)}
-            />
-            <select
-              className="input"
-              value={userRoleFilter}
-              onChange={(event) => setUserRoleFilter(event.target.value as 'ALL' | Role)}
-            >
-              <option value="ALL">Todos los roles</option>
-              <option value="PLAYER">Solo jugadores</option>
-              <option value="ADMIN">Solo Admin</option>
-            </select>
-          </div>
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            Mostrando {filteredUsers.length} de {users.length} usuarios
-          </p>
-          <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
-            {filteredUsers.map((user) => (
-              <div
-                key={user.id}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
-              >
-                <p className="font-semibold">{user.full_name}</p>
-                <p className="text-xs text-slate-600 dark:text-slate-300">
-                  @{user.username} | {formatRole(user.role)}
-                  {user.role === 'PLAYER' ? ` | #${user.jersey_number ?? '-'} | ${formatPosition(user.position)}` : ''}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button className="btn-muted" type="button" onClick={() => loadUserIntoEditForm(user)}>
-                    Editar
-                  </button>
-                  <button
-                    className="btn-muted"
-                    type="button"
-                    onClick={() => void handleDeleteUser(user)}
-                    disabled={deletingUserId === user.id}
-                  >
-                    {deletingUserId === user.id ? 'Eliminando...' : 'Eliminar'}
-                  </button>
-                </div>
-              </div>
-            ))}
-            {filteredUsers.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                No hay usuarios que coincidan con los filtros actuales.
-              </p>
-            ) : null}
-          </div>
-        </article>
-      </section>
-
-      <section className={activeSection === 'partidos' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
-        <article className="card xl:col-span-2">
-          <h3 className="text-xl font-bold">Crear partido</h3>
-          {editingMatchId ? (
-            <p className="mt-1 text-sm text-amber-500">Modo edicion activo para partido #{editingMatchId}</p>
-          ) : null}
-          <form className="mt-4 space-y-3" onSubmit={handleCreateMatch}>
-            <input
-              className="input"
-              type="date"
-              value={matchForm.matchDate}
-              onChange={(event) => setMatchForm((s) => ({ ...s, matchDate: event.target.value }))}
-              required
-            />
-            <input
-              className="input"
-              placeholder="Rival"
-              value={matchForm.opponent}
-              onChange={(event) => setMatchForm((s) => ({ ...s, opponent: event.target.value }))}
-              required
-            />
-            <input
-              className="input"
-              placeholder="Torneo"
-              value={matchForm.tournament}
-              onChange={(event) => setMatchForm((s) => ({ ...s, tournament: event.target.value }))}
-              required
-            />
-            <input
-              className="input"
-              placeholder="Ubicacion"
-              value={matchForm.location}
-              onChange={(event) => setMatchForm((s) => ({ ...s, location: event.target.value }))}
-            />
-            <textarea
-              className="input min-h-24"
-              placeholder="Notas"
-              value={matchForm.notes}
-              onChange={(event) => setMatchForm((s) => ({ ...s, notes: event.target.value }))}
-            />
-            <button className="btn-primary w-full" type="submit">
-              Guardar partido
-            </button>
-            <button className="btn-muted w-full" type="button" onClick={handleUpdateMatch}>
-              Actualizar partido en edicion
-            </button>
-            <button
-              className="btn-muted w-full"
-              type="button"
-              onClick={() => {
-                setEditingMatchId(null);
-                setMatchForm(EMPTY_MATCH_FORM);
-              }}
-            >
-              Limpiar formulario
-            </button>
-          </form>
-        </article>
-
-        <article className="card xl:col-span-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-xl font-bold">Evaluacion por eventos</h3>
-            <select
-              className="input w-72"
-              value={selectedMatchId ?? ''}
-              onChange={(event) => setSelectedMatchId(Number(event.target.value))}
-            >
-              <option value="" disabled>
-                Selecciona un partido
-              </option>
-              {matches.map((match) => (
-                <option key={match.id} value={match.id}>
-                  {match.match_date} | {match.opponent} | {match.tournament}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <input
-              className="input w-full md:w-80"
-              placeholder="Buscar jugador por nombre, usuario, posicion o camiseta"
-              value={evaluationPlayerSearchTerm}
-              onChange={(event) => setEvaluationPlayerSearchTerm(event.target.value)}
-            />
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Mostrando {filteredEvaluationPlayers.length} de {players.length} jugadores
-            </p>
-          </div>
-
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            {selectedMatch
-              ? `Partido: ${selectedMatch.match_date} vs ${selectedMatch.opponent}`
-              : 'Selecciona un partido para iniciar evaluacion.'}
-          </p>
-
-          {loadingMatchRatings ? (
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Cargando estadisticas del partido...</p>
-          ) : null}
-
-          <div className="mt-4 grid max-h-[34rem] gap-4 overflow-y-auto pr-1">
-            {filteredEvaluationPlayers.map((player) => {
-              const active = selectedPlayers.includes(player.player_id);
-              const playerRating = ratings[player.player_id] ?? createDefaultRating(player.player_id);
-
-              return (
-                <div key={player.player_id} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
-                  <label className="flex items-center justify-between gap-3">
-                    <span className="font-semibold">{player.full_name}</span>
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={() => togglePlayer(player.player_id)}
-                      className="h-4 w-4"
-                    />
-                  </label>
-
-                  {active ? (
-                    <>
-                      <div className="mt-3 flex items-center gap-2 text-sm">
-                        <input
-                          id={`minutes-${player.player_id}`}
-                          type="checkbox"
-                          className="h-4 w-4"
-                          checked={playerRating.minutesPlayed}
-                          onChange={(event) => updateMinutesPlayed(player.player_id, event.target.checked)}
-                        />
-                        <label htmlFor={`minutes-${player.player_id}`}>
-                          Tuvo minutos en cancha (aplica base de juego 5.0)
-                        </label>
-                      </div>
-
-                      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                        {FUNDAMENT_GROUPS.map((group) => (
-                          <section key={group.title} className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-800/70">
-                            <div className="mb-3">
-                              <p className="text-sm font-semibold">{group.title}</p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">{group.description}</p>
-                            </div>
-
-                            <div className="space-y-2">
-                              {group.fields.map((fieldKey) => {
-                                const field = EVENT_FIELDS.find((item) => item.key === fieldKey)!;
-
-                                return (
-                                  <div key={field.key}>
-                                    <label className="mb-1 block text-xs font-medium">{field.label}</label>
-                                    <input
-                                      className="input"
-                                      type="number"
-                                      step="1"
-                                      min={0}
-                                      value={playerRating[field.key]}
-                                      onChange={(event) =>
-                                        updateEventCount(player.player_id, field.key, Number(event.target.value))
-                                      }
-                                    />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </section>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Selecciona este jugador para evaluarlo.</p>
-                  )}
-                </div>
-              );
-            })}
-            {filteredEvaluationPlayers.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                No hay jugadores que coincidan con la busqueda.
-              </p>
-            ) : null}
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button className="btn-primary" onClick={handleSaveEvaluation} disabled={saving}>
-              {saving ? 'Guardando stats...' : 'Guardar/actualizar stats'}
-            </button>
-            <button className="btn-muted" onClick={handleLoadMatchForEdit}>
-              Cargar partido al formulario
-            </button>
-            <button className="btn-muted" onClick={handleDeleteMatch}>
-              Eliminar partido seleccionado
-            </button>
-            <button
-              className="btn-muted"
-              onClick={() => {
-                setSelectedPlayers([]);
-                setRatings({});
-              }}
-            >
-              Limpiar seleccion
-            </button>
-          </div>
-
-          {message ? <p className="mt-3 text-sm font-medium text-emerald-500">{message}</p> : null}
-          {error ? <p className="mt-3 text-sm font-medium text-rose-500">{error}</p> : null}
-        </article>
-      </section>
-
-      <section className={activeSection === 'top' ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
-        <article className="card xl:col-span-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-sky-500">Ranking general</p>
-              <h3 className="text-xl font-bold">Top jugadores por nota general</h3>
-            </div>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Ordenado de mayor a menor según la nota global
-            </p>
-          </div>
-
-          <div className="mt-4 max-h-[34rem] space-y-2 overflow-y-auto pr-1">
-            {topPlayers.map((player, index) => (
-              <div
-                key={player.player_id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
-              >
-                <div className="min-w-0">
-                  <p className="font-semibold">#{index + 1} {player.full_name}</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 break-words">
-                    @{player.username} | {formatPosition(player.position)}
-                  </p>
-                </div>
-                <p className="shrink-0 text-lg font-extrabold text-sky-500">{player.overall_score.toFixed(2)}</p>
-              </div>
-            ))}
-
-            {topPlayers.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                No hay jugadores para mostrar en el ranking.
-              </p>
-            ) : null}
-          </div>
-        </article>
-      </section>
+      <TopSection active={activeSection === 'top'} topPlayers={topPlayers} />
     </div>
   );
 }

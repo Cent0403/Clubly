@@ -10,7 +10,7 @@ interface CreateUserBody {
   fullName?: string;
   role?: 'ADMIN' | 'PLAYER';
   jerseyNumber?: number | null;
-  position?: 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | 'DEFENSIVE_SPECIALIST' | null;
+  position?: 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | null;
 }
 
 interface UpdateUserBody {
@@ -19,7 +19,7 @@ interface UpdateUserBody {
   fullName?: string;
   role?: 'ADMIN' | 'PLAYER';
   jerseyNumber?: number | null;
-  position?: 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | 'DEFENSIVE_SPECIALIST' | null;
+  position?: 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | null;
 }
 
 interface AdminUserRow extends RowDataPacket {
@@ -37,8 +37,7 @@ const VALID_POSITIONS = new Set([
   'OUTSIDE',
   'OPPOSITE',
   'MIDDLE',
-  'LIBERO',
-  'DEFENSIVE_SPECIALIST'
+  'LIBERO'
 ]);
 
 const usersRouter = Router();

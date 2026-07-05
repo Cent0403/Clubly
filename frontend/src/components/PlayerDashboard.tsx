@@ -22,8 +22,7 @@ const POSITION_LABELS: Record<string, string> = {
   OUTSIDE: 'Latero',
   OPPOSITE: 'Opuesto',
   MIDDLE: 'Central',
-  LIBERO: 'Libero',
-  DEFENSIVE_SPECIALIST: 'Especialista en defensa'
+  LIBERO: 'Libero'
 };
 
 function formatRole(role: string | null | undefined) {

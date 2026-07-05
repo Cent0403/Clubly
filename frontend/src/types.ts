@@ -1,5 +1,5 @@
 export type Role = 'ADMIN' | 'PLAYER';
-export type PlayerPosition = 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | 'DEFENSIVE_SPECIALIST';
+export type PlayerPosition = 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO';
 
 export interface AuthUser {
   id: number;

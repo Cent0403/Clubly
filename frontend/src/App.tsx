@@ -96,7 +96,7 @@ function App() {
 
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{teamSettings.teamName}</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-300">Plataforma de estadisticas de voleibol</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">Plataforma de manejo de Clubes Deportivos de Voleibol</p>
           </div>
         </div>
 
