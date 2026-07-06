@@ -3,10 +3,9 @@ import { FormEvent, useState } from 'react';
 interface LoginFormProps {
   onSubmit: (username: string, password: string) => Promise<void>;
   loading: boolean;
-  error: string | null;
 }
 
-export function LoginForm({ onSubmit, loading, error }: LoginFormProps) {
+export function LoginForm({ onSubmit, loading }: LoginFormProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -42,8 +41,6 @@ export function LoginForm({ onSubmit, loading, error }: LoginFormProps) {
               onChange={(event) => setPassword(event.target.value)}
             />
           </div>
-
-          {error ? <p className="text-sm font-medium text-rose-500">{error}</p> : null}
 
           <button className="btn-primary w-full" disabled={loading} type="submit">
             {loading ? 'Ingresando...' : 'Entrar'}

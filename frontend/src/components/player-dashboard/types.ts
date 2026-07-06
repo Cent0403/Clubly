@@ -31,8 +31,6 @@ export interface SummarySectionProps {
   active: boolean;
   profile: PlayerItem | null;
   summary: PlayerSummary | null;
-  profileMessage: string | null;
-  profileError: string | null;
   onOpenProfileModal: () => void;
 }
 

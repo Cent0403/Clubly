@@ -1,7 +1,7 @@
 import { SummarySectionProps } from '../types';
 import { formatPosition, formatRole } from '../utils';
 
-export function SummarySection({ active, profile, summary, profileMessage, profileError, onOpenProfileModal }: SummarySectionProps) {
+export function SummarySection({ active, profile, summary, onOpenProfileModal }: SummarySectionProps) {
   return (
     <section className={active ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
       <article className="card xl:col-span-3">
@@ -14,9 +14,6 @@ export function SummarySection({ active, profile, summary, profileMessage, profi
             Editar perfil
           </button>
         </div>
-
-        {profileMessage ? <p className="mt-3 text-sm font-medium text-emerald-500">{profileMessage}</p> : null}
-        {profileError ? <p className="mt-3 text-sm font-medium text-rose-500">{profileError}</p> : null}
       </article>
 
       <article className="card xl:col-span-2">

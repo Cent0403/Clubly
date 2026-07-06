@@ -5,8 +5,6 @@ interface TeamSettingsSectionProps {
   active: boolean;
   settingsForm: TeamSettings;
   savingSettings: boolean;
-  settingsMessage: string | null;
-  settingsError: string | null;
   onSettingsFormChange: (updater: (current: TeamSettings) => TeamSettings) => void;
   onSaveTeamSettings: (event: FormEvent<HTMLFormElement>) => void;
   onTeamLogoFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -16,8 +14,6 @@ export function TeamSettingsSection({
   active,
   settingsForm,
   savingSettings,
-  settingsMessage,
-  settingsError,
   onSettingsFormChange,
   onSaveTeamSettings,
   onTeamLogoFileChange
@@ -67,9 +63,6 @@ export function TeamSettingsSection({
             {savingSettings ? 'Guardando personalizacion...' : 'Guardar personalizacion'}
           </button>
         </form>
-
-        {settingsMessage ? <p className="mt-3 text-sm font-medium text-emerald-500">{settingsMessage}</p> : null}
-        {settingsError ? <p className="mt-3 text-sm font-medium text-rose-500">{settingsError}</p> : null}
       </article>
 
       <article className="card xl:col-span-3">
@@ -88,8 +81,8 @@ export function TeamSettingsSection({
           ) : null}
           <div>
             <p className="text-xl font-bold">{settingsForm.teamName || 'Clubly'}</p>
-            <p className="text-sm text-slate-600 dark:text-slate-300">Plataforma de manejo de Clubes Deportivos de Voleibol</p>
-          </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300"></p>
+          </div>Club Deportivo de Voleibol
         </div>
       </article>
     </section>

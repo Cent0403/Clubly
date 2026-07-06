@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { api } from '../lib/api';
 import { MatchRatingRow, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../types';
 import { ProfileModal } from './player-dashboard/sections/ProfileModal';
@@ -17,23 +18,17 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
   const [profileForm, setProfileForm] = useState<ProfileFormState>({ fullName: '', password: '' });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
-  const [profileMessage, setProfileMessage] = useState<string | null>(null);
-  const [profileError, setProfileError] = useState<string | null>(null);
   const [summary, setSummary] = useState<PlayerSummary | null>(null);
   const [history, setHistory] = useState<PlayerHistoryItem[]>([]);
   const [topPlayers, setTopPlayers] = useState<PlayerItem[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<PlayerHistoryItem | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [matchRatings, setMatchRatings] = useState<MatchRatingRow[]>([]);
   const [matchRatingsLoading, setMatchRatingsLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      setError(null);
-      setProfileError(null);
-      setProfileMessage(null);
 
       try {
         const [statsData, profileData, topPlayersData] = await Promise.all([
@@ -49,7 +44,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         setProfile(profileData.player);
         setProfileForm((current) => ({ ...current, fullName: profileData.player.full_name }));
       } catch (requestError) {
-        setError((requestError as Error).message);
+        toast.error((requestError as Error).message);
       } finally {
         setLoading(false);
       }
@@ -93,15 +88,13 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
 
   async function handleUpdateProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setProfileError(null);
-    setProfileMessage(null);
 
     const nextFullName = profileForm.fullName.trim();
     const nextPassword = profileForm.password.trim();
     const fullNameChanged = nextFullName.length > 0 && nextFullName !== (profile?.full_name ?? '');
 
     if (!fullNameChanged && nextPassword.length === 0) {
-      setProfileError('No hay cambios para guardar en el perfil.');
+      toast.error('No hay cambios para guardar en el perfil.');
       return;
     }
 
@@ -116,10 +109,10 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
       setProfile(response.player);
       setSummary((current) => (current ? { ...current, full_name: response.player.full_name } : current));
       setProfileForm({ fullName: response.player.full_name, password: '' });
-      setProfileMessage('Perfil actualizado correctamente.');
+      toast.success('Perfil actualizado correctamente.');
       setIsProfileModalOpen(false);
     } catch (updateError) {
-      setProfileError((updateError as Error).message);
+      toast.error((updateError as Error).message);
     } finally {
       setSavingProfile(false);
     }
@@ -127,10 +120,6 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
 
   if (loading) {
     return <div className="card">Cargando dashboard de jugador...</div>;
-  }
-
-  if (error) {
-    return <div className="card text-rose-500">{error}</div>;
   }
 
   return (
@@ -141,11 +130,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         active={activeSection === 'resumen'}
         profile={profile}
         summary={summary}
-        profileMessage={profileMessage}
-        profileError={profileError}
         onOpenProfileModal={() => {
-          setProfileError(null);
-          setProfileMessage(null);
           setProfileForm((current) => ({ ...current, fullName: profile?.full_name ?? current.fullName, password: '' }));
           setIsProfileModalOpen(true);
         }}
@@ -170,7 +155,6 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         open={isProfileModalOpen}
         profileForm={profileForm}
         savingProfile={savingProfile}
-        profileError={profileError}
         onClose={() => setIsProfileModalOpen(false)}
         onSubmit={handleUpdateProfile}
         onProfileFormChange={(updater) => setProfileForm(updater)}

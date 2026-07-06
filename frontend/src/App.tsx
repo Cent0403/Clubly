@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
 import { api } from './lib/api';
+import { getToastOptions } from './lib/toast';
 import { useDarkMode } from './hooks/useDarkMode';
 import { LoginForm } from './components/LoginForm';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -16,7 +18,7 @@ function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
   const [loggingIn, setLoggingIn] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [teamSettings, setTeamSettings] = useState<TeamSettings>({
     teamName: 'Clubly',
     teamLogoUrl: null
@@ -33,6 +35,20 @@ function App() {
     }
 
     void loadTeamSettings();
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const onMediaQueryChange = (event: MediaQueryListEvent) => {
+      setIsMobileViewport(event.matches);
+    };
+
+    mediaQuery.addEventListener('change', onMediaQueryChange);
+    setIsMobileViewport(mediaQuery.matches);
+
+    return () => {
+      mediaQuery.removeEventListener('change', onMediaQueryChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -58,7 +74,6 @@ function App() {
 
   async function handleLogin(username: string, password: string) {
     setLoggingIn(true);
-    setError(null);
 
     try {
       const response = await api.login(username, password);
@@ -66,7 +81,7 @@ function App() {
       setToken(response.token);
       setUser(response.user);
     } catch (loginError) {
-      setError((loginError as Error).message);
+      toast.error((loginError as Error).message);
     } finally {
       setLoggingIn(false);
     }
@@ -78,12 +93,16 @@ function App() {
     setToken(null);
   }
 
-  if (loadingSession) {
-    return <main className="mx-auto max-w-7xl p-6">Validando sesion...</main>;
-  }
-
   return (
     <main className="mx-auto min-h-screen max-w-7xl p-4 md:p-6">
+      <Toaster
+        position={isMobileViewport ? 'top-center' : 'top-right'}
+        gutter={10}
+        containerStyle={{ top: 14, right: 14, left: 14 }}
+        toastOptions={getToastOptions(darkMode)}
+      />
+      {loadingSession ? <div className="p-2 text-sm text-slate-600 dark:text-slate-300">Validando sesion...</div> : null}
+      {loadingSession ? null : (
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-white/70 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/60">
         <div className="flex items-center gap-3">
           {teamSettings.teamLogoUrl ? (
@@ -96,7 +115,7 @@ function App() {
 
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{teamSettings.teamName}</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-300">Plataforma de manejo de Clubes Deportivos de Voleibol</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">Club Deportivo de Voleibol</p>
           </div>
         </div>
 
@@ -117,9 +136,10 @@ function App() {
           ) : null}
         </div>
       </header>
+      )}
 
-      {!user || !token ? (
-        <LoginForm onSubmit={handleLogin} loading={loggingIn} error={error} />
+      {loadingSession ? null : !user || !token ? (
+        <LoginForm onSubmit={handleLogin} loading={loggingIn} />
       ) : user.role === 'ADMIN' ? (
         <AdminDashboard token={token} teamSettings={teamSettings} onTeamSettingsUpdated={setTeamSettings} />
       ) : (

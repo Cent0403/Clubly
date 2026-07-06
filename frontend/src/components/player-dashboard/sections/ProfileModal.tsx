@@ -5,7 +5,6 @@ interface ProfileModalProps {
   open: boolean;
   profileForm: ProfileFormState;
   savingProfile: boolean;
-  profileError: string | null;
   onClose: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onProfileFormChange: (updater: (current: ProfileFormState) => ProfileFormState) => void;
@@ -15,7 +14,6 @@ export function ProfileModal({
   open,
   profileForm,
   savingProfile,
-  profileError,
   onClose,
   onSubmit,
   onProfileFormChange
@@ -67,8 +65,6 @@ export function ProfileModal({
             </button>
           </div>
         </form>
-
-        {profileError ? <p className="mt-3 text-sm font-medium text-rose-500">{profileError}</p> : null}
       </div>
     </div>
   );

@@ -17,8 +17,6 @@ interface MatchesSectionProps {
   ratings: Record<number, RatingItem>;
   loadingMatchRatings: boolean;
   saving: boolean;
-  message: string | null;
-  error: string | null;
   onMatchFormChange: (updater: (current: MatchFormState) => MatchFormState) => void;
   onCreateMatch: (event: React.FormEvent<HTMLFormElement>) => void;
   onUpdateMatch: () => void;
@@ -48,8 +46,6 @@ export function MatchesSection({
   ratings,
   loadingMatchRatings,
   saving,
-  message,
-  error,
   onMatchFormChange,
   onCreateMatch,
   onUpdateMatch,
@@ -250,9 +246,6 @@ export function MatchesSection({
             Limpiar seleccion
           </button>
         </div>
-
-        {message ? <p className="mt-3 text-sm font-medium text-emerald-500">{message}</p> : null}
-        {error ? <p className="mt-3 text-sm font-medium text-rose-500">{error}</p> : null}
       </article>
     </section>
   );

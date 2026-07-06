@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { api } from '../lib/api';
 import {
   AdminUserItem,
@@ -37,8 +38,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   const [ratings, setRatings] = useState<Record<number, RatingItem>>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [matchForm, setMatchForm] = useState<MatchFormState>(EMPTY_MATCH_FORM);
   const [userForm, setUserForm] = useState<UserFormState>(EMPTY_USER_FORM);
   const [editingMatchId, setEditingMatchId] = useState<number | null>(null);
@@ -54,8 +53,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   const [loadingPlayerStats, setLoadingPlayerStats] = useState(false);
   const [settingsForm, setSettingsForm] = useState<TeamSettings>(teamSettings);
   const [savingSettings, setSavingSettings] = useState(false);
-  const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
-  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
@@ -103,7 +100,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
   async function loadInitialData() {
     setLoading(true);
-    setError(null);
 
     try {
       const [usersRes, playersRes, topPlayersRes, matchesRes, statsRes] = await Promise.all([
@@ -124,7 +120,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         setSelectedMatchId(matchesRes.matches[0].id);
       }
     } catch (loadError) {
-      setError((loadError as Error).message);
+      toast.error((loadError as Error).message);
     } finally {
       setLoading(false);
     }
@@ -238,26 +234,23 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       jerseyNumber: user.jersey_number === null ? '' : String(user.jersey_number),
       position: (user.position as EditUserFormState['position']) ?? ''
     });
-    setError(null);
-    setMessage(`Editando usuario: ${user.full_name}`);
+    toast(`Editando usuario: ${user.full_name}`);
   }
 
   async function handleUpdateUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!editingUserId) {
-      setError('Selecciona un usuario para editar.');
+      toast.error('Selecciona un usuario para editar.');
       return;
     }
 
     if (!editingUserForm.username.trim() || !editingUserForm.fullName.trim()) {
-      setError('Username y nombre completo son obligatorios.');
+      toast.error('Username y nombre completo son obligatorios.');
       return;
     }
 
     setSavingUserEdit(true);
-    setError(null);
-    setMessage(null);
 
     try {
       const payload = {
@@ -288,9 +281,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       }
 
       setEditingUserForm((current) => ({ ...current, password: '' }));
-      setMessage('Usuario actualizado correctamente.');
+      toast.success('Usuario actualizado correctamente.');
     } catch (updateUserError) {
-      setError((updateUserError as Error).message);
+      toast.error((updateUserError as Error).message);
     } finally {
       setSavingUserEdit(false);
     }
@@ -306,8 +299,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     }
 
     setDeletingUserId(user.id);
-    setError(null);
-    setMessage(null);
 
     try {
       await api.deleteUser(token, user.id);
@@ -336,9 +327,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         setEditingUserForm(EMPTY_EDIT_USER_FORM);
       }
 
-      setMessage('Usuario eliminado correctamente.');
+      toast.success('Usuario eliminado correctamente.');
     } catch (deleteUserError) {
-      setError((deleteUserError as Error).message);
+      toast.error((deleteUserError as Error).message);
     } finally {
       setDeletingUserId(null);
     }
@@ -346,11 +337,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
   async function handleCreateUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
-    setMessage(null);
 
     if (!userForm.username || !userForm.password || !userForm.fullName) {
-      setError('Completa username, password y nombre completo para crear usuario.');
+      toast.error('Completa username, password y nombre completo para crear usuario.');
       return;
     }
 
@@ -369,7 +358,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         position: userForm.role === 'PLAYER' && userForm.position ? userForm.position : undefined
       });
 
-      setMessage('Usuario creado correctamente.');
       setUserForm(EMPTY_USER_FORM);
 
       setUsers((current) => [
@@ -408,8 +396,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       }
 
       await refreshTopPlayers();
+      toast.success('Usuario creado correctamente.');
     } catch (createUserError) {
-      setError((createUserError as Error).message);
+      toast.error((createUserError as Error).message);
     } finally {
       setCreatingUser(false);
     }
@@ -417,19 +406,18 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
   async function handleLoadPlayerStats() {
     if (!selectedPlayerStatId) {
-      setError('Selecciona un jugador para consultar estadisticas.');
+      toast.error('Selecciona un jugador para consultar estadisticas.');
       return;
     }
 
     setLoadingPlayerStats(true);
-    setError(null);
 
     try {
       const response = await api.getPlayerStats(token, selectedPlayerStatId);
       setSelectedPlayerSummary(response.summary);
       setSelectedPlayerHistory(response.history);
     } catch (playerStatsError) {
-      setError((playerStatsError as Error).message);
+      toast.error((playerStatsError as Error).message);
     } finally {
       setLoadingPlayerStats(false);
     }
@@ -437,8 +425,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
   async function handleCreateMatch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
-    setMessage(null);
 
     try {
       const response = await api.createMatch(token, {
@@ -447,7 +433,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         notes: matchForm.notes || undefined
       });
 
-      setMessage(`Partido creado (#${response.id})`);
+      toast.success(`Partido creado (#${response.id})`);
       setMatchForm(EMPTY_MATCH_FORM);
       setMatches((current) => [
         {
@@ -463,18 +449,15 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       ]);
       setSelectedMatchId(response.id);
     } catch (createError) {
-      setError((createError as Error).message);
+      toast.error((createError as Error).message);
     }
   }
 
   async function handleUpdateMatch() {
     if (!editingMatchId) {
-      setError('Primero carga un partido en el formulario para editar.');
+      toast.error('Primero carga un partido en el formulario para editar.');
       return;
     }
-
-    setError(null);
-    setMessage(null);
 
     try {
       await api.updateMatch(token, editingMatchId, {
@@ -483,7 +466,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         notes: matchForm.notes || undefined
       });
 
-      setMessage('Partido actualizado correctamente.');
+      toast.success('Partido actualizado correctamente.');
       setMatches((current) =>
         current.map((match) =>
           match.id === editingMatchId
@@ -499,13 +482,13 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         )
       );
     } catch (updateError) {
-      setError((updateError as Error).message);
+      toast.error((updateError as Error).message);
     }
   }
 
   function handleLoadMatchForEdit() {
     if (!selectedMatch) {
-      setError('Selecciona un partido para editar.');
+      toast.error('Selecciona un partido para editar.');
       return;
     }
 
@@ -517,13 +500,12 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       location: selectedMatch.location ?? '',
       notes: selectedMatch.notes ?? ''
     });
-    setMessage(`Editando partido #${selectedMatch.id}`);
-    setError(null);
+    toast(`Editando partido #${selectedMatch.id}`);
   }
 
   async function handleDeleteMatch() {
     if (!selectedMatchId) {
-      setError('Selecciona un partido para eliminar.');
+      toast.error('Selecciona un partido para eliminar.');
       return;
     }
 
@@ -532,12 +514,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       return;
     }
 
-    setError(null);
-    setMessage(null);
-
     try {
       await api.deleteMatch(token, selectedMatchId);
-      setMessage('Partido eliminado correctamente.');
+      toast.success('Partido eliminado correctamente.');
       setEditingMatchId(null);
       setMatchForm(EMPTY_MATCH_FORM);
       setSelectedMatchId(null);
@@ -545,24 +524,22 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       setRatings({});
       setMatches((current) => current.filter((match) => match.id !== selectedMatchId));
     } catch (deleteError) {
-      setError((deleteError as Error).message);
+      toast.error((deleteError as Error).message);
     }
   }
 
   async function handleSaveEvaluation() {
     if (!selectedMatchId) {
-      setError('Selecciona un partido antes de guardar la evaluacion.');
+      toast.error('Selecciona un partido antes de guardar la evaluacion.');
       return;
     }
 
     if (selectedPlayers.length === 0) {
-      setError('Selecciona al menos un jugador.');
+      toast.error('Selecciona al menos un jugador.');
       return;
     }
 
     setSaving(true);
-    setError(null);
-    setMessage(null);
 
     try {
       await api.assignPlayers(token, selectedMatchId, selectedPlayers);
@@ -572,8 +549,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         .filter(Boolean) as RatingItem[];
 
       await api.saveRatings(token, selectedMatchId, payload);
-
-      setMessage('Participantes y evaluacion por eventos guardados correctamente.');
+      toast.success('Participantes y evaluacion por eventos guardados correctamente.');
 
       const [matchRatings, updatedStats] = await Promise.all([
         api.getMatchRatings(token, selectedMatchId),
@@ -599,7 +575,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         setSelectedPlayerHistory(playerStats.history);
       }
     } catch (saveError) {
-      setError((saveError as Error).message);
+      toast.error((saveError as Error).message);
     } finally {
       setSaving(false);
     }
@@ -607,12 +583,10 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
   async function handleSaveTeamSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSettingsError(null);
-    setSettingsMessage(null);
 
     const nextName = settingsForm.teamName.trim();
     if (!nextName) {
-      setSettingsError('El nombre del equipo no puede estar vacio.');
+      toast.error('El nombre del equipo no puede estar vacio.');
       return;
     }
 
@@ -626,9 +600,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
 
       onTeamSettingsUpdated(response.settings);
       setSettingsForm(response.settings);
-      setSettingsMessage('Personalizacion del equipo guardada correctamente.');
+      toast.success('Personalizacion del equipo guardada correctamente.');
     } catch (updateError) {
-      setSettingsError((updateError as Error).message);
+      toast.error((updateError as Error).message);
     } finally {
       setSavingSettings(false);
     }
@@ -664,8 +638,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         active={activeSection === 'personalización'}
         settingsForm={settingsForm}
         savingSettings={savingSettings}
-        settingsMessage={settingsMessage}
-        settingsError={settingsError}
         onSettingsFormChange={(updater) => setSettingsForm(updater)}
         onSaveTeamSettings={handleSaveTeamSettings}
         onTeamLogoFileChange={handleTeamLogoFileChange}
@@ -720,8 +692,6 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         ratings={ratings}
         loadingMatchRatings={loadingMatchRatings}
         saving={saving}
-        message={message}
-        error={error}
         onMatchFormChange={(updater) => setMatchForm(updater)}
         onCreateMatch={handleCreateMatch}
         onUpdateMatch={handleUpdateMatch}
