@@ -153,19 +153,28 @@ export function FinanceSection({ active, summary, debts, upcomingDebts, payments
         </div>
 
         <h3 className="mt-5 text-xl font-bold">Historial de pagos</h3>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Filtra por rango de fechas</p>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
-          <input
-            className="input input-date min-w-[10.5rem]"
-            type="date"
-            value={paymentFromDate}
-            onChange={(event) => setPaymentFromDate(event.target.value)}
-          />
-          <input
-            className="input input-date min-w-[10.5rem]"
-            type="date"
-            value={paymentToDate}
-            onChange={(event) => setPaymentToDate(event.target.value)}
-          />
+          <label className="space-y-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
+            Desde
+            <input
+              className="input input-date"
+              type="date"
+              aria-label="Fecha desde"
+              value={paymentFromDate}
+              onChange={(event) => setPaymentFromDate(event.target.value)}
+            />
+          </label>
+          <label className="space-y-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
+            Hasta
+            <input
+              className="input input-date"
+              type="date"
+              aria-label="Fecha hasta"
+              value={paymentToDate}
+              onChange={(event) => setPaymentToDate(event.target.value)}
+            />
+          </label>
         </div>
         <div className="mt-3 max-h-40 space-y-2 overflow-y-auto pr-1">
           {filteredPayments.map((payment) => (
