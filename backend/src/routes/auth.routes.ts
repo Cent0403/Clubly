@@ -42,7 +42,7 @@ authRouter.post('/login', async (req, res) => {
   const user = rows[0];
 
   if (!user || user.password_hash !== hashedPassword) {
-    res.status(401).json({ message: 'Invalid credentials' });
+    res.status(401).json({ message: 'Credenciales inválidas' });
     return;
   }
 

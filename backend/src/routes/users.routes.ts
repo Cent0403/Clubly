@@ -69,23 +69,23 @@ usersRouter.post('/', async (req, res) => {
   const { username, password, fullName, role, jerseyNumber, position } = req.body as CreateUserBody;
 
   if (!username || !password || !fullName || !role) {
-    res.status(400).json({ message: 'username, password, fullName and role are required' });
+    res.status(400).json({ message: 'Proporcione username, password, fullName y role' });
     return;
   }
 
   if (role !== 'ADMIN' && role !== 'PLAYER') {
-    res.status(400).json({ message: 'role must be ADMIN or PLAYER' });
+    res.status(400).json({ message: 'role debe ser ADMIN o PLAYER' });
     return;
   }
 
   if (position !== undefined && position !== null && !VALID_POSITIONS.has(position)) {
-    res.status(400).json({ message: 'Invalid position value' });
+    res.status(400).json({ message: 'Valor de posición inválido' });
     return;
   }
 
   if (jerseyNumber !== undefined && jerseyNumber !== null) {
     if (!Number.isInteger(jerseyNumber) || jerseyNumber <= 0) {
-      res.status(400).json({ message: 'jerseyNumber must be a positive integer' });
+      res.status(400).json({ message: 'jerseyNumber debe ser un número entero positivo' });
       return;
     }
   }
@@ -103,7 +103,7 @@ usersRouter.post('/', async (req, res) => {
 
     if (Array.isArray(existingRows) && existingRows.length > 0) {
       await connection.rollback();
-      res.status(409).json({ message: 'Username already exists' });
+      res.status(409).json({ message: 'El nombre de usuario ya existe' });
       return;
     }
 
@@ -133,7 +133,7 @@ usersRouter.post('/', async (req, res) => {
     await connection.commit();
 
     res.status(201).json({
-      message: 'User created successfully',
+      message: 'Usuario creado exitosamente',
       user: {
         id: userId,
         username,
@@ -153,7 +153,7 @@ usersRouter.post('/', async (req, res) => {
 usersRouter.patch('/:id', async (req, res) => {
   const userId = Number(req.params.id);
   if (!Number.isInteger(userId) || userId <= 0) {
-    res.status(400).json({ message: 'Invalid user id' });
+    res.status(400).json({ message: 'ID de usuario inválido' });
     return;
   }
 
@@ -167,7 +167,7 @@ usersRouter.patch('/:id', async (req, res) => {
     position !== undefined;
 
   if (!hasAtLeastOneField) {
-    res.status(400).json({ message: 'Provide at least one field to update' });
+    res.status(400).json({ message: 'Proporcione al menos un campo para actualizar' });
     return;
   }
 
@@ -176,33 +176,33 @@ usersRouter.patch('/:id', async (req, res) => {
   const nextFullName = fullName?.trim();
 
   if (username !== undefined && !nextUsername) {
-    res.status(400).json({ message: 'username cannot be empty' });
+    res.status(400).json({ message: 'username no puede estar vacío' });
     return;
   }
 
   if (password !== undefined && !nextPassword) {
-    res.status(400).json({ message: 'password cannot be empty' });
+    res.status(400).json({ message: 'password no puede estar vacío' });
     return;
   }
 
   if (fullName !== undefined && !nextFullName) {
-    res.status(400).json({ message: 'fullName cannot be empty' });
+    res.status(400).json({ message: 'fullName no puede estar vacío' });
     return;
   }
 
   if (role !== undefined && role !== 'ADMIN' && role !== 'PLAYER') {
-    res.status(400).json({ message: 'role must be ADMIN or PLAYER' });
+    res.status(400).json({ message: 'role debe ser ADMIN o PLAYER' });
     return;
   }
 
   if (position !== undefined && position !== null && !VALID_POSITIONS.has(position)) {
-    res.status(400).json({ message: 'Invalid position value' });
+    res.status(400).json({ message: 'Valor de posición inválido' });
     return;
   }
 
   if (jerseyNumber !== undefined && jerseyNumber !== null) {
     if (!Number.isInteger(jerseyNumber) || jerseyNumber <= 0) {
-      res.status(400).json({ message: 'jerseyNumber must be a positive integer' });
+      res.status(400).json({ message: 'jerseyNumber debe ser un número entero positivo' });
       return;
     }
   }
@@ -234,7 +234,7 @@ usersRouter.patch('/:id', async (req, res) => {
 
     if (!existingUser) {
       await connection.rollback();
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'Usuario no encontrado' });
       return;
     }
 
@@ -242,7 +242,7 @@ usersRouter.patch('/:id', async (req, res) => {
 
     if (targetRole === 'ADMIN' && (jerseyNumber !== undefined || position !== undefined)) {
       await connection.rollback();
-      res.status(400).json({ message: 'jerseyNumber and position can only be updated for PLAYER role' });
+      res.status(400).json({ message: 'jerseyNumber y position solo se pueden actualizar para el rol PLAYER' });
       return;
     }
 
@@ -254,7 +254,7 @@ usersRouter.patch('/:id', async (req, res) => {
 
       if (duplicatedRows.length > 0) {
         await connection.rollback();
-        res.status(409).json({ message: 'Username already exists' });
+        res.status(409).json({ message: 'Este usuario ya existe' });
         return;
       }
     }
@@ -340,7 +340,7 @@ usersRouter.patch('/:id', async (req, res) => {
     await connection.commit();
 
     res.json({
-      message: 'User updated successfully',
+      message: 'Usuario actualizado exitosamente',
       user: updatedRows[0]
     });
   } catch (error) {
@@ -354,12 +354,12 @@ usersRouter.patch('/:id', async (req, res) => {
 usersRouter.delete('/:id', async (req, res) => {
   const userId = Number(req.params.id);
   if (!Number.isInteger(userId) || userId <= 0) {
-    res.status(400).json({ message: 'Invalid user id' });
+    res.status(400).json({ message: 'ID de usuario inválido' });
     return;
   }
 
   if (req.user?.userId === userId) {
-    res.status(400).json({ message: 'You cannot delete your own active account' });
+    res.status(400).json({ message: 'No puedes eliminar tu propia cuenta activa' });
     return;
   }
 
@@ -367,17 +367,17 @@ usersRouter.delete('/:id', async (req, res) => {
     const [result] = await pool.query<ResultSetHeader>('DELETE FROM users WHERE id = ?', [userId]);
 
     if (result.affectedRows === 0) {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'Usuario no encontrado' });
       return;
     }
 
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: 'Usuario eliminado exitosamente' });
   } catch (error) {
     const sqlError = error as { code?: string };
 
     if (sqlError.code === 'ER_ROW_IS_REFERENCED_2' || sqlError.code === 'ER_ROW_IS_REFERENCED') {
       res.status(409).json({
-        message: 'This user cannot be deleted because it is referenced by existing matches or ratings'
+        message: 'Este usuario no se puede eliminar porque está referenciado por partidos o calificaciones existentes'
       });
       return;
     }

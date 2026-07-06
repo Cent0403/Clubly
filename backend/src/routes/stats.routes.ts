@@ -160,7 +160,7 @@ statsRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
   const playerId = req.user?.playerId;
 
   if (!playerId) {
-    res.status(404).json({ message: 'Player profile not found for current user' });
+    res.status(404).json({ message: 'Perfil de jugador no encontrado para el usuario actual' });
     return;
   }
 
@@ -246,12 +246,12 @@ statsRouter.get('/player/:playerId', async (req, res) => {
   const playerId = Number(req.params.playerId);
 
   if (!Number.isInteger(playerId) || playerId <= 0) {
-    res.status(400).json({ message: 'Invalid player id' });
+    res.status(400).json({ message: 'ID de jugador inválido' });
     return;
   }
 
   if (req.user?.role === 'PLAYER' && req.user.playerId !== playerId) {
-    res.status(403).json({ message: 'Players can only view their own stats' });
+    res.status(403).json({ message: 'Los jugadores solo pueden ver sus propias estadísticas' });
     return;
   }
 
@@ -280,7 +280,7 @@ statsRouter.get('/player/:playerId', async (req, res) => {
   );
 
   if (!summaryRows[0]) {
-    res.status(404).json({ message: 'Player not found' });
+    res.status(404).json({ message: 'Jugador no encontrado' });
     return;
   }
 
@@ -340,8 +340,8 @@ statsRouter.get('/global', requireRole('ADMIN'), async (_req, res) => {
   try {
     res.json(await getGlobalStatsPayload());
   } catch (error) {
-    console.error('Failed to load /stats/global:', error);
-    res.status(500).json({ message: 'Failed to load global stats' });
+    console.error('Error al cargar /stats/global:', error);
+    res.status(500).json({ message: 'Error al cargar las estadísticas globales' });
   }
 });
 
@@ -349,8 +349,8 @@ statsRouter.get('/global-summary', async (_req, res) => {
   try {
     res.json(await getGlobalStatsPayload());
   } catch (error) {
-    console.error('Failed to load /stats/global-summary:', error);
-    res.status(500).json({ message: 'Failed to load global summary stats' });
+    console.error('Error al cargar /stats/global-summary:', error);
+    res.status(500).json({ message: 'Error al cargar el resumen de estadísticas globales' });
   }
 });
 
@@ -378,8 +378,8 @@ statsRouter.get('/top', async (_req, res) => {
 
     res.json({ players: rows });
   } catch (error) {
-    console.error('Failed to load /stats/top:', error);
-    res.status(500).json({ message: 'Failed to load top players' });
+    console.error('Error al cargar /stats/top:', error);
+    res.status(500).json({ message: 'Error al cargar los mejores jugadores' });
   }
 });
 

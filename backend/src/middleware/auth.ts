@@ -15,7 +15,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   const header = req.headers.authorization;
 
   if (!header || !header.startsWith('Bearer ')) {
-    res.status(401).json({ message: 'Missing or invalid authorization header' });
+    res.status(401).json({ message: 'Falta o es inválido el encabezado de autorización' });
     return;
   }
 
@@ -35,19 +35,19 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     req.user = user;
     next();
   } catch {
-    res.status(401).json({ message: 'Invalid or expired token' });
+    res.status(401).json({ message: 'Token inválido o expirado' });
   }
 }
 
 export function requireRole(...allowedRoles: AppRole[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'No autorizado' });
       return;
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      res.status(403).json({ message: 'Forbidden' });
+      res.status(403).json({ message: 'Prohibido' });
       return;
     }
 

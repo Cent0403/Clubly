@@ -201,7 +201,7 @@ financeRouter.get('/my-debts', requireRole('PLAYER'), async (req, res) => {
   const playerId = req.user?.playerId;
 
   if (!playerId) {
-    res.status(404).json({ message: 'Player profile not found for current user' });
+    res.status(404).json({ message: 'Perfil de jugador no encontrado para el usuario actual' });
     return;
   }
 
@@ -396,7 +396,7 @@ financeRouter.post('/categories', async (req, res) => {
   const nextName = name?.trim();
 
   if (!nextName || !isFinanceType(type)) {
-    res.status(400).json({ message: 'name and type (income|expense) are required' });
+    res.status(400).json({ message: 'El nombre y el tipo (ingreso|gasto) son obligatorios' });
     return;
   }
 
@@ -408,7 +408,7 @@ financeRouter.post('/categories', async (req, res) => {
     [nextName, type]
   );
 
-  res.status(201).json({ id: result.insertId, message: 'Category created successfully' });
+  res.status(201).json({ id: result.insertId, message: 'Categoría creada exitosamente' });
 });
 
 financeRouter.put('/categories/:id', async (req, res) => {
@@ -419,12 +419,12 @@ financeRouter.put('/categories/:id', async (req, res) => {
   const nextName = name?.trim();
 
   if (!Number.isInteger(categoryId) || categoryId <= 0) {
-    res.status(400).json({ message: 'Invalid category id' });
+    res.status(400).json({ message: 'ID de categoría inválido' });
     return;
   }
 
   if (!nextName || !isFinanceType(type)) {
-    res.status(400).json({ message: 'name and type (income|expense) are required' });
+    res.status(400).json({ message: 'El nombre y el tipo (ingreso|gasto) son obligatorios' });
     return;
   }
 
@@ -438,11 +438,11 @@ financeRouter.put('/categories/:id', async (req, res) => {
   );
 
   if (result.affectedRows === 0) {
-    res.status(404).json({ message: 'Category not found' });
+    res.status(404).json({ message: 'Categoría no encontrada' });
     return;
   }
 
-  res.json({ message: 'Category updated successfully' });
+  res.json({ message: 'Categoría actualizada exitosamente' });
 });
 
 financeRouter.get('/transactions', async (req, res) => {
@@ -499,7 +499,7 @@ financeRouter.post('/transactions', async (req, res) => {
   const nextDescription = description?.trim() || null;
 
   if (!isFinanceType(type) || parsedAmount === null || parsedAmount <= 0 || !transactionDate || !isIsoDate(transactionDate)) {
-    res.status(400).json({ message: 'type, amount (>0) and transactionDate (YYYY-MM-DD) are required' });
+    res.status(400).json({ message: 'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios' });
     return;
   }
 
@@ -508,7 +508,7 @@ financeRouter.post('/transactions', async (req, res) => {
   if (categoryId !== undefined && categoryId !== null) {
     const parsedCategoryId = Number(categoryId);
     if (!Number.isInteger(parsedCategoryId) || parsedCategoryId <= 0) {
-      res.status(400).json({ message: 'categoryId must be a positive integer when provided' });
+      res.status(400).json({ message: 'El ID de categoría debe ser un número entero positivo cuando se proporciona' });
       return;
     }
 
@@ -520,12 +520,12 @@ financeRouter.post('/transactions', async (req, res) => {
     const category = categoryRows[0];
 
     if (!category) {
-      res.status(404).json({ message: 'Category not found' });
+      res.status(404).json({ message: 'Categoría no encontrada' });
       return;
     }
 
     if (category.type !== type) {
-      res.status(400).json({ message: 'Selected category type must match transaction type' });
+      res.status(400).json({ message: 'El tipo de categoría seleccionada debe coincidir con el tipo de transacción' });
       return;
     }
 
@@ -540,7 +540,7 @@ financeRouter.post('/transactions', async (req, res) => {
     [nextCategoryId, parsedAmount, type, nextDescription, transactionDate]
   );
 
-  res.status(201).json({ id: result.insertId, message: 'Transaction created successfully' });
+  res.status(201).json({ id: result.insertId, message: 'Transacción creada exitosamente' });
 });
 
 financeRouter.put('/transactions/:id', async (req, res) => {
@@ -552,12 +552,12 @@ financeRouter.put('/transactions/:id', async (req, res) => {
   const nextDescription = description?.trim() || null;
 
   if (!Number.isInteger(transactionId) || transactionId <= 0) {
-    res.status(400).json({ message: 'Invalid transaction id' });
+    res.status(400).json({ message: 'ID de transacción inválido' });
     return;
   }
 
   if (!isFinanceType(type) || parsedAmount === null || parsedAmount <= 0 || !transactionDate || !isIsoDate(transactionDate)) {
-    res.status(400).json({ message: 'type, amount (>0) and transactionDate (YYYY-MM-DD) are required' });
+    res.status(400).json({ message: 'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios' });
     return;
   }
 
@@ -566,7 +566,7 @@ financeRouter.put('/transactions/:id', async (req, res) => {
   if (categoryId !== undefined && categoryId !== null) {
     const parsedCategoryId = Number(categoryId);
     if (!Number.isInteger(parsedCategoryId) || parsedCategoryId <= 0) {
-      res.status(400).json({ message: 'categoryId must be a positive integer when provided' });
+      res.status(400).json({ message: 'El ID de categoría debe ser un número entero positivo cuando se proporciona' });
       return;
     }
 
@@ -578,12 +578,12 @@ financeRouter.put('/transactions/:id', async (req, res) => {
     const category = categoryRows[0];
 
     if (!category) {
-      res.status(404).json({ message: 'Category not found' });
+      res.status(404).json({ message: 'Categoría no encontrada' });
       return;
     }
 
     if (category.type !== type) {
-      res.status(400).json({ message: 'Selected category type must match transaction type' });
+      res.status(400).json({ message: 'El tipo de categoría seleccionada debe coincidir con el tipo de transacción' });
       return;
     }
 
@@ -600,11 +600,11 @@ financeRouter.put('/transactions/:id', async (req, res) => {
   );
 
   if (result.affectedRows === 0) {
-    res.status(404).json({ message: 'Transaction not found' });
+    res.status(404).json({ message: 'Transacción no encontrada' });
     return;
   }
 
-  res.json({ message: 'Transaction updated successfully' });
+  res.json({ message: 'Transacción actualizada exitosamente' });
 });
 
 financeRouter.get('/debts', async (_req, res) => {
@@ -649,18 +649,18 @@ financeRouter.post('/debts', async (req, res) => {
   const nextDescription = description?.trim() || null;
 
   if (!Number.isInteger(playerId) || Number(playerId) <= 0 || parsedAmountDue === null || parsedAmountDue <= 0) {
-    res.status(400).json({ message: 'playerId and amountDue (>0) are required' });
+    res.status(400).json({ message: 'playerId y amountDue (>0) son obligatorios' });
     return;
   }
 
   if (dueDate && !isIsoDate(dueDate)) {
-    res.status(400).json({ message: 'dueDate must have format YYYY-MM-DD when provided' });
+    res.status(400).json({ message: 'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona' });
     return;
   }
 
   const [playerRows] = await pool.query<RowDataPacket[]>('SELECT id FROM players WHERE id = ? LIMIT 1', [playerId]);
   if (!playerRows[0]) {
-    res.status(404).json({ message: 'Player not found' });
+    res.status(404).json({ message: 'Jugador no encontrado' });
     return;
   }
 
@@ -672,7 +672,7 @@ financeRouter.post('/debts', async (req, res) => {
     [playerId, parsedAmountDue, nextDescription, dueDate ?? null]
   );
 
-  res.status(201).json({ id: result.insertId, message: 'Debt created successfully' });
+  res.status(201).json({ id: result.insertId, message: 'Deuda creada exitosamente' });
 });
 
 financeRouter.patch('/debts/:id', async (req, res) => {
@@ -683,23 +683,23 @@ financeRouter.patch('/debts/:id', async (req, res) => {
   const parsedAmountDue = amountDue === undefined ? null : toDecimal(amountDue);
 
   if (!Number.isInteger(debtId) || debtId <= 0) {
-    res.status(400).json({ message: 'Invalid debt id' });
+    res.status(400).json({ message: 'ID de deuda inválido' });
     return;
   }
 
   const hasAnyField = amountDue !== undefined || description !== undefined || dueDate !== undefined;
   if (!hasAnyField) {
-    res.status(400).json({ message: 'Provide at least one field to update debt' });
+    res.status(400).json({ message: 'Proporcione al menos un campo para actualizar la deuda' });
     return;
   }
 
   if (amountDue !== undefined && (parsedAmountDue === null || parsedAmountDue <= 0)) {
-    res.status(400).json({ message: 'amountDue must be greater than 0' });
+    res.status(400).json({ message: 'amountDue debe ser mayor que 0' });
     return;
   }
 
   if (dueDate !== undefined && dueDate !== null && dueDate !== '' && !isIsoDate(dueDate)) {
-    res.status(400).json({ message: 'dueDate must have format YYYY-MM-DD when provided' });
+    res.status(400).json({ message: 'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona' });
     return;
   }
 
@@ -726,7 +726,7 @@ financeRouter.patch('/debts/:id', async (req, res) => {
   const existingDebt = existingRows[0];
 
   if (!existingDebt) {
-    res.status(404).json({ message: 'Debt not found' });
+    res.status(404).json({ message: 'Deuda no encontrada' });
     return;
   }
 
@@ -734,7 +734,7 @@ financeRouter.patch('/debts/:id', async (req, res) => {
   const currentAmountPaid = Number(existingDebt.amount_paid);
 
   if (nextAmountDue < currentAmountPaid) {
-    res.status(400).json({ message: 'amountDue cannot be less than current amount_paid' });
+    res.status(400).json({ message: 'amountDue no puede ser menor que el amount_paid actual' });
     return;
   }
 
@@ -759,7 +759,7 @@ financeRouter.patch('/debts/:id', async (req, res) => {
     [nextAmountDue, nextDescription, nextDueDate, nextStatus, debtId]
   );
 
-  res.json({ message: 'Debt updated successfully' });
+  res.json({ message: 'Deuda actualizada exitosamente' });
 });
 
 financeRouter.post('/debts/:id/payments', async (req, res) => {
@@ -770,12 +770,12 @@ financeRouter.post('/debts/:id/payments', async (req, res) => {
   const parsedAmountPaid = toDecimal(amountPaid);
 
   if (!Number.isInteger(debtId) || debtId <= 0) {
-    res.status(400).json({ message: 'Invalid debt id' });
+    res.status(400).json({ message: 'ID de deuda inválido' });
     return;
   }
 
   if (parsedAmountPaid === null || parsedAmountPaid <= 0 || !paymentDate || !isIsoDate(paymentDate)) {
-    res.status(400).json({ message: 'amountPaid (>0) and paymentDate (YYYY-MM-DD) are required' });
+    res.status(400).json({ message: 'amountPaid (>0) y paymentDate (YYYY-MM-DD) son obligatorios' });
     return;
   }
 
@@ -807,14 +807,14 @@ financeRouter.post('/debts/:id/payments', async (req, res) => {
     const debt = debtRows[0];
     if (!debt) {
       await connection.rollback();
-      res.status(404).json({ message: 'Debt not found' });
+      res.status(404).json({ message: 'Deuda no encontrada' });
       return;
     }
 
     const currentPending = Number((Number(debt.amount_due) - Number(debt.amount_paid)).toFixed(2));
     if (parsedAmountPaid > currentPending) {
       await connection.rollback();
-      res.status(400).json({ message: 'Payment amount cannot exceed pending debt amount' });
+      res.status(400).json({ message: 'El monto del pago no puede exceder el monto pendiente de la deuda' });
       return;
     }
 
@@ -848,7 +848,7 @@ financeRouter.post('/debts/:id/payments', async (req, res) => {
     connection.release();
   }
 
-  res.status(201).json({ message: 'Debt payment registered successfully' });
+  res.status(201).json({ message: 'Pago de deuda registrado exitosamente' });
 });
 
 export { financeRouter };

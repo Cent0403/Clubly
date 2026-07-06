@@ -52,7 +52,7 @@ playersRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
   await ensureEfficiencySchema();
 
   if (!req.user?.playerId) {
-    res.status(404).json({ message: 'Player profile not found for user' });
+    res.status(404).json({ message: 'Perfil de jugador no encontrado para el usuario' });
     return;
   }
 
@@ -79,7 +79,7 @@ playersRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
   const player = rows[0];
 
   if (!player) {
-    res.status(404).json({ message: 'Player not found' });
+    res.status(404).json({ message: 'Jugador no encontrado' });
     return;
   }
 
@@ -90,7 +90,7 @@ playersRouter.patch('/me', requireRole('PLAYER'), async (req, res) => {
   await ensureEfficiencySchema();
 
   if (!req.user?.userId || !req.user?.playerId) {
-    res.status(404).json({ message: 'Player profile not found for user' });
+    res.status(404).json({ message: 'Perfil de jugador no encontrado para el usuario' });
     return;
   }
 
@@ -99,7 +99,7 @@ playersRouter.patch('/me', requireRole('PLAYER'), async (req, res) => {
   const nextPassword = password?.trim();
 
   if (!nextFullName && !nextPassword) {
-    res.status(400).json({ message: 'Provide fullName or password to update profile' });
+    res.status(400).json({ message: 'Proporcione fullName o password para actualizar el perfil' });
     return;
   }
 
@@ -149,7 +149,7 @@ playersRouter.patch('/me', requireRole('PLAYER'), async (req, res) => {
   );
 
   res.json({
-    message: 'Profile updated successfully',
+    message: 'Perfil actualizado exitosamente',
     player: rows[0] ?? null
   });
 });

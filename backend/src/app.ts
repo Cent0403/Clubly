@@ -78,10 +78,10 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
   const errorWithStatus = err as Error & { status?: number; type?: string };
 
   if (errorWithStatus.status === 413 || errorWithStatus.type === 'entity.too.large') {
-    res.status(413).json({ message: 'Image is too large. Please upload a smaller file.' });
+    res.status(413).json({ message: 'La imagen es demasiado grande. Por favor, sube un archivo más pequeño.' });
     return;
   }
 
   console.error(err);
-  res.status(500).json({ message: 'Internal server error' });
+  res.status(500).json({ message: 'Error interno del servidor' });
 });

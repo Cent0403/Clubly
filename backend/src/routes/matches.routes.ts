@@ -75,7 +75,7 @@ matchesRouter.post('/', requireRole('ADMIN'), async (req, res) => {
   const { matchDate, opponent, tournament, location, notes } = req.body as CreateMatchBody;
 
   if (!matchDate || !opponent || !tournament) {
-    res.status(400).json({ message: 'matchDate, opponent and tournament are required' });
+    res.status(400).json({ message: 'matchDate, opponent y tournament son obligatorios' });
     return;
   }
 
@@ -95,12 +95,12 @@ matchesRouter.put('/:id', requireRole('ADMIN'), async (req, res) => {
   const { matchDate, opponent, tournament, location, notes } = req.body as CreateMatchBody;
 
   if (!Number.isInteger(matchId) || matchId <= 0) {
-    res.status(400).json({ message: 'Invalid match id' });
+    res.status(400).json({ message: 'ID de partido inválido' });
     return;
   }
 
   if (!matchDate || !opponent || !tournament) {
-    res.status(400).json({ message: 'matchDate, opponent and tournament are required' });
+    res.status(400).json({ message: 'matchDate, opponent y tournament son obligatorios' });
     return;
   }
 
@@ -125,18 +125,18 @@ matchesRouter.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   const matchId = Number(req.params.id);
 
   if (!Number.isInteger(matchId) || matchId <= 0) {
-    res.status(400).json({ message: 'Invalid match id' });
+    res.status(400).json({ message: 'ID de partido inválido' });
     return;
   }
 
   const [result] = await pool.query<ResultSetHeader>('DELETE FROM matches WHERE id = ?', [matchId]);
 
   if (result.affectedRows === 0) {
-    res.status(404).json({ message: 'Match not found' });
+    res.status(404).json({ message: 'Partido no encontrado' });
     return;
   }
 
-  res.json({ message: 'Match deleted' });
+  res.json({ message: 'Partido eliminado exitosamente' });
 });
 
 matchesRouter.post('/:id/players', requireRole('ADMIN'), async (req, res) => {
@@ -144,25 +144,25 @@ matchesRouter.post('/:id/players', requireRole('ADMIN'), async (req, res) => {
   const { playerIds } = req.body as AssignPlayersBody;
 
   if (!Number.isInteger(matchId) || matchId <= 0) {
-    res.status(400).json({ message: 'Invalid match id' });
+    res.status(400).json({ message: 'ID de partido inválido' });
     return;
   }
 
   if (!Array.isArray(playerIds) || playerIds.length === 0) {
-    res.status(400).json({ message: 'playerIds must be a non-empty array' });
+    res.status(400).json({ message: 'playerIds debe ser un array no vacío' });
     return;
   }
 
   const sanitizedPlayerIds = [...new Set(playerIds.map(Number).filter((id) => Number.isInteger(id) && id > 0))];
 
   if (sanitizedPlayerIds.length === 0) {
-    res.status(400).json({ message: 'No valid player IDs provided' });
+    res.status(400).json({ message: 'No se proporcionaron IDs de jugadores válidos' });
     return;
   }
 
   const [matchRows] = await pool.query<MatchRow[]>('SELECT id FROM matches WHERE id = ? LIMIT 1', [matchId]);
   if (!matchRows[0]) {
-    res.status(404).json({ message: 'Match not found' });
+    res.status(404).json({ message: 'Partido no encontrado' });
     return;
   }
 
@@ -187,7 +187,7 @@ matchesRouter.post('/:id/players', requireRole('ADMIN'), async (req, res) => {
     connection.release();
   }
 
-  res.json({ message: 'Players assigned successfully', playerIds: sanitizedPlayerIds });
+  res.json({ message: 'Jugadores asignados exitosamente', playerIds: sanitizedPlayerIds });
 });
 
 matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
@@ -195,12 +195,12 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
   const { ratings } = req.body as SaveRatingsBody;
 
   if (!Number.isInteger(matchId) || matchId <= 0) {
-    res.status(400).json({ message: 'Invalid match id' });
+    res.status(400).json({ message: 'ID de partido inválido' });
     return;
   }
 
   if (!Array.isArray(ratings) || ratings.length === 0) {
-    res.status(400).json({ message: 'ratings must be a non-empty array' });
+    res.status(400).json({ message: 'ratings debe ser un array no vacío' });
     return;
   }
 
@@ -234,7 +234,7 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
       !isNonNegativeInteger(item.blockError)
     ) {
       res.status(400).json({
-        message: 'Each rating must include valid non-negative counters, attempts and a valid playerId'
+        message: 'Cada calificación debe incluir contadores no negativos válidos, intentos y un playerId válido'
       });
       return;
     }
@@ -248,7 +248,7 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
     const [matchRows] = await connection.query<MatchRow[]>('SELECT id FROM matches WHERE id = ? LIMIT 1', [matchId]);
     if (!matchRows[0]) {
       await connection.rollback();
-      res.status(404).json({ message: 'Match not found' });
+      res.status(404).json({ message: 'Partido no encontrado' });
       return;
     }
 
@@ -378,14 +378,14 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
     connection.release();
   }
 
-  res.json({ message: 'Ratings saved successfully', ratedPlayers: normalizedRatings.length });
+  res.json({ message: 'Calificaciones guardadas exitosamente', ratedPlayers: normalizedRatings.length });
 });
 
 matchesRouter.get('/:id/ratings', async (req, res) => {
   const matchId = Number(req.params.id);
 
   if (!Number.isInteger(matchId) || matchId <= 0) {
-    res.status(400).json({ message: 'Invalid match id' });
+    res.status(400).json({ message: 'ID de partido inválido' });
     return;
   }
 
