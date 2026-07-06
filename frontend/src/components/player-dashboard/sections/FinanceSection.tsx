@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { FinanceSectionProps } from '../types';
 
 function formatMoney(value: number): string {
-  return `S/ ${value.toFixed(2)}`;
+  return `$ ${value.toFixed(2)}`;
 }
 
 function getDebtStateLabel(status: 'pending' | 'partially_paid' | 'paid'): string {
@@ -111,26 +111,25 @@ export function FinanceSection({ active, summary, debts, upcomingDebts, payments
         </div>
 
         <h3 className="mt-5 text-xl font-bold">Mis deudas</h3>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <input
+            className="input"
+            placeholder="Filtrar por descripción"
+            value={debtFilterTerm}
+            onChange={(event) => setDebtFilterTerm(event.target.value)}
+          />
+          <select
+            className="input"
+            value={debtFilterStatus}
+            onChange={(event) => setDebtFilterStatus(event.target.value as 'ALL' | 'pending' | 'partially_paid' | 'paid')}
+          >
+            <option value="ALL">Todos los estados</option>
+            <option value="pending">Pendiente</option>
+            <option value="partially_paid">Parcial</option>
+            <option value="paid">Pagada</option>
+          </select>
+        </div>
         <div className="mt-3 max-h-52 space-y-2 overflow-y-auto pr-1">
-          <div className="grid gap-2 md:grid-cols-2">
-            <input
-              className="input"
-              placeholder="Filtrar por descripción"
-              value={debtFilterTerm}
-              onChange={(event) => setDebtFilterTerm(event.target.value)}
-            />
-            <select
-              className="input"
-              value={debtFilterStatus}
-              onChange={(event) => setDebtFilterStatus(event.target.value as 'ALL' | 'pending' | 'partially_paid' | 'paid')}
-            >
-              <option value="ALL">Todos los estados</option>
-              <option value="pending">Pendiente</option>
-              <option value="partially_paid">Parcial</option>
-              <option value="paid">Pagada</option>
-            </select>
-          </div>
-
           {filteredDebts.map((debt) => (
             <div
               key={debt.id}
@@ -154,22 +153,21 @@ export function FinanceSection({ active, summary, debts, upcomingDebts, payments
         </div>
 
         <h3 className="mt-5 text-xl font-bold">Historial de pagos</h3>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <input
+            className="input input-date min-w-[10.5rem]"
+            type="date"
+            value={paymentFromDate}
+            onChange={(event) => setPaymentFromDate(event.target.value)}
+          />
+          <input
+            className="input input-date min-w-[10.5rem]"
+            type="date"
+            value={paymentToDate}
+            onChange={(event) => setPaymentToDate(event.target.value)}
+          />
+        </div>
         <div className="mt-3 max-h-40 space-y-2 overflow-y-auto pr-1">
-          <div className="grid gap-2 md:grid-cols-2">
-            <input
-              className="input"
-              type="date"
-              value={paymentFromDate}
-              onChange={(event) => setPaymentFromDate(event.target.value)}
-            />
-            <input
-              className="input"
-              type="date"
-              value={paymentToDate}
-              onChange={(event) => setPaymentToDate(event.target.value)}
-            />
-          </div>
-
           {filteredPayments.map((payment) => (
             <div
               key={payment.id}

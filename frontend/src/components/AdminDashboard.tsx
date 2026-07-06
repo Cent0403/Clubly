@@ -67,14 +67,17 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   const [financeDebts, setFinanceDebts] = useState<FinanceDebt[]>([]);
   const [financeDebtPayments, setFinanceDebtPayments] = useState<FinanceDebtPayment[]>([]);
   const [loadingFinance, setLoadingFinance] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [categoryName, setCategoryName] = useState('');
   const [categoryType, setCategoryType] = useState<FinanceType>('income');
   const [transactionType, setTransactionType] = useState<FinanceType>('expense');
+  const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
   const [transactionCategoryId, setTransactionCategoryId] = useState('');
   const [transactionAmount, setTransactionAmount] = useState('');
   const [transactionDescription, setTransactionDescription] = useState('');
   const [transactionDate, setTransactionDate] = useState(today);
   const [debtPlayerId, setDebtPlayerId] = useState('');
+  const [editingDebtId, setEditingDebtId] = useState<number | null>(null);
   const [debtAmountDue, setDebtAmountDue] = useState('');
   const [debtDescription, setDebtDescription] = useState('');
   const [debtDueDate, setDebtDueDate] = useState('');
@@ -671,15 +674,41 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     setLoadingFinance(true);
 
     try {
-      await api.createFinanceCategory(token, { name: nextCategoryName, type: categoryType });
+      if (editingCategoryId) {
+        await api.updateFinanceCategory(token, editingCategoryId, { name: nextCategoryName, type: categoryType });
+      } else {
+        await api.createFinanceCategory(token, { name: nextCategoryName, type: categoryType });
+      }
+
       await loadFinanceData();
+      setEditingCategoryId(null);
       setCategoryName('');
-      toast.success('Categoria financiera creada correctamente.');
+      toast.success(editingCategoryId ? 'Categoría actualizada correctamente.' : 'Categoria financiera creada correctamente.');
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
       setLoadingFinance(false);
     }
+  }
+
+  function handleEditCategory(categoryId: number) {
+    const category = financeCategories.find((item) => item.id === categoryId);
+
+    if (!category) {
+      toast.error('No se encontró la categoría a editar.');
+      return;
+    }
+
+    setEditingCategoryId(category.id);
+    setCategoryName(category.name);
+    setCategoryType(category.type);
+    toast('Editando categoría financiera.');
+  }
+
+  function handleCancelEditCategory() {
+    setEditingCategoryId(null);
+    setCategoryName('');
+    setCategoryType('income');
   }
 
   async function handleCreateFinanceTransaction(event: FormEvent<HTMLFormElement>) {
@@ -699,25 +728,62 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     setLoadingFinance(true);
 
     try {
-      await api.createFinanceTransaction(token, {
-        categoryId: transactionCategoryId ? Number(transactionCategoryId) : null,
-        amount,
-        type: transactionType,
-        description: transactionDescription.trim() || undefined,
-        transactionDate
-      });
+      if (editingTransactionId) {
+        await api.updateFinanceTransaction(token, editingTransactionId, {
+          categoryId: transactionCategoryId ? Number(transactionCategoryId) : null,
+          amount,
+          type: transactionType,
+          description: transactionDescription.trim() || undefined,
+          transactionDate
+        });
+      } else {
+        await api.createFinanceTransaction(token, {
+          categoryId: transactionCategoryId ? Number(transactionCategoryId) : null,
+          amount,
+          type: transactionType,
+          description: transactionDescription.trim() || undefined,
+          transactionDate
+        });
+      }
 
       await loadFinanceData();
+      setEditingTransactionId(null);
       setTransactionAmount('');
       setTransactionDescription('');
       setTransactionCategoryId('');
       setTransactionDate(today);
-      toast.success('Movimiento financiero registrado correctamente.');
+      toast.success(editingTransactionId ? 'Movimiento actualizado correctamente.' : 'Movimiento financiero registrado correctamente.');
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
       setLoadingFinance(false);
     }
+  }
+
+  function handleEditTransaction(transactionId: number) {
+    const transaction = financeTransactions.find((item) => item.id === transactionId);
+
+    if (!transaction) {
+      toast.error('No se encontró el movimiento a editar.');
+      return;
+    }
+
+    setEditingTransactionId(transaction.id);
+    setTransactionType(transaction.type);
+    setTransactionCategoryId(transaction.category_id ? String(transaction.category_id) : '');
+    setTransactionAmount(String(transaction.amount));
+    setTransactionDescription(transaction.description ?? '');
+    setTransactionDate(transaction.transaction_date || today);
+    toast('Editando movimiento financiero.');
+  }
+
+  function handleCancelEditTransaction() {
+    setEditingTransactionId(null);
+    setTransactionType('expense');
+    setTransactionCategoryId('');
+    setTransactionAmount('');
+    setTransactionDescription('');
+    setTransactionDate(today);
   }
 
   async function handleCreateDebt(event: FormEvent<HTMLFormElement>) {
@@ -739,24 +805,57 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     setLoadingFinance(true);
 
     try {
-      await api.createPlayerDebt(token, {
-        playerId,
-        amountDue,
-        description: debtDescription.trim() || undefined,
-        dueDate: debtDueDate || undefined
-      });
+      if (editingDebtId) {
+        await api.updatePlayerDebt(token, editingDebtId, {
+          amountDue,
+          description: debtDescription.trim() || null,
+          dueDate: debtDueDate || null
+        });
+      } else {
+        await api.createPlayerDebt(token, {
+          playerId,
+          amountDue,
+          description: debtDescription.trim() || undefined,
+          dueDate: debtDueDate || undefined
+        });
+      }
 
       await loadFinanceData();
+      setEditingDebtId(null);
       setDebtPlayerId('');
       setDebtAmountDue('');
       setDebtDescription('');
       setDebtDueDate('');
-      toast.success('Deuda registrada correctamente.');
+      toast.success(editingDebtId ? 'Deuda actualizada correctamente.' : 'Deuda registrada correctamente.');
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
       setLoadingFinance(false);
     }
+  }
+
+  function handleEditDebt(debtId: number) {
+    const debt = financeDebts.find((item) => item.id === debtId);
+
+    if (!debt) {
+      toast.error('No se encontró la deuda a editar.');
+      return;
+    }
+
+    setEditingDebtId(debt.id);
+    setDebtPlayerId(String(debt.player_id));
+    setDebtAmountDue(String(debt.amount_due));
+    setDebtDescription(debt.description ?? '');
+    setDebtDueDate(debt.due_date ?? '');
+    toast('Editando deuda del jugador.');
+  }
+
+  function handleCancelEditDebt() {
+    setEditingDebtId(null);
+    setDebtPlayerId('');
+    setDebtAmountDue('');
+    setDebtDescription('');
+    setDebtDueDate('');
   }
 
   async function handleCreateDebtPayment(debtId: number) {
@@ -904,6 +1003,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       <FinanceSection
         active={activeSection === 'finanzas'}
         loadingFinance={loadingFinance}
+        editingCategoryId={editingCategoryId}
+        editingTransactionId={editingTransactionId}
+        editingDebtId={editingDebtId}
         overview={financeOverview}
         categories={financeCategories}
         transactions={financeTransactions}
@@ -926,17 +1028,23 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         onCategoryNameChange={setCategoryName}
         onCategoryTypeChange={setCategoryType}
         onCreateCategory={handleCreateFinanceCategory}
+        onEditCategory={handleEditCategory}
+        onCancelEditCategory={handleCancelEditCategory}
         onTransactionTypeChange={setTransactionType}
         onTransactionCategoryIdChange={setTransactionCategoryId}
         onTransactionAmountChange={setTransactionAmount}
         onTransactionDescriptionChange={setTransactionDescription}
         onTransactionDateChange={setTransactionDate}
         onCreateTransaction={handleCreateFinanceTransaction}
+        onEditTransaction={handleEditTransaction}
+        onCancelEditTransaction={handleCancelEditTransaction}
         onDebtPlayerIdChange={setDebtPlayerId}
         onDebtAmountDueChange={setDebtAmountDue}
         onDebtDescriptionChange={setDebtDescription}
         onDebtDueDateChange={setDebtDueDate}
         onCreateDebt={handleCreateDebt}
+        onEditDebt={handleEditDebt}
+        onCancelEditDebt={handleCancelEditDebt}
         onDebtPaymentAmountChange={(debtId, value) => {
           setDebtPaymentAmount((current) => ({ ...current, [debtId]: value }));
         }}

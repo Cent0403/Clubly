@@ -44,6 +44,25 @@ html.dark .input {
   @apply border-slate-700 bg-slate-900 text-slate-100 focus:border-sky-400;
 }
 
+.input-date {
+  min-width: 10.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.input-date::-webkit-datetime-edit,
+.input-date::-webkit-date-and-time-value {
+  min-height: 1.2em;
+  color: inherit;
+}
+
+.input-date:invalid::-webkit-datetime-edit {
+  color: #94a3b8;
+}
+
+html.dark .input-date:invalid::-webkit-datetime-edit {
+  color: #64748b;
+}
+
 .btn {
   @apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition;
 }

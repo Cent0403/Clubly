@@ -514,6 +514,16 @@ export const api = {
       token
     ),
 
+  updateFinanceCategory: (token: string, categoryId: number, payload: { name: string; type: FinanceType }) =>
+    request<{ message: string }>(
+      `/finance/categories/${categoryId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
+
   getFinanceTransactions: async (token: string, filters?: { type?: FinanceType; from?: string; to?: string }) => {
     const queryParams = new URLSearchParams();
     if (filters?.type) {
@@ -557,6 +567,26 @@ export const api = {
       token
     ),
 
+  updateFinanceTransaction: (
+    token: string,
+    transactionId: number,
+    payload: {
+      categoryId?: number | null;
+      amount: number;
+      type: FinanceType;
+      description?: string;
+      transactionDate: string;
+    }
+  ) =>
+    request<{ message: string }>(
+      `/finance/transactions/${transactionId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
+
   getPlayerDebts: async (token: string) => {
     const response = await request<{ debts: FinanceDebt[]; payments: FinanceDebtPayment[] }>('/finance/debts', {}, token);
     return {
@@ -578,6 +608,24 @@ export const api = {
       '/finance/debts',
       {
         method: 'POST',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
+
+  updatePlayerDebt: (
+    token: string,
+    debtId: number,
+    payload: {
+      amountDue?: number;
+      description?: string | null;
+      dueDate?: string | null;
+    }
+  ) =>
+    request<{ message: string }>(
+      `/finance/debts/${debtId}`,
+      {
+        method: 'PATCH',
         body: JSON.stringify(payload)
       },
       token

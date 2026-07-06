@@ -58,7 +58,20 @@ interface CreateCategoryBody {
   type?: FinanceType;
 }
 
+interface UpdateCategoryBody {
+  name?: string;
+  type?: FinanceType;
+}
+
 interface CreateTransactionBody {
+  categoryId?: number | null;
+  amount?: number;
+  type?: FinanceType;
+  description?: string;
+  transactionDate?: string;
+}
+
+interface UpdateTransactionBody {
   categoryId?: number | null;
   amount?: number;
   type?: FinanceType;
@@ -71,6 +84,12 @@ interface CreateDebtBody {
   amountDue?: number;
   description?: string;
   dueDate?: string;
+}
+
+interface UpdateDebtBody {
+  amountDue?: number;
+  description?: string | null;
+  dueDate?: string | null;
 }
 
 interface CreateDebtPaymentBody {
@@ -392,6 +411,40 @@ financeRouter.post('/categories', async (req, res) => {
   res.status(201).json({ id: result.insertId, message: 'Category created successfully' });
 });
 
+financeRouter.put('/categories/:id', async (req, res) => {
+  await ensureFinanceSchema();
+
+  const categoryId = Number(req.params.id);
+  const { name, type } = req.body as UpdateCategoryBody;
+  const nextName = name?.trim();
+
+  if (!Number.isInteger(categoryId) || categoryId <= 0) {
+    res.status(400).json({ message: 'Invalid category id' });
+    return;
+  }
+
+  if (!nextName || !isFinanceType(type)) {
+    res.status(400).json({ message: 'name and type (income|expense) are required' });
+    return;
+  }
+
+  const [result] = await pool.query<ResultSetHeader>(
+    `
+      UPDATE finance_categories
+      SET name = ?, type = ?
+      WHERE id = ?
+    `,
+    [nextName, type, categoryId]
+  );
+
+  if (result.affectedRows === 0) {
+    res.status(404).json({ message: 'Category not found' });
+    return;
+  }
+
+  res.json({ message: 'Category updated successfully' });
+});
+
 financeRouter.get('/transactions', async (req, res) => {
   await ensureFinanceSchema();
 
@@ -490,6 +543,70 @@ financeRouter.post('/transactions', async (req, res) => {
   res.status(201).json({ id: result.insertId, message: 'Transaction created successfully' });
 });
 
+financeRouter.put('/transactions/:id', async (req, res) => {
+  await ensureFinanceSchema();
+
+  const transactionId = Number(req.params.id);
+  const { categoryId, amount, type, description, transactionDate } = req.body as UpdateTransactionBody;
+  const parsedAmount = toDecimal(amount);
+  const nextDescription = description?.trim() || null;
+
+  if (!Number.isInteger(transactionId) || transactionId <= 0) {
+    res.status(400).json({ message: 'Invalid transaction id' });
+    return;
+  }
+
+  if (!isFinanceType(type) || parsedAmount === null || parsedAmount <= 0 || !transactionDate || !isIsoDate(transactionDate)) {
+    res.status(400).json({ message: 'type, amount (>0) and transactionDate (YYYY-MM-DD) are required' });
+    return;
+  }
+
+  let nextCategoryId: number | null = null;
+
+  if (categoryId !== undefined && categoryId !== null) {
+    const parsedCategoryId = Number(categoryId);
+    if (!Number.isInteger(parsedCategoryId) || parsedCategoryId <= 0) {
+      res.status(400).json({ message: 'categoryId must be a positive integer when provided' });
+      return;
+    }
+
+    const [categoryRows] = await pool.query<FinanceCategoryRow[]>(
+      'SELECT id, name, type, created_at FROM finance_categories WHERE id = ? LIMIT 1',
+      [parsedCategoryId]
+    );
+
+    const category = categoryRows[0];
+
+    if (!category) {
+      res.status(404).json({ message: 'Category not found' });
+      return;
+    }
+
+    if (category.type !== type) {
+      res.status(400).json({ message: 'Selected category type must match transaction type' });
+      return;
+    }
+
+    nextCategoryId = parsedCategoryId;
+  }
+
+  const [result] = await pool.query<ResultSetHeader>(
+    `
+      UPDATE finance_transactions
+      SET category_id = ?, amount = ?, type = ?, description = ?, transaction_date = ?
+      WHERE id = ?
+    `,
+    [nextCategoryId, parsedAmount, type, nextDescription, transactionDate, transactionId]
+  );
+
+  if (result.affectedRows === 0) {
+    res.status(404).json({ message: 'Transaction not found' });
+    return;
+  }
+
+  res.json({ message: 'Transaction updated successfully' });
+});
+
 financeRouter.get('/debts', async (_req, res) => {
   await ensureFinanceSchema();
 
@@ -556,6 +673,93 @@ financeRouter.post('/debts', async (req, res) => {
   );
 
   res.status(201).json({ id: result.insertId, message: 'Debt created successfully' });
+});
+
+financeRouter.patch('/debts/:id', async (req, res) => {
+  await ensureFinanceSchema();
+
+  const debtId = Number(req.params.id);
+  const { amountDue, description, dueDate } = req.body as UpdateDebtBody;
+  const parsedAmountDue = amountDue === undefined ? null : toDecimal(amountDue);
+
+  if (!Number.isInteger(debtId) || debtId <= 0) {
+    res.status(400).json({ message: 'Invalid debt id' });
+    return;
+  }
+
+  const hasAnyField = amountDue !== undefined || description !== undefined || dueDate !== undefined;
+  if (!hasAnyField) {
+    res.status(400).json({ message: 'Provide at least one field to update debt' });
+    return;
+  }
+
+  if (amountDue !== undefined && (parsedAmountDue === null || parsedAmountDue <= 0)) {
+    res.status(400).json({ message: 'amountDue must be greater than 0' });
+    return;
+  }
+
+  if (dueDate !== undefined && dueDate !== null && dueDate !== '' && !isIsoDate(dueDate)) {
+    res.status(400).json({ message: 'dueDate must have format YYYY-MM-DD when provided' });
+    return;
+  }
+
+  const [existingRows] = await pool.query<PlayerDebtRow[]>(
+    `
+      SELECT
+        id,
+        player_id,
+        '' AS player_name,
+        amount_due,
+        amount_paid,
+        ROUND(amount_due - amount_paid, 2) AS amount_pending,
+        description,
+        status,
+        due_date,
+        created_at
+      FROM player_debts
+      WHERE id = ?
+      LIMIT 1
+    `,
+    [debtId]
+  );
+
+  const existingDebt = existingRows[0];
+
+  if (!existingDebt) {
+    res.status(404).json({ message: 'Debt not found' });
+    return;
+  }
+
+  const nextAmountDue = parsedAmountDue ?? Number(existingDebt.amount_due);
+  const currentAmountPaid = Number(existingDebt.amount_paid);
+
+  if (nextAmountDue < currentAmountPaid) {
+    res.status(400).json({ message: 'amountDue cannot be less than current amount_paid' });
+    return;
+  }
+
+  const nextPending = Number((nextAmountDue - currentAmountPaid).toFixed(2));
+  const nextStatus: 'pending' | 'partially_paid' | 'paid' =
+    nextPending <= 0 ? 'paid' : currentAmountPaid > 0 ? 'partially_paid' : 'pending';
+
+  const nextDescription = description === undefined ? existingDebt.description : description?.trim() || null;
+  const nextDueDate =
+    dueDate === undefined
+      ? existingDebt.due_date
+      : dueDate === null || dueDate === ''
+        ? null
+        : dueDate;
+
+  await pool.query(
+    `
+      UPDATE player_debts
+      SET amount_due = ?, description = ?, due_date = ?, status = ?
+      WHERE id = ?
+    `,
+    [nextAmountDue, nextDescription, nextDueDate, nextStatus, debtId]
+  );
+
+  res.json({ message: 'Debt updated successfully' });
 });
 
 financeRouter.post('/debts/:id/payments', async (req, res) => {
