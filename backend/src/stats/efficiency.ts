@@ -53,7 +53,7 @@ function safeDivide(numerator: number, denominator: number): number | null {
 
 function calculateOverallEfficiency(values: Array<number | null>): number {
   const total = values.reduce<number>((sum, value) => sum + (value ?? 0), 0);
-  return Number((total / 5).toFixed(4));
+  return Number(Math.min(1, total / 4).toFixed(4));
 }
 
 let efficiencySchemaReady: Promise<void> | null = null;
@@ -72,21 +72,24 @@ async function syncStoredEfficiencyMetrics(): Promise<void> {
         ELSE NULL
       END,
       overall_efficiency = ROUND(
-        (
-          COALESCE(attack_efficiency, 0) +
-          COALESCE(serve_efficiency, 0) +
-          COALESCE(reception_efficiency, 0) +
-          COALESCE(setting_efficiency, 0) +
-          COALESCE(
-            CASE
-              WHEN (defense_successes + defense_failures) > 0
-                THEN (defense_successes - defense_failures) / (defense_successes + defense_failures)
-              ELSE NULL
-            END,
-            0
-          ) +
-          COALESCE(block_efficiency, 0)
-        ) / 5,
+        LEAST(
+          1,
+          (
+            COALESCE(attack_efficiency, 0) +
+            COALESCE(serve_efficiency, 0) +
+            COALESCE(reception_efficiency, 0) +
+            COALESCE(setting_efficiency, 0) +
+            COALESCE(
+              CASE
+                WHEN (defense_successes + defense_failures) > 0
+                  THEN (defense_successes - defense_failures) / (defense_successes + defense_failures)
+                ELSE NULL
+              END,
+              0
+            ) +
+            COALESCE(block_efficiency, 0)
+          ) / 4
+        ),
         4
       )
   `);

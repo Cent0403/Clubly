@@ -210,11 +210,11 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           <p className="mb-3 font-semibold text-sky-700 dark:text-sky-400">EFICIENCIA GLOBAL DEL PARTIDO</p>
           <div className="space-y-1 text-xs">
             <div className="flex justify-between px-2">
-              <span>Suma de ataque, saque, recepción, armado, defensa y bloqueo dividida entre 5</span>
+              <span>Suma de ataque, saque, recepción, armado, defensa y bloqueo dividida entre 4 (tope 100%)</span>
             </div>
             <div className="flex justify-between px-2 font-mono">
               <span>
-                ({selectedMatch.attack_efficiency.toFixed(2)} + {selectedMatch.serve_efficiency.toFixed(2)} + {selectedMatch.reception_efficiency.toFixed(2)} + {selectedMatch.setting_efficiency.toFixed(2)} + {selectedMatch.defense_efficiency.toFixed(2)} + {selectedMatch.block_efficiency.toFixed(2)}) / 5
+                min(100, ({selectedMatch.attack_efficiency.toFixed(2)} + {selectedMatch.serve_efficiency.toFixed(2)} + {selectedMatch.reception_efficiency.toFixed(2)} + {selectedMatch.setting_efficiency.toFixed(2)} + {selectedMatch.defense_efficiency.toFixed(2)} + {selectedMatch.block_efficiency.toFixed(2)}) / 4)
               </span>
             </div>
             <div className="border-t-2 border-sky-300 pt-2 dark:border-sky-800">
