@@ -68,7 +68,11 @@ async function syncStoredEfficiencyMetrics(): Promise<void> {
     SET
       defense_efficiency = CASE
         WHEN (defense_successes + defense_failures) > 0
-          THEN ROUND((defense_successes - defense_failures) / (defense_successes + defense_failures), 4)
+          THEN ROUND(
+            (CAST(defense_successes AS SIGNED) - CAST(defense_failures AS SIGNED)) /
+            (defense_successes + defense_failures),
+            4
+          )
         ELSE NULL
       END,
       overall_efficiency = ROUND(
@@ -82,7 +86,9 @@ async function syncStoredEfficiencyMetrics(): Promise<void> {
             COALESCE(
               CASE
                 WHEN (defense_successes + defense_failures) > 0
-                  THEN (defense_successes - defense_failures) / (defense_successes + defense_failures)
+                  THEN
+                    (CAST(defense_successes AS SIGNED) - CAST(defense_failures AS SIGNED)) /
+                    (defense_successes + defense_failures)
                 ELSE NULL
               END,
               0
