@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { pool } from '../db/pool';
 import { requireAuth, requireRole } from '../middleware/auth';
+import { calculateEfficiencyMetrics, EfficiencyRatingInput, ensureEfficiencySchema } from '../stats/efficiency';
 
 interface CreateMatchBody {
   matchDate?: string;
@@ -15,29 +16,8 @@ interface AssignPlayersBody {
   playerIds?: number[];
 }
 
-interface RatingInput {
-  playerId: number;
-  minutesPlayed: boolean;
-  attackPoints: number;
-  attackErrors: number;
-  attackComplicated: number;
-  serveAces: number;
-  serveComplicated: number;
-  servePasarlo: number;
-  serveErrors: number;
-  blockPoints: number;
-  blockTouches: number;
-  defenseSuccesses: number;
-  receptionPerfect: number;
-  receptionGood: number;
-  receptionBad: number;
-  receptionError: number;
-  setAssists: number;
-  setErrors: number;
-}
-
 interface SaveRatingsBody {
-  ratings?: RatingInput[];
+  ratings?: EfficiencyRatingInput[];
 }
 
 interface MatchRow extends RowDataPacket {
@@ -56,125 +36,16 @@ function isNonNegativeNumber(value: number): boolean {
   return Number.isFinite(value) && value >= 0;
 }
 
-function clampScore(value: number): number {
-  return Math.max(0, Math.min(10, value));
+function isNonNegativeInteger(value: number): boolean {
+  return Number.isInteger(value) && value >= 0;
 }
 
-let receptionSchemaReady: Promise<void> | null = null;
-
-const MATCH_PERFORMANCE_GENERATED_SQL = `
-  CASE
-    WHEN minutes_played = 1 THEN LEAST(
-      10.00,
-      ROUND(
-        ((reception + serve + defense + attack + block_score + setting_score) / 4) + 5,
-        2
-      )
-    )
-    ELSE NULL
-  END
-`;
-
-async function syncMatchPerformanceGeneratedColumn(): Promise<void> {
-  const modifyColumnSql = `
-    ALTER TABLE ratings
-    MODIFY COLUMN match_performance DECIMAL(7,2) GENERATED ALWAYS AS (
-      ${MATCH_PERFORMANCE_GENERATED_SQL}
-    ) STORED
-  `;
-
-  try {
-    await pool.query(modifyColumnSql);
-    return;
-  } catch (error) {
-    const sqlError = error as { message?: string };
-    const message = (sqlError.message ?? '').toLowerCase();
-    const isGeneratedModifyUnsupported =
-      message.includes('modifying a stored column') && message.includes('generated columns');
-
-    if (!isGeneratedModifyUnsupported) {
-      throw error;
-    }
-  }
-
-  // TiDB limitation: generated stored columns cannot be changed via ALTER in some versions.
-  // Keep existing column to avoid runtime breakage. Use table rebuild migration externally.
-  console.warn('Skipping match_performance generated column sync due to TiDB ALTER limitation.');
-}
-
-async function ensureReceptionSchema(): Promise<void> {
-  if (!receptionSchemaReady) {
-    receptionSchemaReady = (async () => {
-      const [columnRows] = await pool.query<RowDataPacket[]>(
-        `
-          SELECT COLUMN_NAME
-          FROM information_schema.columns
-          WHERE table_schema = DATABASE()
-            AND table_name = 'ratings'
-            AND COLUMN_NAME IN (
-              'reception_good',
-              'reception_bad',
-              'reception_error',
-                'reception_errors',
-                'serve_complicated',
-                'attack_complicated',
-                'serve_pasarlo'
-            )
-        `
-      );
-
-      const existingColumns = new Set(columnRows.map((row) => String(row.COLUMN_NAME)));
-      const hasNewColumns = existingColumns.has('reception_good') && existingColumns.has('reception_bad') && existingColumns.has('reception_error');
-
-      if (!hasNewColumns) {
-        await pool.query(`ALTER TABLE ratings ADD COLUMN reception_good INT UNSIGNED NOT NULL DEFAULT 0 AFTER reception_perfect`);
-        await pool.query(`ALTER TABLE ratings ADD COLUMN reception_bad INT UNSIGNED NOT NULL DEFAULT 0 AFTER reception_good`);
-        await pool.query(`ALTER TABLE ratings ADD COLUMN reception_error INT UNSIGNED NOT NULL DEFAULT 0 AFTER reception_bad`);
-
-        if (existingColumns.has('reception_errors')) {
-          await pool.query(`UPDATE ratings SET reception_error = reception_errors WHERE reception_errors IS NOT NULL`);
-        }
-      }
-
-      if (!existingColumns.has('serve_complicated')) {
-        await pool.query(`ALTER TABLE ratings ADD COLUMN serve_complicated INT UNSIGNED NOT NULL DEFAULT 0 AFTER serve_aces`);
-      }
-
-      if (!existingColumns.has('attack_complicated')) {
-        await pool.query(`ALTER TABLE ratings ADD COLUMN attack_complicated INT UNSIGNED NOT NULL DEFAULT 0 AFTER attack_points`);
-      }
-
-      if (!existingColumns.has('serve_pasarlo')) {
-        await pool.query(`ALTER TABLE ratings ADD COLUMN serve_pasarlo INT UNSIGNED NOT NULL DEFAULT 0 AFTER serve_complicated`);
-      }
-
-      await syncMatchPerformanceGeneratedColumn();
-    })().catch((error) => {
-      receptionSchemaReady = null;
-      throw error;
-    });
-  }
-
-  await receptionSchemaReady;
-}
-
-function calculateScores(item: RatingInput) {
+function normalizeEfficiencyRatingInput(item: EfficiencyRatingInput): EfficiencyRatingInput {
   return {
-    reception: Number(
-      clampScore(
-        item.receptionPerfect * 1.0 +
-          item.receptionGood * 0.5 +
-          item.receptionBad * 0.25 -
-          item.receptionError * 0.75
-      ).toFixed(2)
-    ),
-    serve: Number(
-      clampScore(item.serveAces * 1.0 + item.serveComplicated * 0.6 + item.servePasarlo * 0.2 - item.serveErrors * 0.5).toFixed(2)
-    ),
-    defense: Number(clampScore(item.defenseSuccesses * 0.4).toFixed(2)),
-    attack: Number(clampScore(item.attackPoints * 1.0 + item.attackComplicated * 0.4 - item.attackErrors * 0.5).toFixed(2)),
-    blockScore: Number(clampScore(item.blockPoints * 1.0 + item.blockTouches * 0.2).toFixed(2)),
-    settingScore: Number(clampScore(item.setAssists * 0.3 - item.setErrors * 0.2).toFixed(2))
+    ...item,
+    attackAttempts: Math.max(item.attackAttempts, item.attackPoints + item.attackErrors),
+    serveAttempts: Math.max(item.serveAttempts, item.serveAces + item.serveErrors),
+    setAttempts: Math.max(item.setAttempts, item.setAssists + item.setErrors)
   };
 }
 
@@ -333,32 +204,37 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
     return;
   }
 
-  await ensureReceptionSchema();
+  await ensureEfficiencySchema();
 
-  for (const item of ratings) {
+  const normalizedRatings = ratings.map(normalizeEfficiencyRatingInput);
+
+  for (const item of normalizedRatings) {
     if (
       !Number.isInteger(item.playerId) ||
       item.playerId <= 0 ||
       typeof item.minutesPlayed !== 'boolean' ||
-      !isNonNegativeNumber(item.attackPoints) ||
-      !isNonNegativeNumber(item.attackComplicated) ||
-      !isNonNegativeNumber(item.attackErrors) ||
-      !isNonNegativeNumber(item.serveAces) ||
-      !isNonNegativeNumber(item.serveComplicated) ||
-      !isNonNegativeNumber(item.servePasarlo) ||
-      !isNonNegativeNumber(item.serveErrors) ||
-      !isNonNegativeNumber(item.blockPoints) ||
-      !isNonNegativeNumber(item.blockTouches) ||
-      !isNonNegativeNumber(item.defenseSuccesses) ||
-      !isNonNegativeNumber(item.receptionPerfect) ||
-      !isNonNegativeNumber(item.receptionGood) ||
-      !isNonNegativeNumber(item.receptionBad) ||
-      !isNonNegativeNumber(item.receptionError) ||
-      !isNonNegativeNumber(item.setAssists) ||
-      !isNonNegativeNumber(item.setErrors)
+      !isNonNegativeInteger(item.setsPlayed) ||
+      !isNonNegativeInteger(item.attackPoints) ||
+      !isNonNegativeInteger(item.attackErrors) ||
+      !isNonNegativeInteger(item.attackAttempts) ||
+      !isNonNegativeInteger(item.serveAces) ||
+      !isNonNegativeInteger(item.serveErrors) ||
+      !isNonNegativeInteger(item.serveAttempts) ||
+      !isNonNegativeInteger(item.receptionThree) ||
+      !isNonNegativeInteger(item.receptionTwo) ||
+      !isNonNegativeInteger(item.receptionOne) ||
+      !isNonNegativeInteger(item.receptionZero) ||
+      !isNonNegativeInteger(item.setAssists) ||
+      !isNonNegativeInteger(item.setErrors) ||
+      !isNonNegativeInteger(item.setAttempts) ||
+      !isNonNegativeInteger(item.defenseSuccesses) ||
+      !isNonNegativeInteger(item.defenseFailures) ||
+      !isNonNegativeInteger(item.blockKill) ||
+      !isNonNegativeInteger(item.blockTouch) ||
+      !isNonNegativeInteger(item.blockError)
     ) {
       res.status(400).json({
-        message: 'Each rating must include non-negative event counters and a valid playerId'
+        message: 'Each rating must include valid non-negative counters, attempts and a valid playerId'
       });
       return;
     }
@@ -376,8 +252,8 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
       return;
     }
 
-    for (const item of ratings) {
-      const calculated = calculateScores(item);
+    for (const item of normalizedRatings) {
+      const calculated = calculateEfficiencyMetrics(item);
 
       await connection.query(
         `
@@ -390,87 +266,105 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
 
       await connection.query(
         `
-          INSERT INTO ratings (
+          INSERT INTO efficiency_ratings (
             match_id,
             player_id,
             minutes_played,
+            sets_played,
             attack_points,
-            attack_complicated,
             attack_errors,
+            attack_attempts,
             serve_aces,
-            serve_complicated,
-            serve_pasarlo,
             serve_errors,
-            block_points,
-            block_touches,
-            defense_successes,
-            reception_perfect,
-            reception_good,
-            reception_bad,
-            reception_error,
+            serve_attempts,
+            reception_three,
+            reception_two,
+            reception_one,
+            reception_zero,
             set_assists,
             set_errors,
-            reception,
-            serve,
-            defense,
-            attack,
-            block_score,
-            setting_score,
+            set_attempts,
+            defense_successes,
+            defense_failures,
+            block_kill,
+            block_touch,
+            block_error,
+            attack_efficiency,
+            attack_points_per_set,
+            serve_in_percentage,
+            serve_efficiency,
+            reception_efficiency,
+            setting_efficiency,
+            defense_efficiency,
+            block_efficiency,
+            overall_efficiency,
             created_by
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE
             minutes_played = VALUES(minutes_played),
+            sets_played = VALUES(sets_played),
             attack_points = VALUES(attack_points),
-            attack_complicated = VALUES(attack_complicated),
             attack_errors = VALUES(attack_errors),
+            attack_attempts = VALUES(attack_attempts),
             serve_aces = VALUES(serve_aces),
-            serve_complicated = VALUES(serve_complicated),
-            serve_pasarlo = VALUES(serve_pasarlo),
             serve_errors = VALUES(serve_errors),
-            block_points = VALUES(block_points),
-            block_touches = VALUES(block_touches),
-            defense_successes = VALUES(defense_successes),
-            reception_perfect = VALUES(reception_perfect),
-            reception_good = VALUES(reception_good),
-            reception_bad = VALUES(reception_bad),
-            reception_error = VALUES(reception_error),
+            serve_attempts = VALUES(serve_attempts),
+            reception_three = VALUES(reception_three),
+            reception_two = VALUES(reception_two),
+            reception_one = VALUES(reception_one),
+            reception_zero = VALUES(reception_zero),
             set_assists = VALUES(set_assists),
             set_errors = VALUES(set_errors),
-            reception = VALUES(reception),
-            serve = VALUES(serve),
-            defense = VALUES(defense),
-            attack = VALUES(attack),
-            block_score = VALUES(block_score),
-            setting_score = VALUES(setting_score),
+            set_attempts = VALUES(set_attempts),
+            defense_successes = VALUES(defense_successes),
+            defense_failures = VALUES(defense_failures),
+            block_kill = VALUES(block_kill),
+            block_touch = VALUES(block_touch),
+            block_error = VALUES(block_error),
+            attack_efficiency = VALUES(attack_efficiency),
+            attack_points_per_set = VALUES(attack_points_per_set),
+            serve_in_percentage = VALUES(serve_in_percentage),
+            serve_efficiency = VALUES(serve_efficiency),
+            reception_efficiency = VALUES(reception_efficiency),
+            setting_efficiency = VALUES(setting_efficiency),
+            defense_efficiency = VALUES(defense_efficiency),
+            block_efficiency = VALUES(block_efficiency),
+            overall_efficiency = VALUES(overall_efficiency),
             created_by = VALUES(created_by)
         `,
         [
           matchId,
           item.playerId,
           item.minutesPlayed ? 1 : 0,
+          item.setsPlayed,
           item.attackPoints,
-          item.attackComplicated,
           item.attackErrors,
+          item.attackAttempts,
           item.serveAces,
-          item.serveComplicated,
-          item.servePasarlo,
           item.serveErrors,
-          item.blockPoints,
-          item.blockTouches,
-          item.defenseSuccesses,
-          item.receptionPerfect,
-          item.receptionGood,
-          item.receptionBad,
-          item.receptionError,
+          item.serveAttempts,
+          item.receptionThree,
+          item.receptionTwo,
+          item.receptionOne,
+          item.receptionZero,
           item.setAssists,
           item.setErrors,
-          calculated.reception,
-          calculated.serve,
-          calculated.defense,
-          calculated.attack,
-          calculated.blockScore,
-          calculated.settingScore,
+          item.setAttempts,
+          item.defenseSuccesses,
+          item.defenseFailures,
+          item.blockKill,
+          item.blockTouch,
+          item.blockError,
+          calculated.attackEfficiency,
+          calculated.attackPointsPerSet,
+          calculated.serveInPercentage,
+          calculated.serveEfficiency,
+          calculated.receptionEfficiency,
+          calculated.settingEfficiency,
+          calculated.defenseEfficiency,
+          calculated.blockEfficiency,
+          calculated.overallEfficiency,
           req.user!.userId
         ]
       );
@@ -484,7 +378,7 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
     connection.release();
   }
 
-  res.json({ message: 'Ratings saved successfully', ratedPlayers: ratings.length });
+  res.json({ message: 'Ratings saved successfully', ratedPlayers: normalizedRatings.length });
 });
 
 matchesRouter.get('/:id/ratings', async (req, res) => {
@@ -495,7 +389,7 @@ matchesRouter.get('/:id/ratings', async (req, res) => {
     return;
   }
 
-  await ensureReceptionSchema();
+  await ensureEfficiencySchema();
 
   const [rows] = await pool.query<RowDataPacket[]>(
     `
@@ -504,31 +398,39 @@ matchesRouter.get('/:id/ratings', async (req, res) => {
         r.player_id,
         u.full_name,
         r.minutes_played,
+        r.sets_played,
         r.attack_points,
-          r.attack_complicated,
         r.attack_errors,
+        r.attack_attempts,
         r.serve_aces,
-        r.serve_complicated,
-          r.serve_pasarlo,
         r.serve_errors,
-        r.block_points,
-        r.block_touches,
-        r.defense_successes,
-        r.reception_perfect,
-          r.reception_good,
-          r.reception_bad,
-          r.reception_error,
+        r.serve_attempts,
+        r.reception_three,
+        r.reception_two,
+        r.reception_one,
+        r.reception_zero,
         r.set_assists,
         r.set_errors,
-        r.reception,
-        r.serve,
-        r.defense,
-        r.attack,
-        r.block_score,
-        r.setting_score,
-        r.match_performance,
+        r.set_attempts,
+        r.defense_successes,
+        r.defense_failures,
+        r.block_kill,
+        r.block_touch,
+        r.block_error,
+        COALESCE(r.attack_efficiency, 0) * 100 AS attack_efficiency,
+        COALESCE(r.attack_points_per_set, 0) AS attack_points_per_set,
+        COALESCE(r.serve_in_percentage, 0) * 100 AS serve_in_percentage,
+        COALESCE(r.serve_efficiency, 0) * 100 AS serve_efficiency,
+        (r.reception_three + r.reception_two + r.reception_one + r.reception_zero) AS reception_attempts,
+        COALESCE(r.reception_efficiency, 0) * 100 AS reception_efficiency,
+        COALESCE(r.setting_efficiency, 0) * 100 AS setting_efficiency,
+        COALESCE(r.defense_efficiency, 0) * 100 AS defense_efficiency,
+        (r.block_kill + r.block_touch + r.block_error) AS block_total,
+        COALESCE(r.block_efficiency, 0) * 100 AS block_efficiency,
+        COALESCE(r.overall_efficiency, 0) * 100 AS overall_efficiency,
+        COALESCE(r.overall_efficiency, 0) * 100 AS match_performance,
         r.updated_at
-      FROM ratings r
+      FROM efficiency_ratings r
       JOIN players p ON p.id = r.player_id
       JOIN users u ON u.id = p.user_id
       WHERE r.match_id = ?

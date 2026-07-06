@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { RowDataPacket } from 'mysql2';
 import { pool } from '../db/pool';
 import { requireAuth, requireRole } from '../middleware/auth';
+import { ensureEfficiencySchema } from '../stats/efficiency';
 
 interface PlayerRow extends RowDataPacket {
   player_id: number;
@@ -24,6 +25,8 @@ const playersRouter = Router();
 playersRouter.use(requireAuth);
 
 playersRouter.get('/', requireRole('ADMIN'), async (_req, res) => {
+  await ensureEfficiencySchema();
+
   const [rows] = await pool.query<PlayerRow[]>(
     `
       SELECT
@@ -33,16 +36,10 @@ playersRouter.get('/', requireRole('ADMIN'), async (_req, res) => {
         u.full_name,
         p.jersey_number,
         p.position,
-        LEAST(
-          10.00,
-          GREATEST(
-            1.00,
-            ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.match_performance END), 5.0), 2)
-          )
-        ) AS overall_score
+        ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS overall_score
       FROM players p
       JOIN users u ON u.id = p.user_id
-      LEFT JOIN ratings r ON r.player_id = p.id
+      LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
       ORDER BY u.full_name ASC
     `
@@ -52,6 +49,8 @@ playersRouter.get('/', requireRole('ADMIN'), async (_req, res) => {
 });
 
 playersRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
+  await ensureEfficiencySchema();
+
   if (!req.user?.playerId) {
     res.status(404).json({ message: 'Player profile not found for user' });
     return;
@@ -66,16 +65,10 @@ playersRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
         u.full_name,
         p.jersey_number,
         p.position,
-        LEAST(
-          10.00,
-          GREATEST(
-            1.00,
-            ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.match_performance END), 5.0), 2)
-          )
-        ) AS overall_score
+        ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS overall_score
       FROM players p
       JOIN users u ON u.id = p.user_id
-      LEFT JOIN ratings r ON r.player_id = p.id
+      LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       WHERE p.id = ?
       GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
       LIMIT 1
@@ -94,6 +87,8 @@ playersRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
 });
 
 playersRouter.patch('/me', requireRole('PLAYER'), async (req, res) => {
+  await ensureEfficiencySchema();
+
   if (!req.user?.userId || !req.user?.playerId) {
     res.status(404).json({ message: 'Player profile not found for user' });
     return;
@@ -142,16 +137,10 @@ playersRouter.patch('/me', requireRole('PLAYER'), async (req, res) => {
         u.full_name,
         p.jersey_number,
         p.position,
-        LEAST(
-          10.00,
-          GREATEST(
-            1.00,
-            ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.match_performance END), 5.0), 2)
-          )
-        ) AS overall_score
+        ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS overall_score
       FROM players p
       JOIN users u ON u.id = p.user_id
-      LEFT JOIN ratings r ON r.player_id = p.id
+      LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       WHERE p.id = ?
       GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
       LIMIT 1

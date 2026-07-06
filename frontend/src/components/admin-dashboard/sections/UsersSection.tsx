@@ -165,15 +165,20 @@ export function UsersSection({
               <div className="rounded-xl bg-slate-100 p-4 dark:bg-slate-800">
                 <p className="text-sm font-semibold">{selectedPlayerSummary.full_name}</p>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                  Nota general: {selectedPlayerSummary.overall_score.toFixed(2)}
+                  Eficiencia global: {selectedPlayerSummary.overall_score.toFixed(2)}%
                 </p>
                 <p className="text-sm text-slate-600 dark:text-slate-300">
                   Partidos calificados: {selectedPlayerSummary.matches_rated}
+                </p>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Puntos de ataque por set: {selectedPlayerSummary.avg_attack_points_per_set.toFixed(2)}
                 </p>
               </div>
 
               <div>
                 <MetricBars
+                  maxValue={100}
+                  formatter={(value) => `${value.toFixed(1)}%`}
                   metrics={[
                     { label: 'Recepcion', value: selectedPlayerSummary.avg_reception },
                     { label: 'Saque', value: selectedPlayerSummary.avg_serve },
@@ -208,7 +213,7 @@ export function UsersSection({
                       <td className="px-2 py-2">{item.match_date}</td>
                       <td className="px-2 py-2">{item.opponent}</td>
                       <td className="px-2 py-2">{item.tournament}</td>
-                      <td className="px-2 py-2 font-semibold text-sky-500">{item.match_performance.toFixed(2)}</td>
+                      <td className="px-2 py-2 font-semibold text-sky-500">{item.match_performance.toFixed(2)}%</td>
                     </tr>
                   ))}
                 </tbody>

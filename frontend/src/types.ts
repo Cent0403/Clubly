@@ -61,22 +61,25 @@ export interface AdminUserItem {
 export interface RatingItem {
   playerId: number;
   minutesPlayed: boolean;
+  setsPlayed: number;
   attackPoints: number;
   attackErrors: number;
-  attackComplicated: number;
+  attackAttempts: number;
   serveAces: number;
-  serveComplicated: number;
-  servePasarlo: number;
   serveErrors: number;
-  blockPoints: number;
-  blockTouches: number;
+  serveAttempts: number;
+  receptionThree: number;
+  receptionTwo: number;
+  receptionOne: number;
+  receptionZero: number;
   defenseSuccesses: number;
-  receptionPerfect: number;
-  receptionGood: number;
-  receptionBad: number;
-  receptionError: number;
+  defenseFailures: number;
   setAssists: number;
   setErrors: number;
+  setAttempts: number;
+  blockKill: number;
+  blockTouch: number;
+  blockError: number;
 }
 
 export interface MatchRatingRow {
@@ -84,28 +87,36 @@ export interface MatchRatingRow {
   player_id: number;
   full_name: string;
   minutes_played: number;
+  sets_played: number;
   attack_points: number;
   attack_errors: number;
-  attack_complicated: number;
+  attack_attempts: number;
   serve_aces: number;
-  serve_complicated: number;
-  serve_pasarlo: number;
   serve_errors: number;
-  block_points: number;
-  block_touches: number;
+  serve_attempts: number;
+  reception_three: number;
+  reception_two: number;
+  reception_one: number;
+  reception_zero: number;
+  reception_attempts: number;
   defense_successes: number;
-  reception_perfect: number;
-  reception_good: number;
-  reception_bad: number;
-  reception_error: number;
+  defense_failures: number;
   set_assists: number;
   set_errors: number;
-  reception: number;
-  serve: number;
-  defense: number;
-  attack: number;
-  block_score: number;
-  setting_score: number;
+  set_attempts: number;
+  block_kill: number;
+  block_touch: number;
+  block_error: number;
+  block_total: number;
+  attack_efficiency: number;
+  attack_points_per_set: number;
+  serve_in_percentage: number;
+  serve_efficiency: number;
+  reception_efficiency: number;
+  setting_efficiency: number;
+  defense_efficiency: number;
+  block_efficiency: number;
+  overall_efficiency: number;
   match_performance: number;
 }
 
@@ -142,6 +153,7 @@ export interface PlayerSummary {
   full_name: string;
   username: string;
   overall_score: number;
+  avg_attack_points_per_set: number;
   avg_reception: number;
   avg_serve: number;
   avg_defense: number;
@@ -156,29 +168,37 @@ export interface PlayerHistoryItem {
   match_date: string;
   opponent: string;
   tournament: string;
-  reception: number;
-  serve: number;
-  defense: number;
-  attack: number;
-  block_score: number;
-  setting_score: number;
   match_performance: number;
+  overall_efficiency: number;
+  attack_efficiency: number;
+  attack_points_per_set: number;
+  serve_in_percentage: number;
+  serve_efficiency: number;
+  reception_efficiency: number;
+  setting_efficiency: number;
+  defense_efficiency: number;
+  block_efficiency: number;
+  reception_attempts: number;
+  block_total: number;
+  sets_played: number;
   attack_points: number;
-  attack_complicated: number;
   attack_errors: number;
+  attack_attempts: number;
   serve_aces: number;
-  serve_complicated: number;
-  serve_pasarlo: number;
   serve_errors: number;
-  block_points: number;
-  block_touches: number;
+  serve_attempts: number;
+  block_kill: number;
+  block_touch: number;
+  block_error: number;
   defense_successes: number;
-  reception_perfect: number;
-  reception_good: number;
-  reception_bad: number;
-  reception_error: number;
+  defense_failures: number;
+  reception_three: number;
+  reception_two: number;
+  reception_one: number;
+  reception_zero: number;
   set_assists: number;
   set_errors: number;
+  set_attempts: number;
 }
 
 export interface GlobalStats {
@@ -190,6 +210,7 @@ export interface GlobalStats {
     team_attack_avg: number;
     team_block_avg: number;
     team_setting_avg: number;
+    team_attack_points_per_set_avg: number;
     roster_size: number;
   };
   evolution: Array<{

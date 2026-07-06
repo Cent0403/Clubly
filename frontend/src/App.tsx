@@ -4,7 +4,7 @@ import { api } from './lib/api';
 import { getToastOptions } from './lib/toast';
 import { useDarkMode } from './hooks/useDarkMode';
 import { LoginForm } from './components/LoginForm';
-import { AdminDashboard } from './components/AdminDashboard';
+import AdminDashboard from './components/AdminDashboard';
 import { AuthUser, TeamSettings } from './types';
 import { PlayerDashboard } from './components/PlayerDashboard';
 

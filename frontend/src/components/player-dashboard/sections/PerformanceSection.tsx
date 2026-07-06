@@ -11,7 +11,7 @@ export function PerformanceSection({ active, summary, radarMetrics }: Performanc
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Usuario: {summary?.username}</p>
 
         <div className="mt-5 space-y-3">
-          <MetricBars metrics={radarMetrics} />
+          <MetricBars metrics={radarMetrics} maxValue={100} formatter={(value) => `${value.toFixed(1)}%`} />
         </div>
       </article>
 
@@ -21,11 +21,11 @@ export function PerformanceSection({ active, summary, radarMetrics }: Performanc
             <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Fundamentos</p>
             <h3 className="text-xl font-bold">Mapa de rendimiento</h3>
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-300">Escala de 0 a 10</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">Escala de 0% a 100%</p>
         </div>
 
         <div className="flex flex-1 items-center justify-center py-4">
-          <RadarChart metrics={radarMetrics} />
+          <RadarChart metrics={radarMetrics} maxValue={100} />
         </div>
       </article>
     </section>

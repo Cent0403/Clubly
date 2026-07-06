@@ -1,4 +1,4 @@
-import { MatchRatingRow, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../../types';
+import { GlobalStats, MatchRatingRow, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../../types';
 import { FinanceDebt, FinanceDebtPayment, PlayerFinanceDebtSummary } from '../../types';
 
 export interface PlayerDashboardProps {
@@ -32,6 +32,7 @@ export interface SummarySectionProps {
   active: boolean;
   profile: PlayerItem | null;
   summary: PlayerSummary | null;
+  globalStats: GlobalStats | null;
   onOpenProfileModal: () => void;
 }
 

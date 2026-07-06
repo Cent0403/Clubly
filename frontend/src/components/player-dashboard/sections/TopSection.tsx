@@ -8,10 +8,10 @@ export function TopSection({ active, topPlayers }: TopSectionProps) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Ranking general</p>
-            <h3 className="text-xl font-bold">Top jugadores por nota general</h3>
+            <h3 className="text-xl font-bold">Top jugadores por eficiencia global</h3>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            Ordenado de mayor a menor según la nota global
+            Ordenado de mayor a menor según la eficiencia global promedio
           </p>
         </div>
 
@@ -27,7 +27,7 @@ export function TopSection({ active, topPlayers }: TopSectionProps) {
                   @{player.username} | {formatPosition(player.position)}
                 </p>
               </div>
-              <p className="shrink-0 text-lg font-extrabold text-sky-500">{player.overall_score.toFixed(2)}</p>
+              <p className="shrink-0 text-lg font-extrabold text-sky-500">{player.overall_score.toFixed(2)}%</p>
             </div>
           ))}
 

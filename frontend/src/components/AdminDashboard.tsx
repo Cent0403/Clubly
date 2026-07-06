@@ -259,13 +259,21 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   function updateEventCount(playerId: number, field: keyof Omit<RatingItem, 'playerId' | 'minutesPlayed'>, value: number) {
     const sanitizedValue = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
 
-    setRatings((current) => ({
-      ...current,
-      [playerId]: {
+    setRatings((current) => {
+      const nextRating = {
         ...(current[playerId] ?? createDefaultRating(playerId)),
         [field]: sanitizedValue
-      }
-    }));
+      } as RatingItem;
+
+      nextRating.attackAttempts = Math.max(nextRating.attackAttempts, nextRating.attackPoints + nextRating.attackErrors);
+      nextRating.serveAttempts = Math.max(nextRating.serveAttempts, nextRating.serveAces + nextRating.serveErrors);
+      nextRating.setAttempts = Math.max(nextRating.setAttempts, nextRating.setAssists + nextRating.setErrors);
+
+      return {
+        ...current,
+        [playerId]: nextRating
+      };
+    });
   }
 
   function updateMinutesPlayed(playerId: number, value: boolean) {
@@ -437,7 +445,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
             full_name: response.user.fullName,
             jersey_number: userForm.jerseyNumber ? Number(userForm.jerseyNumber) : null,
             position: userForm.position || null,
-            overall_score: 5
+            overall_score: 0
           }
         ]);
       }
@@ -1060,3 +1068,5 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     </div>
   );
 }
+
+export default AdminDashboard;

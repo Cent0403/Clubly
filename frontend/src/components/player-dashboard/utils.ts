@@ -49,17 +49,13 @@ export function getWorstFundament(metrics: RadarMetric[]) {
 
 export function buildSummaryCards(summary: PlayerSummary | null, bestFundament: RadarMetric, worstFundament: RadarMetric): SummaryCard[] {
   return [
-    { label: 'Nota actual', value: summary?.overall_score ?? 0, accent: 'text-sky-500' },
+    { label: 'Eficiencia global', value: summary?.overall_score ?? 0, accent: 'text-sky-500' },
     { label: 'Partidos calificados', value: summary?.matches_rated ?? 0, accent: 'text-amber-500' },
+    { label: 'Pts ataque/set', value: summary?.avg_attack_points_per_set ?? 0, accent: 'text-violet-500' },
     {
       label: `Mejor fundamento: ${bestFundament.label}`,
       value: bestFundament.value,
       accent: 'text-emerald-500'
-    },
-    {
-      label: `Peor fundamento: ${worstFundament.label}`,
-      value: worstFundament.value,
-      accent: 'text-rose-500'
     }
   ];
 }

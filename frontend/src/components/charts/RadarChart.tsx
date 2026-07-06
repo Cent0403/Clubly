@@ -5,6 +5,7 @@ interface RadarMetric {
 
 interface RadarChartProps {
   metrics: RadarMetric[];
+  maxValue?: number;
 }
 
 function polarToCartesian(angle: number, radius: number, center: number) {
@@ -13,19 +14,19 @@ function polarToCartesian(angle: number, radius: number, center: number) {
   return { x, y };
 }
 
-export function RadarChart({ metrics }: RadarChartProps) {
+export function RadarChart({ metrics, maxValue = 10 }: RadarChartProps) {
   const size = 260;
   const center = size / 2;
   const maxRadius = 90;
-  const levels = [2, 4, 6, 8, 10];
+  const levels = [0.2, 0.4, 0.6, 0.8, 1].map((step) => Number((maxValue * step).toFixed(2)));
 
   const angleStep = (Math.PI * 2) / metrics.length;
 
   const points = metrics
     .map((metric, index) => {
       const angle = -Math.PI / 2 + index * angleStep;
-      const normalized = Math.min(10, Math.max(0, metric.value));
-      const radius = (normalized / 10) * maxRadius;
+      const normalized = Math.min(maxValue, Math.max(0, metric.value));
+      const radius = (normalized / maxValue) * maxRadius;
       const { x, y } = polarToCartesian(angle, radius, center);
       return `${x},${y}`;
     })
@@ -34,7 +35,7 @@ export function RadarChart({ metrics }: RadarChartProps) {
   return (
     <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto h-72 w-72">
       {levels.map((level) => {
-        const radius = (level / 10) * maxRadius;
+        const radius = (level / maxValue) * maxRadius;
         const ringPoints = metrics
           .map((_, index) => {
             const angle = -Math.PI / 2 + index * angleStep;

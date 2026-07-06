@@ -30,8 +30,8 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function clampScore(value: unknown, fallback = 0): number {
-  return Math.max(0, Math.min(10, toNumber(value, fallback)));
+function clampPercentage(value: unknown, fallback = 0): number {
+  return Math.max(0, Math.min(100, toNumber(value, fallback)));
 }
 
 function toDateInput(value: unknown): string {
@@ -60,7 +60,7 @@ function normalizePlayer(player: PlayerItem): PlayerItem {
     player_id: toNumber(player.player_id),
     user_id: toNumber(player.user_id),
     jersey_number: player.jersey_number === null ? null : toNumber(player.jersey_number),
-    overall_score: toNumber(player.overall_score, 5)
+    overall_score: clampPercentage(player.overall_score, 0)
   };
 }
 
@@ -86,44 +86,45 @@ function normalizeMatch(match: MatchItem): MatchItem {
 function normalizeGlobalStats(stats: GlobalStats): GlobalStats {
   return {
     teamOverview: {
-      team_overall_avg: toNumber(stats.teamOverview?.team_overall_avg, 5),
-      team_reception_avg: clampScore(stats.teamOverview?.team_reception_avg, 0),
-      team_serve_avg: clampScore(stats.teamOverview?.team_serve_avg, 0),
-      team_defense_avg: clampScore(stats.teamOverview?.team_defense_avg, 0),
-      team_attack_avg: clampScore(stats.teamOverview?.team_attack_avg, 0),
-      team_block_avg: clampScore(stats.teamOverview?.team_block_avg, 0),
-      team_setting_avg: clampScore(stats.teamOverview?.team_setting_avg, 0),
+      team_overall_avg: clampPercentage(stats.teamOverview?.team_overall_avg, 0),
+      team_reception_avg: clampPercentage(stats.teamOverview?.team_reception_avg, 0),
+      team_serve_avg: clampPercentage(stats.teamOverview?.team_serve_avg, 0),
+      team_defense_avg: clampPercentage(stats.teamOverview?.team_defense_avg, 0),
+      team_attack_avg: clampPercentage(stats.teamOverview?.team_attack_avg, 0),
+      team_block_avg: clampPercentage(stats.teamOverview?.team_block_avg, 0),
+      team_setting_avg: clampPercentage(stats.teamOverview?.team_setting_avg, 0),
+      team_attack_points_per_set_avg: toNumber(stats.teamOverview?.team_attack_points_per_set_avg, 0),
       roster_size: toNumber(stats.teamOverview?.roster_size, 0)
     },
     evolution: (stats.evolution ?? []).map((item) => ({
       ...item,
       match_id: toNumber(item.match_id),
-      team_match_performance: toNumber(item.team_match_performance, 5)
+      team_match_performance: clampPercentage(item.team_match_performance, 0)
     })),
     topPlayers: {
       reception: (stats.topPlayers?.reception ?? []).map((item) => ({
         ...item,
-        score: clampScore(item.score, 0)
+        score: clampPercentage(item.score, 0)
       })),
       serve: (stats.topPlayers?.serve ?? []).map((item) => ({
         ...item,
-        score: clampScore(item.score, 0)
+        score: clampPercentage(item.score, 0)
       })),
       defense: (stats.topPlayers?.defense ?? []).map((item) => ({
         ...item,
-        score: clampScore(item.score, 0)
+        score: clampPercentage(item.score, 0)
       })),
       attack: (stats.topPlayers?.attack ?? []).map((item) => ({
         ...item,
-        score: clampScore(item.score, 0)
+        score: clampPercentage(item.score, 0)
       })),
       block: (stats.topPlayers?.block ?? []).map((item) => ({
         ...item,
-        score: clampScore(item.score, 0)
+        score: clampPercentage(item.score, 0)
       })),
       setting: (stats.topPlayers?.setting ?? []).map((item) => ({
         ...item,
-        score: clampScore(item.score, 0)
+        score: clampPercentage(item.score, 0)
       }))
     }
   };
@@ -133,13 +134,14 @@ function normalizePlayerSummary(summary: PlayerSummary): PlayerSummary {
   return {
     ...summary,
     player_id: toNumber(summary.player_id),
-    overall_score: toNumber(summary.overall_score, 5),
-    avg_reception: clampScore(summary.avg_reception, 0),
-    avg_serve: clampScore(summary.avg_serve, 0),
-    avg_defense: clampScore(summary.avg_defense, 0),
-    avg_attack: clampScore(summary.avg_attack, 0),
-    avg_block: clampScore(summary.avg_block, 0),
-    avg_setting: clampScore(summary.avg_setting, 0),
+    overall_score: clampPercentage(summary.overall_score, 0),
+    avg_attack_points_per_set: toNumber(summary.avg_attack_points_per_set, 0),
+    avg_reception: clampPercentage(summary.avg_reception, 0),
+    avg_serve: clampPercentage(summary.avg_serve, 0),
+    avg_defense: clampPercentage(summary.avg_defense, 0),
+    avg_attack: clampPercentage(summary.avg_attack, 0),
+    avg_block: clampPercentage(summary.avg_block, 0),
+    avg_setting: clampPercentage(summary.avg_setting, 0),
     matches_rated: toNumber(summary.matches_rated, 0)
   };
 }
@@ -149,13 +151,37 @@ function normalizePlayerHistory(item: PlayerHistoryItem): PlayerHistoryItem {
     ...item,
     match_id: toNumber(item.match_id),
     match_date: toDateInput(item.match_date),
-    reception: clampScore(item.reception, 0),
-    serve: clampScore(item.serve, 0),
-    defense: clampScore(item.defense, 0),
-    attack: clampScore(item.attack, 0),
-    block_score: clampScore(item.block_score, 0),
-    setting_score: clampScore(item.setting_score, 0),
-    match_performance: toNumber(item.match_performance, 5)
+    overall_efficiency: clampPercentage(item.overall_efficiency, 0),
+    attack_efficiency: clampPercentage(item.attack_efficiency, 0),
+    attack_points_per_set: toNumber(item.attack_points_per_set, 0),
+    serve_in_percentage: clampPercentage(item.serve_in_percentage, 0),
+    serve_efficiency: clampPercentage(item.serve_efficiency, 0),
+    reception_efficiency: clampPercentage(item.reception_efficiency, 0),
+    setting_efficiency: clampPercentage(item.setting_efficiency, 0),
+    defense_efficiency: clampPercentage(item.defense_efficiency, 0),
+    block_efficiency: clampPercentage(item.block_efficiency, 0),
+    match_performance: clampPercentage(item.match_performance, 0),
+    reception_attempts: toNumber(item.reception_attempts, 0),
+    block_total: toNumber(item.block_total, 0),
+    sets_played: toNumber(item.sets_played, 0),
+    attack_points: toNumber(item.attack_points, 0),
+    attack_errors: toNumber(item.attack_errors, 0),
+    attack_attempts: toNumber(item.attack_attempts, 0),
+    serve_aces: toNumber(item.serve_aces, 0),
+    serve_errors: toNumber(item.serve_errors, 0),
+    serve_attempts: toNumber(item.serve_attempts, 0),
+    block_kill: toNumber(item.block_kill, 0),
+    block_touch: toNumber(item.block_touch, 0),
+    block_error: toNumber(item.block_error, 0),
+    defense_successes: toNumber(item.defense_successes, 0),
+    defense_failures: toNumber(item.defense_failures, 0),
+    reception_three: toNumber(item.reception_three, 0),
+    reception_two: toNumber(item.reception_two, 0),
+    reception_one: toNumber(item.reception_one, 0),
+    reception_zero: toNumber(item.reception_zero, 0),
+    set_assists: toNumber(item.set_assists, 0),
+    set_errors: toNumber(item.set_errors, 0),
+    set_attempts: toNumber(item.set_attempts, 0)
   };
 }
 
@@ -165,29 +191,37 @@ function normalizeMatchRatingRow(row: MatchRatingRow): MatchRatingRow {
     match_id: toNumber(row.match_id),
     player_id: toNumber(row.player_id),
     minutes_played: toNumber(row.minutes_played, 1),
+    sets_played: toNumber(row.sets_played, 0),
     attack_points: toNumber(row.attack_points, 0),
     attack_errors: toNumber(row.attack_errors, 0),
-    attack_complicated: toNumber(row.attack_complicated, 0),
+    attack_attempts: toNumber(row.attack_attempts, 0),
     serve_aces: toNumber(row.serve_aces, 0),
-    serve_complicated: toNumber(row.serve_complicated, 0),
-    serve_pasarlo: toNumber(row.serve_pasarlo, 0),
     serve_errors: toNumber(row.serve_errors, 0),
-    block_points: toNumber(row.block_points, 0),
-    block_touches: toNumber(row.block_touches, 0),
+    serve_attempts: toNumber(row.serve_attempts, 0),
+    reception_three: toNumber(row.reception_three, 0),
+    reception_two: toNumber(row.reception_two, 0),
+    reception_one: toNumber(row.reception_one, 0),
+    reception_zero: toNumber(row.reception_zero, 0),
+    reception_attempts: toNumber(row.reception_attempts, 0),
     defense_successes: toNumber(row.defense_successes, 0),
-    reception_perfect: toNumber(row.reception_perfect, 0),
-    reception_good: toNumber(row.reception_good, 0),
-    reception_bad: toNumber(row.reception_bad, 0),
-    reception_error: toNumber(row.reception_error, 0),
+    defense_failures: toNumber(row.defense_failures, 0),
     set_assists: toNumber(row.set_assists, 0),
     set_errors: toNumber(row.set_errors, 0),
-    reception: toNumber(row.reception, 0),
-    serve: toNumber(row.serve, 0),
-    defense: toNumber(row.defense, 0),
-    attack: toNumber(row.attack, 0),
-    block_score: clampScore(row.block_score, 0),
-    setting_score: clampScore(row.setting_score, 0),
-    match_performance: toNumber(row.match_performance, 5)
+    set_attempts: toNumber(row.set_attempts, 0),
+    block_kill: toNumber(row.block_kill, 0),
+    block_touch: toNumber(row.block_touch, 0),
+    block_error: toNumber(row.block_error, 0),
+    block_total: toNumber(row.block_total, 0),
+    attack_efficiency: clampPercentage(row.attack_efficiency, 0),
+    attack_points_per_set: toNumber(row.attack_points_per_set, 0),
+    serve_in_percentage: clampPercentage(row.serve_in_percentage, 0),
+    serve_efficiency: clampPercentage(row.serve_efficiency, 0),
+    reception_efficiency: clampPercentage(row.reception_efficiency, 0),
+    setting_efficiency: clampPercentage(row.setting_efficiency, 0),
+    defense_efficiency: clampPercentage(row.defense_efficiency, 0),
+    block_efficiency: clampPercentage(row.block_efficiency, 0),
+    overall_efficiency: clampPercentage(row.overall_efficiency, 0),
+    match_performance: clampPercentage(row.match_performance, 0)
   };
 }
 
@@ -400,6 +434,11 @@ export const api = {
 
   getGlobalStats: async (token: string) => {
     const response = await request<GlobalStats>('/stats/global', {}, token);
+    return normalizeGlobalStats(response);
+  },
+
+  getGlobalSummary: async (token: string) => {
+    const response = await request<GlobalStats>('/stats/global-summary', {}, token);
     return normalizeGlobalStats(response);
   },
 

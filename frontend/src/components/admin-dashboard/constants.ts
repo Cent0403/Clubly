@@ -53,54 +53,62 @@ export const POSITION_OPTION_LABELS: Record<Exclude<UserFormState['position'], '
 };
 
 export const EVENT_FIELDS: Array<{ key: EventFieldKey; label: string }> = [
+  { key: 'setsPlayed', label: 'Sets jugados' },
   { key: 'attackPoints', label: 'Ataque: puntos' },
-  { key: 'attackComplicated', label: 'Ataque: complicado' },
   { key: 'attackErrors', label: 'Ataque: errores' },
+  { key: 'attackAttempts', label: 'Ataque: intentos' },
   { key: 'serveAces', label: 'Saque: aces' },
-  { key: 'serveComplicated', label: 'Saque: complicado' },
-  { key: 'servePasarlo', label: 'Saque: pasarlo' },
   { key: 'serveErrors', label: 'Saque: errores' },
-  { key: 'blockPoints', label: 'Bloqueo: puntos' },
-  { key: 'blockTouches', label: 'Bloqueo: toques' },
+  { key: 'serveAttempts', label: 'Saque: intentos' },
+  { key: 'blockKill', label: 'Bloqueo: cantidad de acciones de 2 puntos' },
+  { key: 'blockTouch', label: 'Bloqueo: cantidad de acciones de 1 punto' },
+  { key: 'blockError', label: 'Bloqueo: cantidad de acciones de 0 puntos' },
   { key: 'defenseSuccesses', label: 'Defensa: exitosas' },
-  { key: 'receptionPerfect', label: 'Recepcion: perfectas' },
-  { key: 'receptionGood', label: 'Recepcion: buenas' },
-  { key: 'receptionBad', label: 'Recepcion: malas' },
-  { key: 'receptionError', label: 'Recepcion: errores' },
+  { key: 'defenseFailures', label: 'Defensa: fallidas' },
+  { key: 'receptionThree', label: 'Recepcion: 3' },
+  { key: 'receptionTwo', label: 'Recepcion: 2' },
+  { key: 'receptionOne', label: 'Recepcion: 1' },
+  { key: 'receptionZero', label: 'Recepcion: 0' },
   { key: 'setAssists', label: 'Armado: asistencias' },
-  { key: 'setErrors', label: 'Armado: errores' }
+  { key: 'setErrors', label: 'Armado: errores' },
+  { key: 'setAttempts', label: 'Armado: intentos' }
 ];
 
 export const FUNDAMENT_GROUPS = [
   {
+    title: 'Contexto',
+    description: 'Sets disputados por la jugadora o jugador',
+    fields: ['setsPlayed'] as const
+  },
+  {
     title: 'Recepcion',
-    description: 'Perfectas, buenas, malas y error',
-    fields: ['receptionPerfect', 'receptionGood', 'receptionBad', 'receptionError'] as const
+    description: 'Valoraciones 3, 2, 1 y 0',
+    fields: ['receptionThree', 'receptionTwo', 'receptionOne', 'receptionZero'] as const
   },
   {
     title: 'Ataque',
-    description: 'Puntos y errores',
-    fields: ['attackPoints', 'attackComplicated', 'attackErrors'] as const
+    description: 'Puntos, errores e intentos',
+    fields: ['attackPoints', 'attackErrors', 'attackAttempts'] as const
   },
   {
     title: 'Saque',
-    description: 'Aces, complicados y errores',
-    fields: ['serveAces', 'serveComplicated', 'servePasarlo', 'serveErrors'] as const
+    description: 'Aces, errores e intentos',
+    fields: ['serveAces', 'serveErrors', 'serveAttempts'] as const
   },
   {
     title: 'Bloqueo',
-    description: 'Puntos y toques',
-    fields: ['blockPoints', 'blockTouches'] as const
+    description: 'Ingresa cantidades por categoria. El total se calcula como 2 + 1 + 0',
+    fields: ['blockKill', 'blockTouch', 'blockError'] as const
   },
   {
     title: 'Defensa',
-    description: 'Defensas exitosas',
-    fields: ['defenseSuccesses'] as const
+    description: 'Defensas exitosas y fallidas',
+    fields: ['defenseSuccesses', 'defenseFailures'] as const
   },
   {
     title: 'Armado',
-    description: 'Asistencias y errores',
-    fields: ['setAssists', 'setErrors'] as const
+    description: 'Asistencias, errores e intentos',
+    fields: ['setAssists', 'setErrors', 'setAttempts'] as const
   }
 ] as const;
 
@@ -126,21 +134,24 @@ export function createDefaultRating(playerId: number): RatingItem {
   return {
     playerId,
     minutesPlayed: true,
+    setsPlayed: 0,
     attackPoints: 0,
-    attackComplicated: 0,
     attackErrors: 0,
+    attackAttempts: 0,
     serveAces: 0,
-    serveComplicated: 0,
-    servePasarlo: 0,
     serveErrors: 0,
-    blockPoints: 0,
-    blockTouches: 0,
+    serveAttempts: 0,
+    blockKill: 0,
+    blockTouch: 0,
+    blockError: 0,
     defenseSuccesses: 0,
-    receptionPerfect: 0,
-    receptionGood: 0,
-    receptionBad: 0,
-    receptionError: 0,
+    defenseFailures: 0,
+    receptionThree: 0,
+    receptionTwo: 0,
+    receptionOne: 0,
+    receptionZero: 0,
     setAssists: 0,
-    setErrors: 0
+    setErrors: 0,
+    setAttempts: 0
   };
 }

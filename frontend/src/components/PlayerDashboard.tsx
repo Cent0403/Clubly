@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { api } from '../lib/api';
-import { FinanceDebt, FinanceDebtPayment, MatchRatingRow, PlayerFinanceDebtSummary, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../types';
+import { FinanceDebt, FinanceDebtPayment, GlobalStats, MatchRatingRow, PlayerFinanceDebtSummary, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../types';
 import { FinanceSection } from './player-dashboard/sections/FinanceSection';
 import { ProfileModal } from './player-dashboard/sections/ProfileModal';
 import { SectionTabs } from './player-dashboard/sections/SectionTabs';
@@ -20,6 +20,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [summary, setSummary] = useState<PlayerSummary | null>(null);
+  const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
   const [history, setHistory] = useState<PlayerHistoryItem[]>([]);
   const [topPlayers, setTopPlayers] = useState<PlayerItem[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<PlayerHistoryItem | null>(null);
@@ -36,14 +37,16 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
       setLoading(true);
 
       try {
-        const [statsData, profileData, topPlayersData, debtsData] = await Promise.all([
+        const [statsData, profileData, topPlayersData, globalStatsData, debtsData] = await Promise.all([
           api.getMyStats(token),
           api.getMyProfile(token),
           api.getTopPlayers(token),
+          api.getGlobalSummary(token),
           api.getMyDebts(token)
         ]);
 
         setSummary(statsData.summary);
+        setGlobalStats(globalStatsData);
         setHistory(statsData.history);
         setTopPlayers(topPlayersData.players);
         setSelectedMatch(statsData.history[0] ?? null);
@@ -140,6 +143,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         active={activeSection === 'resumen'}
         profile={profile}
         summary={summary}
+        globalStats={globalStats}
         onOpenProfileModal={() => {
           setProfileForm((current) => ({ ...current, fullName: profile?.full_name ?? current.fullName, password: '' }));
           setIsProfileModalOpen(true);

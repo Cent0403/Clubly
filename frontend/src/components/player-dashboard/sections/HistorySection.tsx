@@ -3,7 +3,7 @@ import { MetricBars } from '../../charts/MetricBars';
 import { HistorySectionProps } from '../types';
 
 function formatPerformance(value: number | null | undefined) {
-  return Math.min(Number(value ?? 0), 10).toFixed(2);
+  return `${Math.max(Number(value ?? 0), 0).toFixed(2)}%`;
 }
 
 interface MatchActionsProps {
@@ -20,27 +20,31 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">ATAQUE</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
-              <span>Puntos anotados × 1.0</span>
+              <span>Puntos directos</span>
               <span className="font-mono">
-                {selectedMatch.attack_points} × 1.0 = <span className="font-semibold text-emerald-500">{(selectedMatch.attack_points * 1.0).toFixed(2)}</span>
-              </span>
-            </div>
-            <div className="flex justify-between px-2">
-              <span>Ataques complicados × 0.4</span>
-              <span className="font-mono">
-                {selectedMatch.attack_complicated} × 0.4 = <span className="font-semibold text-emerald-500">{(selectedMatch.attack_complicated * 0.4).toFixed(2)}</span>
+                {selectedMatch.attack_points}
               </span>
             </div>
             <div className="flex justify-between px-2 text-rose-500">
-              <span>Errores × 0.5</span>
+              <span>Errores</span>
               <span className="font-mono">
-                {selectedMatch.attack_errors} × 0.5 = <span className="font-semibold">-{(selectedMatch.attack_errors * 0.5).toFixed(2)}</span>
+                {selectedMatch.attack_errors}
               </span>
+            </div>
+            <div className="flex justify-between px-2">
+              <span>Intentos</span>
+              <span className="font-mono">
+                {selectedMatch.attack_attempts}
+              </span>
+            </div>
+            <div className="flex justify-between px-2">
+              <span>Puntos por set</span>
+              <span className="font-mono text-emerald-500">{selectedMatch.attack_points_per_set.toFixed(2)}</span>
             </div>
             <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
               <div className="flex justify-between px-2 font-semibold">
-                <span>Nota Ataque (1-10)</span>
-                <span className="text-sky-500">{selectedMatch.attack.toFixed(2)}</span>
+                <span>Eficiencia = (Puntos - Errores) / Intentos</span>
+                <span className="text-sky-500">{formatPerformance(selectedMatch.attack_efficiency)}</span>
               </div>
             </div>
           </div>
@@ -50,33 +54,31 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">SAQUE</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
-              <span>Aces × 1.0</span>
+              <span>Aces</span>
               <span className="font-mono">
-                {selectedMatch.serve_aces} × 1.0 = <span className="font-semibold text-emerald-500">{(selectedMatch.serve_aces * 1.0).toFixed(2)}</span>
-              </span>
-            </div>
-            <div className="flex justify-between px-2">
-              <span>Saques complicados × 0.6</span>
-              <span className="font-mono">
-                {selectedMatch.serve_complicated} × 0.6 = <span className="font-semibold text-emerald-500">{(selectedMatch.serve_complicated * 0.6).toFixed(2)}</span>
-              </span>
-            </div>
-            <div className="flex justify-between px-2">
-              <span>Pasarlos × 0.2</span>
-              <span className="font-mono">
-                {selectedMatch.serve_pasarlo} × 0.2 = <span className="font-semibold text-emerald-500">{(selectedMatch.serve_pasarlo * 0.2).toFixed(2)}</span>
+                {selectedMatch.serve_aces}
               </span>
             </div>
             <div className="flex justify-between px-2 text-rose-500">
-              <span>Errores × 0.5</span>
+              <span>Errores</span>
               <span className="font-mono">
-                {selectedMatch.serve_errors} × 0.5 = <span className="font-semibold">-{(selectedMatch.serve_errors * 0.5).toFixed(2)}</span>
+                {selectedMatch.serve_errors}
               </span>
+            </div>
+            <div className="flex justify-between px-2">
+              <span>Intentos</span>
+              <span className="font-mono">
+                {selectedMatch.serve_attempts}
+              </span>
+            </div>
+            <div className="flex justify-between px-2">
+              <span>Porcentaje de aciertos</span>
+              <span className="font-mono text-emerald-500">{formatPerformance(selectedMatch.serve_in_percentage)}</span>
             </div>
             <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
               <div className="flex justify-between px-2 font-semibold">
-                <span>Nota Saque (1-10)</span>
-                <span className="text-sky-500">{selectedMatch.serve.toFixed(2)}</span>
+                <span>Eficiencia = (Ace - Errores) / Intentos</span>
+                <span className="text-sky-500">{formatPerformance(selectedMatch.serve_efficiency)}</span>
               </div>
             </div>
           </div>
@@ -86,33 +88,37 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">RECEPCIÓN</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
-              <span>Perfectas × 1.0</span>
+              <span>Recepciones 3</span>
               <span className="font-mono">
-                {selectedMatch.reception_perfect} × 1.0 = <span className="font-semibold text-emerald-500">{(selectedMatch.reception_perfect * 1.0).toFixed(2)}</span>
+                {selectedMatch.reception_three}
               </span>
             </div>
             <div className="flex justify-between px-2">
-              <span>Buenas × 0.5</span>
+              <span>Recepciones 2</span>
               <span className="font-mono">
-                {selectedMatch.reception_good} × 0.5 = <span className="font-semibold text-emerald-500">{(selectedMatch.reception_good * 0.5).toFixed(2)}</span>
+                {selectedMatch.reception_two}
               </span>
             </div>
             <div className="flex justify-between px-2">
-              <span>Malas × 0.25</span>
+              <span>Recepciones 1</span>
               <span className="font-mono">
-                {selectedMatch.reception_bad} × 0.25 = <span className="font-semibold text-emerald-500">{(selectedMatch.reception_bad * 0.25).toFixed(2)}</span>
+                {selectedMatch.reception_one}
               </span>
             </div>
             <div className="flex justify-between px-2 text-rose-500">
-              <span>Errores × 0.75</span>
+              <span>Recepciones 0</span>
               <span className="font-mono">
-                {selectedMatch.reception_error} × 0.75 = <span className="font-semibold">-{(selectedMatch.reception_error * 0.75).toFixed(2)}</span>
+                {selectedMatch.reception_zero}
               </span>
+            </div>
+            <div className="flex justify-between px-2">
+              <span>Intentos</span>
+              <span className="font-mono">{selectedMatch.reception_attempts}</span>
             </div>
             <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
               <div className="flex justify-between px-2 font-semibold">
-                <span>Nota Recepción (1-10)</span>
-                <span className="text-sky-500">{selectedMatch.reception.toFixed(2)}</span>
+                <span>Eficiencia = (3x3 + 2x2 + 1x1) / (Intentos x 3)</span>
+                <span className="text-sky-500">{formatPerformance(selectedMatch.reception_efficiency)}</span>
               </div>
             </div>
           </div>
@@ -122,31 +128,49 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">DEFENSA & BLOQUEO</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
-              <span>Defensas × 0.4</span>
+              <span>Defensas exitosas</span>
               <span className="font-mono">
-                {selectedMatch.defense_successes} × 0.4 = <span className="font-semibold text-emerald-500">{(selectedMatch.defense_successes * 0.4).toFixed(2)}</span>
+                {selectedMatch.defense_successes}
+              </span>
+            </div>
+            <div className="flex justify-between px-2 text-rose-500">
+              <span>Defensas fallidas</span>
+              <span className="font-mono">
+                {selectedMatch.defense_failures}
               </span>
             </div>
             <div className="flex justify-between px-2">
-              <span>Bloqueos × 1.0</span>
+              <span>Bloqueos 2</span>
               <span className="font-mono">
-                {selectedMatch.block_points} × 1.0 = <span className="font-semibold text-emerald-500">{(selectedMatch.block_points * 1.0).toFixed(2)}</span>
+                {selectedMatch.block_kill}
               </span>
             </div>
             <div className="flex justify-between px-2">
-              <span>Toques en bloqueo × 0.2</span>
+              <span>Bloqueos 1</span>
               <span className="font-mono">
-                {selectedMatch.block_touches} × 0.2 = <span className="font-semibold text-emerald-500">{(selectedMatch.block_touches * 0.2).toFixed(2)}</span>
+                {selectedMatch.block_touch}
+              </span>
+            </div>
+            <div className="flex justify-between px-2 text-rose-500">
+              <span>Bloqueos 0</span>
+              <span className="font-mono">
+                {selectedMatch.block_error}
+              </span>
+            </div>
+            <div className="flex justify-between px-2">
+              <span>Total de acciones de bloqueo</span>
+              <span className="font-mono">
+                {selectedMatch.block_total}
               </span>
             </div>
             <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
               <div className="flex justify-between px-2 font-semibold">
-                <span>Nota Bloqueo (1-10)</span>
-                <span className="text-sky-500">{selectedMatch.block_score.toFixed(2)}</span>
+                <span>Eficiencia Defensa = (Exitosas - Fallidas) / (Exitosas + Fallidas)</span>
+                <span className="text-sky-500">{formatPerformance(selectedMatch.defense_efficiency)}</span>
               </div>
               <div className="flex justify-between px-2 font-semibold">
-                <span>Nota Defensa (1-10)</span>
-                <span className="text-sky-500">{selectedMatch.defense.toFixed(2)}</span>
+                <span>Eficiencia Bloqueo = ((Bloqueos 2 x 2) + Bloqueos 1) / (Total x 2)</span>
+                <span className="text-sky-500">{formatPerformance(selectedMatch.block_efficiency)}</span>
               </div>
             </div>
           </div>
@@ -156,39 +180,47 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">ARMADO</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
-              <span>Armadas × 0.3</span>
+              <span>Asistencias</span>
               <span className="font-mono">
-                {selectedMatch.set_assists} × 0.3 = <span className="font-semibold text-emerald-500">{(selectedMatch.set_assists * 0.3).toFixed(2)}</span>
+                {selectedMatch.set_assists}
               </span>
             </div>
             <div className="flex justify-between px-2 text-rose-500">
-              <span>Errores × 0.2</span>
+              <span>Errores</span>
               <span className="font-mono">
-                {selectedMatch.set_errors} × 0.2 = <span className="font-semibold">-{(selectedMatch.set_errors * 0.2).toFixed(2)}</span>
+                {selectedMatch.set_errors}
+              </span>
+            </div>
+            <div className="flex justify-between px-2">
+              <span>Intentos</span>
+              <span className="font-mono">
+                {selectedMatch.set_attempts}
               </span>
             </div>
             <div className="border-t border-slate-300 pt-1 dark:border-slate-700">
               <div className="flex justify-between px-2 font-semibold">
-                <span>Nota Armado (1-10)</span>
-                <span className="text-sky-500">{selectedMatch.setting_score.toFixed(2)}</span>
+                <span>Eficiencia = (Asistencias - Errores) / Intentos</span>
+                <span className="text-sky-500">{formatPerformance(selectedMatch.setting_efficiency)}</span>
               </div>
             </div>
           </div>
         </div>
 
         <div className="rounded-2xl border-2 border-sky-500 bg-sky-50 p-3 dark:bg-slate-900/50">
-          <p className="mb-3 font-semibold text-sky-700 dark:text-sky-400">NOTA FINAL DEL PARTIDO</p>
+          <p className="mb-3 font-semibold text-sky-700 dark:text-sky-400">EFICIENCIA GLOBAL DEL PARTIDO</p>
           <div className="space-y-1 text-xs">
             <div className="flex justify-between px-2">
-              <span>(Recepción + Saque + Defensa + Ataque + Bloqueo + Armado) / 4 + 5</span>
+              <span>Suma de ataque, saque, recepción, armado, defensa y bloqueo dividida entre 5</span>
             </div>
             <div className="flex justify-between px-2 font-mono">
-              <span>({selectedMatch.reception.toFixed(2)} + {selectedMatch.serve.toFixed(2)} + {selectedMatch.defense.toFixed(2)} + {selectedMatch.attack.toFixed(2)} + {selectedMatch.block_score.toFixed(2)} + {selectedMatch.setting_score.toFixed(2)}) / 4 + 5</span>
+              <span>
+                ({selectedMatch.attack_efficiency.toFixed(2)} + {selectedMatch.serve_efficiency.toFixed(2)} + {selectedMatch.reception_efficiency.toFixed(2)} + {selectedMatch.setting_efficiency.toFixed(2)} + {selectedMatch.defense_efficiency.toFixed(2)} + {selectedMatch.block_efficiency.toFixed(2)}) / 5
+              </span>
             </div>
             <div className="border-t-2 border-sky-300 pt-2 dark:border-sky-800">
               <div className="flex justify-between px-2 text-sm font-extrabold">
                 <span>TOTAL</span>
-                <span className="text-sky-600 dark:text-sky-400">{formatPerformance(selectedMatch.match_performance)}/10</span>
+                <span className="text-sky-600 dark:text-sky-400">{formatPerformance(selectedMatch.match_performance)}</span>
               </div>
             </div>
           </div>
@@ -222,7 +254,7 @@ function MatchTop({ selectedMatch, matchRatingsLoading, matchRatings }: MatchTop
                 <p className="font-semibold">#{idx + 1} {rating.full_name}</p>
                 <p className="break-words text-xs text-slate-600 dark:text-slate-300">{rating.minutes_played ? 'Tuvo minutos' : 'No jugó'}</p>
               </div>
-              <p className="shrink-0 text-lg font-extrabold text-sky-500">{formatPerformance(rating.match_performance)}</p>
+              <p className="shrink-0 text-lg font-extrabold text-sky-500">{formatPerformance(rating.match_performance ?? rating.overall_efficiency)}</p>
             </div>
           ))}
         </div>
@@ -285,7 +317,7 @@ export function HistorySection({
                 <th className="px-3 py-3">Fecha</th>
                 <th className="px-3 py-3">Rival</th>
                 <th className="px-3 py-3">Torneo</th>
-                <th className="px-3 py-3">Rendimiento</th>
+                <th className="px-3 py-3">Eficiencia</th>
               </tr>
             </thead>
             <tbody>
@@ -318,18 +350,20 @@ export function HistorySection({
               <p className="text-slate-600 dark:text-slate-300">vs {selectedMatch.opponent}</p>
               <p className="break-words text-slate-600 dark:text-slate-300">{selectedMatch.tournament}</p>
               <p className="mt-3 text-2xl font-extrabold text-sky-500">
-                Nota: {formatPerformance(selectedMatch.match_performance)}/10
+                Eficiencia: {formatPerformance(selectedMatch.match_performance)}
               </p>
             </div>
 
             <MetricBars
+              maxValue={100}
+              formatter={(value) => `${value.toFixed(1)}%`}
               metrics={[
-                { label: 'Recepcion', value: selectedMatch.reception },
-                { label: 'Saque', value: selectedMatch.serve },
-                { label: 'Defensa', value: selectedMatch.defense },
-                { label: 'Ataque', value: selectedMatch.attack },
-                { label: 'Bloqueo', value: selectedMatch.block_score },
-                { label: 'Armado', value: selectedMatch.setting_score }
+                { label: 'Recepcion', value: selectedMatch.reception_efficiency },
+                { label: 'Saque', value: selectedMatch.serve_efficiency },
+                { label: 'Defensa', value: selectedMatch.defense_efficiency },
+                { label: 'Ataque', value: selectedMatch.attack_efficiency },
+                { label: 'Bloqueo', value: selectedMatch.block_efficiency },
+                { label: 'Armado', value: selectedMatch.setting_efficiency }
               ]}
             />
           </div>
