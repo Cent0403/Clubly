@@ -66,7 +66,7 @@ async function getGlobalStatsPayload() {
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
-      LIMIT 3
+      LIMIT 5
     `
   );
 
@@ -80,7 +80,7 @@ async function getGlobalStatsPayload() {
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
-      LIMIT 3
+      LIMIT 5
     `
   );
 
@@ -94,7 +94,7 @@ async function getGlobalStatsPayload() {
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
-      LIMIT 3
+      LIMIT 5
     `
   );
 
@@ -108,7 +108,7 @@ async function getGlobalStatsPayload() {
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
-      LIMIT 3
+      LIMIT 5
     `
   );
 
@@ -122,7 +122,7 @@ async function getGlobalStatsPayload() {
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
-      LIMIT 3
+      LIMIT 5
     `
   );
 
@@ -136,7 +136,7 @@ async function getGlobalStatsPayload() {
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
-      LIMIT 3
+      LIMIT 5
     `
   );
 

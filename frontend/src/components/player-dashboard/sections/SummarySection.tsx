@@ -47,7 +47,7 @@ export function SummarySection({ active, profile, summary, globalStats, onOpenPr
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Top por fundamento</p>
-            <h3 className="text-xl font-bold">Primeros 3 del equipo</h3>
+            <h3 className="text-xl font-bold">Primeros 5 del equipo</h3>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-300">
             Ranking global por recepción, saque, defensa, ataque, bloqueo y armado
