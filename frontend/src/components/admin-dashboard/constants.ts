@@ -118,6 +118,7 @@ export const ADMIN_SECTIONS: AdminSection[] = [
   { key: 'personalización', label: 'Personalización' },
   { key: 'usuarios', label: 'Usuarios' },
   { key: 'partidos', label: 'Partidos' },
+  { key: 'finanzas', label: 'Finanzas' },
   { key: 'top', label: 'Top' }
 ];
 

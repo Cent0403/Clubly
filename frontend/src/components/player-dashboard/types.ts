@@ -1,4 +1,5 @@
 import { MatchRatingRow, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../../types';
+import { FinanceDebt, FinanceDebtPayment, PlayerFinanceDebtSummary } from '../../types';
 
 export interface PlayerDashboardProps {
   token: string;
@@ -10,7 +11,7 @@ export interface ProfileFormState {
 }
 
 export interface PlayerSection {
-  key: 'resumen' | 'rendimiento' | 'historial' | 'top';
+  key: 'resumen' | 'rendimiento' | 'historial' | 'finanzas' | 'top';
   label: string;
 }
 
@@ -52,4 +53,12 @@ export interface HistorySectionProps {
   matchRatings: MatchRatingRow[];
   matchRatingsLoading: boolean;
   onSelectMatch: (match: PlayerHistoryItem) => void;
+}
+
+export interface FinanceSectionProps {
+  active: boolean;
+  summary: PlayerFinanceDebtSummary | null;
+  debts: FinanceDebt[];
+  upcomingDebts: FinanceDebt[];
+  payments: FinanceDebtPayment[];
 }

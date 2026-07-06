@@ -1,7 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { api } from '../lib/api';
-import { MatchRatingRow, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../types';
+import { FinanceDebt, FinanceDebtPayment, MatchRatingRow, PlayerFinanceDebtSummary, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../types';
+import { FinanceSection } from './player-dashboard/sections/FinanceSection';
 import { ProfileModal } from './player-dashboard/sections/ProfileModal';
 import { SectionTabs } from './player-dashboard/sections/SectionTabs';
 import { HistorySection } from './player-dashboard/sections/HistorySection';
@@ -25,16 +26,21 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [matchRatings, setMatchRatings] = useState<MatchRatingRow[]>([]);
   const [matchRatingsLoading, setMatchRatingsLoading] = useState(false);
+  const [financeSummary, setFinanceSummary] = useState<PlayerFinanceDebtSummary | null>(null);
+  const [financeDebts, setFinanceDebts] = useState<FinanceDebt[]>([]);
+  const [upcomingDebts, setUpcomingDebts] = useState<FinanceDebt[]>([]);
+  const [financePayments, setFinancePayments] = useState<FinanceDebtPayment[]>([]);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
 
       try {
-        const [statsData, profileData, topPlayersData] = await Promise.all([
+        const [statsData, profileData, topPlayersData, debtsData] = await Promise.all([
           api.getMyStats(token),
           api.getMyProfile(token),
-          api.getTopPlayers(token)
+          api.getTopPlayers(token),
+          api.getMyDebts(token)
         ]);
 
         setSummary(statsData.summary);
@@ -43,6 +49,10 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         setSelectedMatch(statsData.history[0] ?? null);
         setProfile(profileData.player);
         setProfileForm((current) => ({ ...current, fullName: profileData.player.full_name }));
+        setFinanceSummary(debtsData.summary);
+        setFinanceDebts(debtsData.debts);
+        setUpcomingDebts(debtsData.upcomingDebts);
+        setFinancePayments(debtsData.payments);
       } catch (requestError) {
         toast.error((requestError as Error).message);
       } finally {
@@ -147,6 +157,14 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         matchRatings={matchRatings}
         matchRatingsLoading={matchRatingsLoading}
         onSelectMatch={setSelectedMatch}
+      />
+
+      <FinanceSection
+        active={activeSection === 'finanzas'}
+        summary={financeSummary}
+        debts={financeDebts}
+        upcomingDebts={upcomingDebts}
+        payments={financePayments}
       />
 
       <TopSection active={activeSection === 'top'} topPlayers={topPlayers} />

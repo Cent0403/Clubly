@@ -1,9 +1,16 @@
 import {
   AdminUserItem,
+  FinanceCategory,
+  FinanceDebt,
+  FinanceDebtPayment,
+  FinanceOverview,
+  FinanceTransaction,
+  FinanceType,
   GlobalStats,
   LoginResponse,
   MatchItem,
   MatchRatingRow,
+  PlayerFinanceDebtSummary,
   CreateUserPayload,
   TeamSettings,
   UpdateTeamSettingsPayload,
@@ -181,6 +188,76 @@ function normalizeMatchRatingRow(row: MatchRatingRow): MatchRatingRow {
     block_score: clampScore(row.block_score, 0),
     setting_score: clampScore(row.setting_score, 0),
     match_performance: toNumber(row.match_performance, 5)
+  };
+}
+
+function normalizeFinanceCategory(category: FinanceCategory): FinanceCategory {
+  return {
+    ...category,
+    id: toNumber(category.id),
+    type: category.type === 'expense' ? 'expense' : 'income'
+  };
+}
+
+function normalizeFinanceTransaction(transaction: FinanceTransaction): FinanceTransaction {
+  return {
+    ...transaction,
+    id: toNumber(transaction.id),
+    category_id: transaction.category_id === null ? null : toNumber(transaction.category_id),
+    amount: toNumber(transaction.amount, 0),
+    type: transaction.type === 'expense' ? 'expense' : 'income',
+    transaction_date: toDateInput(transaction.transaction_date)
+  };
+}
+
+function normalizeFinanceDebt(debt: FinanceDebt): FinanceDebt {
+  return {
+    ...debt,
+    id: toNumber(debt.id),
+    player_id: toNumber(debt.player_id),
+    amount_due: toNumber(debt.amount_due, 0),
+    amount_paid: toNumber(debt.amount_paid, 0),
+    amount_pending: toNumber(debt.amount_pending, 0),
+    due_date: debt.due_date ? toDateInput(debt.due_date) : null
+  };
+}
+
+function normalizeFinanceDebtPayment(payment: FinanceDebtPayment): FinanceDebtPayment {
+  return {
+    ...payment,
+    id: toNumber(payment.id),
+    debt_id: toNumber(payment.debt_id),
+    amount_paid: toNumber(payment.amount_paid, 0),
+    payment_date: toDateInput(payment.payment_date)
+  };
+}
+
+function normalizeFinanceOverview(overview: FinanceOverview): FinanceOverview {
+  return {
+    totalIncome: toNumber(overview.totalIncome, 0),
+    totalExpense: toNumber(overview.totalExpense, 0),
+    balance: toNumber(overview.balance, 0),
+    totalDebtDue: toNumber(overview.totalDebtDue, 0),
+    totalDebtPaid: toNumber(overview.totalDebtPaid, 0),
+    totalDebtPending: toNumber(overview.totalDebtPending, 0),
+    debtCount: toNumber(overview.debtCount, 0),
+    debtStatusCount: {
+      pending: toNumber(overview.debtStatusCount?.pending, 0),
+      partiallyPaid: toNumber(overview.debtStatusCount?.partiallyPaid, 0),
+      paid: toNumber(overview.debtStatusCount?.paid, 0)
+    }
+  };
+}
+
+function normalizePlayerFinanceDebtSummary(summary: PlayerFinanceDebtSummary): PlayerFinanceDebtSummary {
+  return {
+    totalDue: toNumber(summary.totalDue, 0),
+    totalPaid: toNumber(summary.totalPaid, 0),
+    totalPending: toNumber(summary.totalPending, 0),
+    debtCount: toNumber(summary.debtCount, 0),
+    pendingCount: toNumber(summary.pendingCount, 0),
+    upcomingCount: toNumber(summary.upcomingCount, 0),
+    nextDueDate: summary.nextDueDate ? toDateInput(summary.nextDueDate) : null
   };
 }
 
@@ -411,6 +488,131 @@ export const api = {
     return {
       summary: normalizePlayerSummary(response.summary),
       history: response.history.map(normalizePlayerHistory)
+    };
+  },
+
+  getFinanceOverview: async (token: string) => {
+    const response = await request<{ summary: FinanceOverview }>('/finance/overview', {}, token);
+    return normalizeFinanceOverview(response.summary);
+  },
+
+  getFinanceCategories: async (token: string, type?: FinanceType) => {
+    const query = type ? `?type=${type}` : '';
+    const response = await request<{ categories: FinanceCategory[] }>(`/finance/categories${query}`, {}, token);
+    return {
+      categories: response.categories.map(normalizeFinanceCategory)
+    };
+  },
+
+  createFinanceCategory: (token: string, payload: { name: string; type: FinanceType }) =>
+    request<{ id: number; message: string }>(
+      '/finance/categories',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
+
+  getFinanceTransactions: async (token: string, filters?: { type?: FinanceType; from?: string; to?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (filters?.type) {
+      queryParams.set('type', filters.type);
+    }
+    if (filters?.from) {
+      queryParams.set('from', filters.from);
+    }
+    if (filters?.to) {
+      queryParams.set('to', filters.to);
+    }
+
+    const query = queryParams.toString();
+    const response = await request<{ transactions: FinanceTransaction[] }>(
+      `/finance/transactions${query ? `?${query}` : ''}`,
+      {},
+      token
+    );
+
+    return {
+      transactions: response.transactions.map(normalizeFinanceTransaction)
+    };
+  },
+
+  createFinanceTransaction: (
+    token: string,
+    payload: {
+      categoryId?: number | null;
+      amount: number;
+      type: FinanceType;
+      description?: string;
+      transactionDate: string;
+    }
+  ) =>
+    request<{ id: number; message: string }>(
+      '/finance/transactions',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
+
+  getPlayerDebts: async (token: string) => {
+    const response = await request<{ debts: FinanceDebt[]; payments: FinanceDebtPayment[] }>('/finance/debts', {}, token);
+    return {
+      debts: response.debts.map(normalizeFinanceDebt),
+      payments: response.payments.map(normalizeFinanceDebtPayment)
+    };
+  },
+
+  createPlayerDebt: (
+    token: string,
+    payload: {
+      playerId: number;
+      amountDue: number;
+      description?: string;
+      dueDate?: string;
+    }
+  ) =>
+    request<{ id: number; message: string }>(
+      '/finance/debts',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
+
+  createPlayerDebtPayment: (
+    token: string,
+    debtId: number,
+    payload: {
+      amountPaid: number;
+      paymentDate: string;
+    }
+  ) =>
+    request<{ message: string }>(
+      `/finance/debts/${debtId}/payments`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
+
+  getMyDebts: async (token: string) => {
+    const response = await request<{
+      summary: PlayerFinanceDebtSummary;
+      debts: FinanceDebt[];
+      upcomingDebts: FinanceDebt[];
+      payments: FinanceDebtPayment[];
+    }>('/finance/my-debts', {}, token);
+
+    return {
+      summary: normalizePlayerFinanceDebtSummary(response.summary),
+      debts: response.debts.map(normalizeFinanceDebt),
+      upcomingDebts: response.upcomingDebts.map(normalizeFinanceDebt),
+      payments: response.payments.map(normalizeFinanceDebtPayment)
     };
   }
 };

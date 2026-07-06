@@ -208,3 +208,68 @@ export interface GlobalStats {
     setting: Array<{ full_name: string; score: number }>;
   };
 }
+
+export type FinanceType = 'income' | 'expense';
+
+export interface FinanceCategory {
+  id: number;
+  name: string;
+  type: FinanceType;
+  created_at: string;
+}
+
+export interface FinanceTransaction {
+  id: number;
+  category_id: number | null;
+  category_name: string | null;
+  amount: number;
+  type: FinanceType;
+  description: string | null;
+  transaction_date: string;
+  created_at: string;
+}
+
+export interface FinanceDebt {
+  id: number;
+  player_id: number;
+  player_name: string;
+  amount_due: number;
+  amount_paid: number;
+  amount_pending: number;
+  description: string | null;
+  status: 'pending' | 'partially_paid' | 'paid';
+  due_date: string | null;
+  created_at: string;
+}
+
+export interface FinanceDebtPayment {
+  id: number;
+  debt_id: number;
+  amount_paid: number;
+  payment_date: string;
+}
+
+export interface FinanceOverview {
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
+  totalDebtDue: number;
+  totalDebtPaid: number;
+  totalDebtPending: number;
+  debtCount: number;
+  debtStatusCount: {
+    pending: number;
+    partiallyPaid: number;
+    paid: number;
+  };
+}
+
+export interface PlayerFinanceDebtSummary {
+  totalDue: number;
+  totalPaid: number;
+  totalPending: number;
+  debtCount: number;
+  pendingCount: number;
+  upcomingCount: number;
+  nextDueDate: string | null;
+}

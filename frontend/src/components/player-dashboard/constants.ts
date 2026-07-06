@@ -4,6 +4,7 @@ export const PLAYER_SECTIONS: PlayerSection[] = [
   { key: 'resumen', label: 'Resumen' },
   { key: 'rendimiento', label: 'Rendimiento' },
   { key: 'historial', label: 'Historial' },
+  { key: 'finanzas', label: 'Finanzas' },
   { key: 'top', label: 'Top' }
 ];
 

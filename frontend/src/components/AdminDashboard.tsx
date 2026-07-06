@@ -3,6 +3,12 @@ import { toast } from 'react-hot-toast';
 import { api } from '../lib/api';
 import {
   AdminUserItem,
+  FinanceCategory,
+  FinanceDebt,
+  FinanceDebtPayment,
+  FinanceOverview,
+  FinanceTransaction,
+  FinanceType,
   GlobalStats,
   MatchItem,
   MatchRatingRow,
@@ -15,6 +21,7 @@ import {
 } from '../types';
 import { EMPTY_EDIT_USER_FORM, EMPTY_MATCH_FORM, EMPTY_USER_FORM, createDefaultRating } from './admin-dashboard/constants';
 import { DashboardSection } from './admin-dashboard/sections/DashboardSection';
+import { FinanceSection } from './admin-dashboard/sections/FinanceSection';
 import { MatchesSection } from './admin-dashboard/sections/MatchesSection';
 import { SectionTabs } from './admin-dashboard/sections/SectionTabs';
 import { TeamSettingsSection } from './admin-dashboard/sections/TeamSettingsSection';
@@ -25,6 +32,7 @@ import { mapMatchRatingRowToRating } from './admin-dashboard/utils';
 
 export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: AdminDashboardProps) {
   const [activeSection, setActiveSection] = useState<AdminSectionKey>('dashboard');
+  const today = new Date().toISOString().slice(0, 10);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'ALL' | Role>('ALL');
@@ -53,6 +61,25 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   const [loadingPlayerStats, setLoadingPlayerStats] = useState(false);
   const [settingsForm, setSettingsForm] = useState<TeamSettings>(teamSettings);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [financeOverview, setFinanceOverview] = useState<FinanceOverview | null>(null);
+  const [financeCategories, setFinanceCategories] = useState<FinanceCategory[]>([]);
+  const [financeTransactions, setFinanceTransactions] = useState<FinanceTransaction[]>([]);
+  const [financeDebts, setFinanceDebts] = useState<FinanceDebt[]>([]);
+  const [financeDebtPayments, setFinanceDebtPayments] = useState<FinanceDebtPayment[]>([]);
+  const [loadingFinance, setLoadingFinance] = useState(false);
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryType, setCategoryType] = useState<FinanceType>('income');
+  const [transactionType, setTransactionType] = useState<FinanceType>('expense');
+  const [transactionCategoryId, setTransactionCategoryId] = useState('');
+  const [transactionAmount, setTransactionAmount] = useState('');
+  const [transactionDescription, setTransactionDescription] = useState('');
+  const [transactionDate, setTransactionDate] = useState(today);
+  const [debtPlayerId, setDebtPlayerId] = useState('');
+  const [debtAmountDue, setDebtAmountDue] = useState('');
+  const [debtDescription, setDebtDescription] = useState('');
+  const [debtDueDate, setDebtDueDate] = useState('');
+  const [debtPaymentAmount, setDebtPaymentAmount] = useState<Record<number, string>>({});
+  const [debtPaymentDate, setDebtPaymentDate] = useState<Record<number, string>>({});
 
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
@@ -102,12 +129,16 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     setLoading(true);
 
     try {
-      const [usersRes, playersRes, topPlayersRes, matchesRes, statsRes] = await Promise.all([
+      const [usersRes, playersRes, topPlayersRes, matchesRes, statsRes, financeOverviewRes, categoriesRes, transactionsRes, debtsRes] = await Promise.all([
         api.getUsers(token),
         api.getPlayers(token),
         api.getTopPlayers(token),
         api.getMatches(token),
-        api.getGlobalStats(token)
+        api.getGlobalStats(token),
+        api.getFinanceOverview(token),
+        api.getFinanceCategories(token),
+        api.getFinanceTransactions(token),
+        api.getPlayerDebts(token)
       ]);
 
       setUsers(usersRes.users);
@@ -115,6 +146,11 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       setTopPlayers(topPlayersRes.players);
       setMatches(matchesRes.matches);
       setGlobalStats(statsRes);
+      setFinanceOverview(financeOverviewRes);
+      setFinanceCategories(categoriesRes.categories);
+      setFinanceTransactions(transactionsRes.transactions);
+      setFinanceDebts(debtsRes.debts);
+      setFinanceDebtPayments(debtsRes.payments);
 
       if (matchesRes.matches.length > 0 && !selectedMatchId) {
         setSelectedMatchId(matchesRes.matches[0].id);
@@ -137,6 +173,21 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   async function refreshTopPlayers() {
     const response = await api.getTopPlayers(token);
     setTopPlayers(response.players);
+  }
+
+  async function loadFinanceData() {
+    const [overviewRes, categoriesRes, transactionsRes, debtsRes] = await Promise.all([
+      api.getFinanceOverview(token),
+      api.getFinanceCategories(token),
+      api.getFinanceTransactions(token),
+      api.getPlayerDebts(token)
+    ]);
+
+    setFinanceOverview(overviewRes);
+    setFinanceCategories(categoriesRes.categories);
+    setFinanceTransactions(transactionsRes.transactions);
+    setFinanceDebts(debtsRes.debts);
+    setFinanceDebtPayments(debtsRes.payments);
   }
 
   useEffect(() => {
@@ -608,6 +659,139 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     }
   }
 
+  async function handleCreateFinanceCategory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const nextCategoryName = categoryName.trim();
+    if (!nextCategoryName) {
+      toast.error('El nombre de la categoria es obligatorio.');
+      return;
+    }
+
+    setLoadingFinance(true);
+
+    try {
+      await api.createFinanceCategory(token, { name: nextCategoryName, type: categoryType });
+      await loadFinanceData();
+      setCategoryName('');
+      toast.success('Categoria financiera creada correctamente.');
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setLoadingFinance(false);
+    }
+  }
+
+  async function handleCreateFinanceTransaction(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const amount = Number(transactionAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error('Ingresa un monto valido mayor a 0 para el movimiento.');
+      return;
+    }
+
+    if (!transactionDate) {
+      toast.error('Selecciona una fecha para el movimiento.');
+      return;
+    }
+
+    setLoadingFinance(true);
+
+    try {
+      await api.createFinanceTransaction(token, {
+        categoryId: transactionCategoryId ? Number(transactionCategoryId) : null,
+        amount,
+        type: transactionType,
+        description: transactionDescription.trim() || undefined,
+        transactionDate
+      });
+
+      await loadFinanceData();
+      setTransactionAmount('');
+      setTransactionDescription('');
+      setTransactionCategoryId('');
+      setTransactionDate(today);
+      toast.success('Movimiento financiero registrado correctamente.');
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setLoadingFinance(false);
+    }
+  }
+
+  async function handleCreateDebt(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const playerId = Number(debtPlayerId);
+    const amountDue = Number(debtAmountDue);
+
+    if (!Number.isInteger(playerId) || playerId <= 0) {
+      toast.error('Selecciona un jugador para registrar la deuda.');
+      return;
+    }
+
+    if (!Number.isFinite(amountDue) || amountDue <= 0) {
+      toast.error('Ingresa un monto de deuda valido mayor a 0.');
+      return;
+    }
+
+    setLoadingFinance(true);
+
+    try {
+      await api.createPlayerDebt(token, {
+        playerId,
+        amountDue,
+        description: debtDescription.trim() || undefined,
+        dueDate: debtDueDate || undefined
+      });
+
+      await loadFinanceData();
+      setDebtPlayerId('');
+      setDebtAmountDue('');
+      setDebtDescription('');
+      setDebtDueDate('');
+      toast.success('Deuda registrada correctamente.');
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setLoadingFinance(false);
+    }
+  }
+
+  async function handleCreateDebtPayment(debtId: number) {
+    const amount = Number(debtPaymentAmount[debtId] ?? '');
+    const paymentDate = debtPaymentDate[debtId] || '';
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error('Ingresa un monto de pago valido mayor a 0.');
+      return;
+    }
+
+    if (!paymentDate) {
+      toast.error('Selecciona la fecha del pago.');
+      return;
+    }
+
+    setLoadingFinance(true);
+
+    try {
+      await api.createPlayerDebtPayment(token, debtId, {
+        amountPaid: amount,
+        paymentDate
+      });
+
+      await loadFinanceData();
+      setDebtPaymentAmount((current) => ({ ...current, [debtId]: '' }));
+      setDebtPaymentDate((current) => ({ ...current, [debtId]: '' }));
+      toast.success('Pago registrado correctamente.');
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setLoadingFinance(false);
+    }
+  }
+
   function handleTeamLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) {
@@ -714,6 +898,53 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         onClearSelection={() => {
           setSelectedPlayers([]);
           setRatings({});
+        }}
+      />
+
+      <FinanceSection
+        active={activeSection === 'finanzas'}
+        loadingFinance={loadingFinance}
+        overview={financeOverview}
+        categories={financeCategories}
+        transactions={financeTransactions}
+        debts={financeDebts}
+        debtPayments={financeDebtPayments}
+        players={players}
+        categoryName={categoryName}
+        categoryType={categoryType}
+        transactionType={transactionType}
+        transactionCategoryId={transactionCategoryId}
+        transactionAmount={transactionAmount}
+        transactionDescription={transactionDescription}
+        transactionDate={transactionDate}
+        debtPlayerId={debtPlayerId}
+        debtAmountDue={debtAmountDue}
+        debtDescription={debtDescription}
+        debtDueDate={debtDueDate}
+        debtPaymentAmount={debtPaymentAmount}
+        debtPaymentDate={debtPaymentDate}
+        onCategoryNameChange={setCategoryName}
+        onCategoryTypeChange={setCategoryType}
+        onCreateCategory={handleCreateFinanceCategory}
+        onTransactionTypeChange={setTransactionType}
+        onTransactionCategoryIdChange={setTransactionCategoryId}
+        onTransactionAmountChange={setTransactionAmount}
+        onTransactionDescriptionChange={setTransactionDescription}
+        onTransactionDateChange={setTransactionDate}
+        onCreateTransaction={handleCreateFinanceTransaction}
+        onDebtPlayerIdChange={setDebtPlayerId}
+        onDebtAmountDueChange={setDebtAmountDue}
+        onDebtDescriptionChange={setDebtDescription}
+        onDebtDueDateChange={setDebtDueDate}
+        onCreateDebt={handleCreateDebt}
+        onDebtPaymentAmountChange={(debtId, value) => {
+          setDebtPaymentAmount((current) => ({ ...current, [debtId]: value }));
+        }}
+        onDebtPaymentDateChange={(debtId, value) => {
+          setDebtPaymentDate((current) => ({ ...current, [debtId]: value }));
+        }}
+        onCreateDebtPayment={(debtId) => {
+          void handleCreateDebtPayment(debtId);
         }}
       />
 

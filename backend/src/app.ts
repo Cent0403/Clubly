@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import { authRouter } from './routes/auth.routes';
+import { financeRouter } from './routes/finance.routes';
 import { matchesRouter } from './routes/matches.routes';
 import { playersRouter } from './routes/players.routes';
 import { settingsRouter } from './routes/settings.routes';
@@ -55,6 +56,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/players', playersRouter);
 app.use('/api/matches', matchesRouter);
 app.use('/api/stats', statsRouter);
+app.use('/api/finance', financeRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const errorWithStatus = err as Error & { status?: number; type?: string };

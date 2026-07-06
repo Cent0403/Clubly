@@ -35,7 +35,7 @@ export interface EditUserFormState {
 export type EventFieldKey = keyof Omit<RatingItem, 'playerId' | 'minutesPlayed'>;
 
 export interface AdminSection {
-  key: 'dashboard' | 'personalización' | 'usuarios' | 'partidos' | 'top';
+  key: 'dashboard' | 'personalización' | 'usuarios' | 'partidos' | 'finanzas' | 'top';
   label: string;
 }
 
