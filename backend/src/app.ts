@@ -14,6 +14,16 @@ function normalizeOrigin(value: string) {
   return value.trim().replace(/\/+$/, '');
 }
 
+function isAllowedOrigin(origin: string): boolean {
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  if (allowedOrigins.includes(normalizedOrigin)) {
+    return true;
+  }
+
+  return /^https:\/\/([a-z0-9-]+\.)*shadowsvc\.club$/i.test(normalizedOrigin);
+}
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -31,7 +41,7 @@ const corsOptions: cors.CorsOptions = {
       return;
     }
 
-    if (allowedOrigins.includes(normalizeOrigin(origin))) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
       return;
     }
@@ -58,7 +68,13 @@ app.use('/api/matches', matchesRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/finance', financeRouter);
 
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const requestOrigin = req.headers.origin;
+  if (typeof requestOrigin === 'string' && isAllowedOrigin(requestOrigin)) {
+    res.setHeader('Access-Control-Allow-Origin', normalizeOrigin(requestOrigin));
+    res.setHeader('Vary', 'Origin');
+  }
+
   const errorWithStatus = err as Error & { status?: number; type?: string };
 
   if (errorWithStatus.status === 413 || errorWithStatus.type === 'entity.too.large') {
