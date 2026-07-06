@@ -1,3 +1,4 @@
+import { RowDataPacket } from 'mysql2';
 import { pool } from '../db/pool';
 
 export interface EfficiencyRatingInput {
@@ -57,6 +58,10 @@ function calculateOverallEfficiency(values: Array<number | null>): number {
 
 let efficiencySchemaReady: Promise<void> | null = null;
 
+interface ColumnTypeRow extends RowDataPacket {
+  COLUMN_TYPE: string;
+}
+
 async function syncStoredEfficiencyMetrics(): Promise<void> {
   await pool.query(`
     UPDATE efficiency_ratings
@@ -90,11 +95,36 @@ async function syncStoredEfficiencyMetrics(): Promise<void> {
 export async function ensureEfficiencySchema(): Promise<void> {
   if (!efficiencySchemaReady) {
     efficiencySchemaReady = (async () => {
+      const [matchTypeRows] = await pool.query<ColumnTypeRow[]>(
+        `
+          SELECT COLUMN_TYPE
+          FROM information_schema.columns
+          WHERE table_schema = DATABASE()
+            AND table_name = 'matches'
+            AND column_name = 'id'
+          LIMIT 1
+        `
+      );
+
+      const [playerTypeRows] = await pool.query<ColumnTypeRow[]>(
+        `
+          SELECT COLUMN_TYPE
+          FROM information_schema.columns
+          WHERE table_schema = DATABASE()
+            AND table_name = 'players'
+            AND column_name = 'id'
+          LIMIT 1
+        `
+      );
+
+      const matchIdColumnType = String(matchTypeRows[0]?.COLUMN_TYPE ?? 'int').toUpperCase();
+      const playerIdColumnType = String(playerTypeRows[0]?.COLUMN_TYPE ?? 'int unsigned').toUpperCase();
+
       await pool.query(`
         CREATE TABLE IF NOT EXISTS efficiency_ratings (
           id INT AUTO_INCREMENT PRIMARY KEY,
-          match_id INT NOT NULL,
-          player_id INT UNSIGNED NOT NULL,
+          match_id ${matchIdColumnType} NOT NULL,
+          player_id ${playerIdColumnType} NOT NULL,
           minutes_played TINYINT(1) NOT NULL DEFAULT 1,
           sets_played INT UNSIGNED NOT NULL DEFAULT 0,
           attack_points INT UNSIGNED NOT NULL DEFAULT 0,
