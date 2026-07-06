@@ -337,35 +337,50 @@ statsRouter.get('/player/:playerId', async (req, res) => {
 });
 
 statsRouter.get('/global', requireRole('ADMIN'), async (_req, res) => {
-  res.json(await getGlobalStatsPayload());
+  try {
+    res.json(await getGlobalStatsPayload());
+  } catch (error) {
+    console.error('Failed to load /stats/global:', error);
+    res.status(500).json({ message: 'Failed to load global stats' });
+  }
 });
 
 statsRouter.get('/global-summary', async (_req, res) => {
-  res.json(await getGlobalStatsPayload());
+  try {
+    res.json(await getGlobalStatsPayload());
+  } catch (error) {
+    console.error('Failed to load /stats/global-summary:', error);
+    res.status(500).json({ message: 'Failed to load global summary stats' });
+  }
 });
 
 statsRouter.get('/top', async (_req, res) => {
-  await ensureEfficiencySchema();
+  try {
+    await ensureEfficiencySchema();
 
-  const [rows] = await pool.query<RowDataPacket[]>(
-    `
-      SELECT
-        p.id AS player_id,
-        u.id AS user_id,
-        u.username,
-        u.full_name,
-        p.jersey_number,
-        p.position,
-        ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS overall_score
-      FROM players p
-      JOIN users u ON u.id = p.user_id
-      LEFT JOIN efficiency_ratings r ON r.player_id = p.id
-      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
-      ORDER BY overall_score DESC, u.full_name ASC
-    `
-  );
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `
+        SELECT
+          p.id AS player_id,
+          u.id AS user_id,
+          u.username,
+          u.full_name,
+          p.jersey_number,
+          p.position,
+          ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS overall_score
+        FROM players p
+        JOIN users u ON u.id = p.user_id
+        LEFT JOIN efficiency_ratings r ON r.player_id = p.id
+        GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
+        ORDER BY overall_score DESC, u.full_name ASC
+      `
+    );
 
-  res.json({ players: rows });
+    res.json({ players: rows });
+  } catch (error) {
+    console.error('Failed to load /stats/top:', error);
+    res.status(500).json({ message: 'Failed to load top players' });
+  }
 });
 
 export { statsRouter };
