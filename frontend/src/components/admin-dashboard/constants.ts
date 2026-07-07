@@ -70,7 +70,7 @@ export const EVENT_FIELDS: Array<{ key: EventFieldKey; label: string }> = [
   { key: 'attackPoints', label: 'Ataque: puntos' },
   { key: 'attackErrors', label: 'Ataque: errores' },
   { key: 'attackAttempts', label: 'Ataque: intentos' },
-  { key: 'serveAces', label: 'Saque: aces o complicado (max score)' },
+  { key: 'serveAces', label: 'Saque: aces' },
   { key: 'serveErrors', label: 'Saque: errores' },
   { key: 'serveAttempts', label: 'Saque: intentos' },
   { key: 'blockKill', label: 'Bloqueo: cantidad de acciones de 2 puntos' },
