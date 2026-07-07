@@ -20,12 +20,13 @@ async function getGlobalStatsPayload() {
         ROUND(COALESCE(AVG(v.avg_defense), 0.0), 2) AS team_defense_avg,
         ROUND(COALESCE(AVG(v.avg_attack), 0.0), 2) AS team_attack_avg,
         ROUND(COALESCE(AVG(v.avg_block), 0.0), 2) AS team_block_avg,
-        ROUND(COALESCE(AVG(v.avg_setting), 0.0), 2) AS team_setting_avg,
+        ROUND(COALESCE(AVG(CASE WHEN v.position = 'SETTER' THEN v.avg_setting END), 0.0), 2) AS team_setting_avg,
         ROUND(COALESCE(AVG(v.avg_attack_points_per_set), 0.0), 2) AS team_attack_points_per_set_avg,
         COUNT(*) AS roster_size
       FROM (
         SELECT
           p.id AS player_id,
+          p.position,
           ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS avg_overall,
           ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.reception_efficiency END), 0.0) * 100, 2) AS avg_reception,
           ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.serve_efficiency END), 0.0) * 100, 2) AS avg_serve,
@@ -134,6 +135,7 @@ async function getGlobalStatsPayload() {
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
+      WHERE p.position = 'SETTER'
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
       LIMIT 5
