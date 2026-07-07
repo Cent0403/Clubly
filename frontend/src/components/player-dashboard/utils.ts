@@ -76,7 +76,7 @@ function matchQualifies(category: string, match: PlayerHistoryItem): boolean {
     case 'Armado +25 asistencias':
       return match.set_assists > 25;
     case 'Racha de partidos asistidos':
-      return match.set_assists >= 1;
+      return match.sets_played >= 1;
     default:
       return false;
   }
