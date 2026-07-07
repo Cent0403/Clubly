@@ -61,8 +61,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         setProfileForm((current) => ({
           ...current,
           fullName: profileData.player.full_name,
-          jerseyNumber: profileData.player.jersey_number,
-          position: profileData.player.position
+          jerseyNumber: profileData.player.jersey_number
         }));
         setFinanceSummary(debtsData.summary);
         setFinanceDebts(debtsData.debts);
@@ -154,7 +153,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
 
       setProfile(response.player);
       setSummary((current) => (current ? { ...current, full_name: response.player.full_name } : current));
-      setProfileForm({ fullName: response.player.full_name, password: '', jerseyNumber: response.player.jersey_number, position: response.player.position });
+      setProfileForm({ fullName: response.player.full_name, password: '', jerseyNumber: response.player.jersey_number });
       toast.success('Perfil actualizado correctamente.');
       setIsProfileModalOpen(false);
     } catch (updateError) {
@@ -182,8 +181,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
             ...current,
             fullName: profile?.full_name ?? current.fullName,
             password: '',
-            jerseyNumber: profile?.jersey_number ?? current.jerseyNumber,
-            position: profile?.position ?? current.position
+            jerseyNumber: profile?.jersey_number ?? current.jerseyNumber
           }));
           setIsProfileModalOpen(true);
         }}
