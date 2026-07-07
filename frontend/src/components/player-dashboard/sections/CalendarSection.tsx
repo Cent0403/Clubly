@@ -1,7 +1,21 @@
 import { useEffect, useState } from 'react';
 import { AttendanceStatus } from '../../../types';
+import { CalendarEventModal } from '../../calendar/CalendarEventModal';
 import { MonthCalendar } from '../../calendar/MonthCalendar';
 import { CalendarSectionProps } from '../types';
+
+function formatDateTime(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('es-ES', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  }).format(date);
+}
 
 interface DraftState {
   estadoAsistencia: AttendanceStatus;
@@ -15,6 +29,10 @@ export function CalendarSection({
   onSubmitAttendance
 }: CalendarSectionProps) {
   const [drafts, setDrafts] = useState<Record<number, DraftState>>({});
+  const [activePreview, setActivePreview] = useState<{
+    event: import('../../../types').CalendarEvent;
+    instanceId: number;
+  } | null>(null);
 
   useEffect(() => {
     setDrafts((current) => {
@@ -60,109 +78,27 @@ export function CalendarSection({
             }
 
             return (
-              <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                  Responder asistencia
-                </p>
+              <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Eventos del día</p>
 
                 {selectedDayEvents.map(({ event, instance }) => {
-                  const draft = drafts[instance.id] ?? {
-                    estadoAsistencia: instance.my_response?.estado_asistencia ?? 'pendiente',
-                    comentario: instance.my_response?.comentario ?? ''
-                  };
-                  const canRespond = instance.requiere_asistencia && instance.estado_instancia !== 'cancelado';
-                  const saving = savingAttendanceInstanceId === instance.id;
-
                   return (
-                    <article key={instance.id} className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950/40">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h4 className="font-semibold text-slate-900 dark:text-white">{event.titulo}</h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">{instance.lugar || 'Sin lugar definido'}</p>
-                        </div>
-                        {instance.my_response ? (
-                          <span className="rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                            {instance.my_response.estado_asistencia}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      {canRespond ? (
-                        <div className="mt-3 space-y-3">
-                          <select
-                            className="input"
-                            value={draft.estadoAsistencia}
-                            onChange={(event) =>
-                              setDrafts((current) => ({
-                                ...current,
-                                [instance.id]: {
-                                  ...draft,
-                                  estadoAsistencia: event.target.value as AttendanceStatus
-                                }
-                              }))
-                            }
-                          >
-                            <option value="pendiente">Pendiente</option>
-                            <option value="asistira">Asistiré</option>
-                            <option value="no_asistira">No asistiré</option>
-                            <option value="tarde">Llegaré tarde</option>
-                          </select>
-                          <textarea
-                            className="input min-h-20"
-                            placeholder="Comentario opcional"
-                            value={draft.comentario}
-                            onChange={(event) =>
-                              setDrafts((current) => ({
-                                ...current,
-                                [instance.id]: {
-                                  ...draft,
-                                  comentario: event.target.value
-                                }
-                              }))
-                            }
-                          />
-                          <button
-                            type="button"
-                            className="btn-primary w-full"
-                            disabled={saving}
-                            onClick={() =>
-                              void onSubmitAttendance(instance.id, {
-                                estadoAsistencia: draft.estadoAsistencia,
-                                comentario: draft.comentario.trim()
-                              })
-                            }
-                          >
-                            {saving ? 'Guardando...' : 'Guardar respuesta'}
-                          </button>
-                        </div>
-                      ) : (
-                        <p className="mt-3 rounded-xl border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                          {instance.estado_instancia === 'cancelado'
-                            ? 'Esta instancia fue cancelada.'
-                            : 'La encuesta de asistencia no está activa para esta instancia.'}
+                    <button
+                      key={instance.id}
+                      type="button"
+                      className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-left dark:border-slate-700 dark:bg-slate-950/40"
+                      onClick={() => setActivePreview({ event, instanceId: instance.id })}
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {instance.attending_players.length} asistencia(s) · {instance.lugar || 'Sin lugar'}
                         </p>
-                      )}
-
-                      <div className="mt-3 space-y-2">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                          Asistirán {instance.attending_players.length}
-                        </p>
-                        {instance.attending_players.length > 0 ? (
-                          <div className="flex flex-wrap gap-2">
-                            {instance.attending_players.map((player) => (
-                              <span
-                                key={player.jugador_id}
-                                className="rounded-full bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-200"
-                              >
-                                {player.jersey_number ? `#${player.jersey_number} ${player.full_name}` : player.full_name}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-slate-500 dark:text-slate-400">Todavía no hay jugadores confirmados.</p>
-                        )}
                       </div>
-                    </article>
+                      <span className="shrink-0 rounded-full bg-sky-500 px-3 py-1 text-[11px] font-semibold text-white">
+                        Ver
+                      </span>
+                    </button>
                   );
                 })}
               </div>
@@ -170,6 +106,116 @@ export function CalendarSection({
           }}
         />
       </div>
+
+      <CalendarEventModal
+        open={Boolean(activePreview)}
+        title={activePreview?.event.titulo ?? ''}
+        subtitle={activePreview ? activePreview.event.descripcion || 'Sin descripcion' : undefined}
+        onClose={() => setActivePreview(null)}
+      >
+        {activePreview ? (() => {
+          const instance = activePreview.event.instances.find((item) => item.id === activePreview.instanceId);
+
+          if (!instance) {
+            return null;
+          }
+
+          const draft = drafts[instance.id] ?? {
+            estadoAsistencia: instance.my_response?.estado_asistencia ?? 'pendiente',
+            comentario: instance.my_response?.comentario ?? ''
+          };
+          const canRespond = instance.requiere_asistencia && instance.estado_instancia !== 'cancelado';
+          const saving = savingAttendanceInstanceId === instance.id;
+
+          return (
+            <div className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Horario</p>
+                  <p className="mt-1 font-semibold text-slate-900 dark:text-white">
+                    {formatDateTime(instance.fecha_hora_inicio)} - {formatDateTime(instance.fecha_hora_fin)}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                  <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Lugar</p>
+                  <p className="mt-1 font-semibold text-slate-900 dark:text-white">{instance.lugar || 'Sin lugar definido'}</p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Asistirán {instance.attending_players.length}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {instance.attending_players.length > 0 ? (
+                    instance.attending_players.map((player) => (
+                      <span key={player.jugador_id} className="rounded-full bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">
+                        {player.jersey_number ? `#${player.jersey_number} ${player.full_name}` : player.full_name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm text-slate-500 dark:text-slate-400">Todavía no hay jugadores confirmados.</span>
+                  )}
+                </div>
+              </div>
+
+              {canRespond ? (
+                <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950/40">
+                  <select
+                    className="input"
+                    value={draft.estadoAsistencia}
+                    onChange={(event) =>
+                      setDrafts((current) => ({
+                        ...current,
+                        [instance.id]: {
+                          ...draft,
+                          estadoAsistencia: event.target.value as AttendanceStatus
+                        }
+                      }))
+                    }
+                  >
+                    <option value="pendiente">Pendiente</option>
+                    <option value="asistira">Asistiré</option>
+                    <option value="no_asistira">No asistiré</option>
+                    <option value="tarde">Llegaré tarde</option>
+                  </select>
+                  <textarea
+                    className="input min-h-20"
+                    placeholder="Comentario opcional"
+                    value={draft.comentario}
+                    onChange={(event) =>
+                      setDrafts((current) => ({
+                        ...current,
+                        [instance.id]: {
+                          ...draft,
+                          comentario: event.target.value
+                        }
+                      }))
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="btn-primary w-full"
+                    disabled={saving}
+                    onClick={() =>
+                      void onSubmitAttendance(instance.id, {
+                        estadoAsistencia: draft.estadoAsistencia,
+                        comentario: draft.comentario.trim()
+                      })
+                    }
+                  >
+                    {saving ? 'Guardando...' : 'Guardar respuesta'}
+                  </button>
+                </div>
+              ) : (
+                <p className="rounded-xl border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                  {instance.estado_instancia === 'cancelado'
+                    ? 'Esta instancia fue cancelada.'
+                    : 'La encuesta de asistencia no está activa para esta instancia.'}
+                </p>
+              )}
+            </div>
+          );
+        })() : null}
+      </CalendarEventModal>
     </section>
   );
 }

@@ -265,53 +265,26 @@ export function MonthCalendar({ events, actionPanel, selectedDayPanel, emptyMess
             </div>
           </div>
 
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-2">
             {selectedDayEvents.length > 0 ? (
               selectedDayEvents.map(({ event, instance }) => (
-                <article key={instance.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={`h-2.5 w-2.5 rounded-full ${getEventTypeColor(event.tipo_evento)}`} />
-                        <h5 className="font-semibold text-slate-900 dark:text-white">{event.titulo}</h5>
-                      </div>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                        {getEventTypeLabel(event.tipo_evento)}
-                      </p>
+                <div
+                  key={instance.id}
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900/50"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2.5 w-2.5 rounded-full ${getEventTypeColor(event.tipo_evento)}`} />
+                      <p className="truncate font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
                     </div>
-                    {instance.requiere_asistencia ? (
-                      <span className="rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                        Encuesta
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{event.descripcion || 'Sin descripcion'}</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    {formatDateTime(instance.fecha_hora_inicio)} - {formatDateTime(instance.fecha_hora_fin)}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{instance.lugar || 'Sin lugar definido'}</p>
-
-                  <div className="mt-3 space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                      Asistirán {instance.attending_players.length}
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      {formatDateTime(instance.fecha_hora_inicio)} · {instance.attending_players.length} asistencia(s)
                     </p>
-                    {instance.attending_players.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {instance.attending_players.map((player) => (
-                          <span
-                            key={player.jugador_id}
-                            className="rounded-full bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-200"
-                          >
-                            {formatAttendeeLabel(player.full_name, player.jersey_number)}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">Nadie ha confirmado asistencia todavía.</p>
-                    )}
                   </div>
-                </article>
+                  <span className="shrink-0 rounded-full bg-slate-900/5 px-2 py-1 text-[11px] font-semibold text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                    {instance.requiere_asistencia ? 'Encuesta' : 'Sin encuesta'}
+                  </span>
+                </div>
               ))
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
