@@ -73,8 +73,8 @@ function matchQualifies(category: string, match: PlayerHistoryItem): boolean {
       return match.serve_aces >= 5;
     case 'Defensas +10':
       return match.defense_successes + match.block_kill + match.block_touch >= 10;
-    case 'Armado +25 asistencias':
-      return match.set_assists > 25;
+    case 'Armado +40 asistencias':
+      return match.set_assists > 40;
     case 'Racha de partidos asistidos':
       return match.sets_played >= 1;
     default:
@@ -85,19 +85,22 @@ function matchQualifies(category: string, match: PlayerHistoryItem): boolean {
 function buildStreak(category: string, history: PlayerHistoryItem[]): MedalGroup {
   const badges = MEDAL_THRESHOLDS.map((threshold) => ({ threshold, achieved: false }));
   let currentStreak = 0;
+  let maxStreak = 0;
 
   for (const match of history) {
     if (matchQualifies(category, match)) {
       currentStreak += 1;
-      badges.forEach((badge) => {
-        if (currentStreak >= badge.threshold) {
-          badge.achieved = true;
-        }
-      });
+      maxStreak = Math.max(maxStreak, currentStreak);
     } else {
       currentStreak = 0;
     }
   }
+
+  badges.forEach((badge) => {
+    if (maxStreak >= badge.threshold) {
+      badge.achieved = true;
+    }
+  });
 
   return {
     category,
@@ -112,8 +115,8 @@ function buildStreak(category: string, history: PlayerHistoryItem[]): MedalGroup
         ? 'Partidos consecutivos con 5 o más aces de saque.'
         : category === 'Defensas +10'
         ? 'Partidos consecutivos con 10 o más acciones defensivas.'
-        : category === 'Armado +25 asistencias'
-        ? 'Partidos consecutivos con más de 25 asistencias de armado.'
+        : category === 'Armado +40 asistencias'
+        ? 'Partidos consecutivos con más de 40 asistencias de armado.'
         : 'Partidos consecutivos con al menos una asistencia de armado.',
     currentStreak,
     badges
@@ -131,7 +134,7 @@ export function buildPlayerMedalGroups(history: PlayerHistoryItem[]): MedalGroup
     buildStreak('Remates +10', history),
     buildStreak('Saque +5', history),
     buildStreak('Defensas +10', history),
-    buildStreak('Armado +25 asistencias', history),
+    buildStreak('Armado +40 asistencias', history),
     buildStreak('Racha de partidos asistidos', history)
   ];
 }
