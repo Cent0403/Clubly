@@ -64,5 +64,6 @@ export interface CalendarSectionProps {
   onCalendarFormChange: (updater: (current: CalendarEventFormState) => CalendarEventFormState) => void;
   onCreateCalendarEvent: (event: React.FormEvent<HTMLFormElement>) => void;
   onEditCalendarEvent: (event: CalendarEvent, instanceId: number) => void;
+  onDeleteCalendarEvent: (event: CalendarEvent, instanceId: number) => void;
   onCancelEditCalendarEvent: () => void;
 }

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { CalendarEventModal } from '../../calendar/CalendarEventModal';
 import { MonthCalendar } from '../../calendar/MonthCalendar';
 import { CalendarEvent } from '../../../types';
@@ -26,6 +27,7 @@ export function CalendarSection({
   onCalendarFormChange,
   onCreateCalendarEvent,
   onEditCalendarEvent,
+  onDeleteCalendarEvent,
   onCancelEditCalendarEvent
 }: CalendarSectionProps) {
   const isEditing = editingCalendarInstanceId !== null;
@@ -33,6 +35,41 @@ export function CalendarSection({
     event: CalendarEvent;
     instanceId: number;
   } | null>(null);
+
+  useEffect(() => {
+    const instanceIdParam = new URLSearchParams(window.location.search).get('calendarInstanceId');
+
+    if (!instanceIdParam) {
+      return;
+    }
+
+    const instanceId = Number(instanceIdParam);
+
+    if (!Number.isFinite(instanceId)) {
+      return;
+    }
+
+    for (const event of events) {
+      const instance = event.instances.find((item) => item.id === instanceId);
+
+      if (instance) {
+        setActivePreview({ event, instanceId: instance.id });
+        break;
+      }
+    }
+  }, [events]);
+
+  async function handleShareSurvey(instanceId: number) {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('section', 'calendario');
+      url.searchParams.set('calendarInstanceId', String(instanceId));
+      await navigator.clipboard.writeText(url.toString());
+      toast.success('Link de la encuesta copiado.');
+    } catch {
+      toast.error('No se pudo copiar el link.');
+    }
+  }
 
   return (
     <section className={active ? 'space-y-6' : 'hidden'}>
@@ -211,7 +248,8 @@ export function CalendarSection({
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {instance.attending_players.length} asistencia(s) · {instance.lugar || 'Sin lugar'}
+                      {instance.requiere_asistencia ? `${instance.attending_players.length} asistencia(s) · ` : ''}
+                      {instance.lugar || 'Sin lugar'}
                     </p>
                   </div>
                   <span className="shrink-0 rounded-full bg-sky-500 px-3 py-1 text-[11px] font-semibold text-white">
@@ -231,16 +269,28 @@ export function CalendarSection({
         onClose={() => setActivePreview(null)}
         footer={
           activePreview ? (
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => {
-                onEditCalendarEvent(activePreview.event, activePreview.instanceId);
-                setActivePreview(null);
-              }}
-            >
-              Editar
-            </button>
+            <>
+              <button
+                type="button"
+                className="btn-muted text-rose-600 dark:text-rose-300"
+                onClick={() => {
+                  onDeleteCalendarEvent(activePreview.event, activePreview.instanceId);
+                  setActivePreview(null);
+                }}
+              >
+                Eliminar
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  onEditCalendarEvent(activePreview.event, activePreview.instanceId);
+                  setActivePreview(null);
+                }}
+              >
+                Editar
+              </button>
+            </>
           ) : null
         }
       >
@@ -266,20 +316,27 @@ export function CalendarSection({
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Asistirán {instance.attending_players.length}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {instance.attending_players.length > 0 ? (
-                    instance.attending_players.map((player) => (
-                      <span key={player.jugador_id} className="rounded-full bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">
-                        {player.jersey_number ? `#${player.jersey_number} ${player.full_name}` : player.full_name}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-sm text-slate-500 dark:text-slate-400">Todavía no hay jugadores confirmados.</span>
-                  )}
+              {instance.requiere_asistencia ? (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Asistirán {instance.attending_players.length}</p>
+                    <button type="button" className="btn-muted px-3 py-1 text-xs" onClick={() => void handleShareSurvey(instance.id)}>
+                      Compartir link
+                    </button>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {instance.attending_players.length > 0 ? (
+                      instance.attending_players.map((player) => (
+                        <span key={player.jugador_id} className="rounded-full bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">
+                          {player.jersey_number ? `#${player.jersey_number} ${player.full_name}` : player.full_name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-slate-500 dark:text-slate-400">Todavía no hay jugadores confirmados.</span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
           );
         })() : null}

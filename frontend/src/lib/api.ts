@@ -459,6 +459,15 @@ export const api = {
       token
     ),
 
+  deleteCalendarEvent: (token: string, instanceId: number) =>
+    request<{ message: string }>(
+      `/calendar/instances/${instanceId}`,
+      {
+        method: 'DELETE'
+      },
+      token
+    ),
+
   saveCalendarAttendance: (token: string, instanceId: number, payload: CalendarAttendancePayload) =>
     request<{ message: string }>(
       `/calendar/instances/${instanceId}/attendance`,

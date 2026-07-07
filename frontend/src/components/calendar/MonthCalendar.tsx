@@ -278,12 +278,15 @@ export function MonthCalendar({ events, actionPanel, selectedDayPanel, emptyMess
                       <p className="truncate font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
                     </div>
                     <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                      {formatDateTime(instance.fecha_hora_inicio)} · {instance.attending_players.length} asistencia(s)
+                      {formatDateTime(instance.fecha_hora_inicio)}
+                      {instance.requiere_asistencia ? ` · ${instance.attending_players.length} asistencia(s)` : ''}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-slate-900/5 px-2 py-1 text-[11px] font-semibold text-slate-600 dark:bg-white/5 dark:text-slate-300">
-                    {instance.requiere_asistencia ? 'Encuesta' : 'Sin encuesta'}
-                  </span>
+                  {instance.requiere_asistencia ? (
+                    <span className="shrink-0 rounded-full bg-slate-900/5 px-2 py-1 text-[11px] font-semibold text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                      Encuesta
+                    </span>
+                  ) : null}
                 </div>
               ))
             ) : (

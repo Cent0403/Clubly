@@ -708,6 +708,84 @@ calendarRouter.put('/instances/:instanceId', requireRole('ADMIN'), async (req, r
   }
 });
 
+calendarRouter.delete('/instances/:instanceId', requireRole('ADMIN'), async (req, res) => {
+  const instanceId = Number(req.params.instanceId);
+
+  if (!Number.isInteger(instanceId) || instanceId <= 0) {
+    res.status(400).json({ message: 'ID de instancia inválido' });
+    return;
+  }
+
+  const [instanceRows] = await pool.query<RowDataPacket[]>(
+    `
+      SELECT
+        ei.id,
+        ei.evento_id
+      FROM events_instances ei
+      WHERE ei.id = ?
+      LIMIT 1
+    `,
+    [instanceId]
+  );
+
+  const instance = instanceRows[0];
+
+  if (!instance) {
+    res.status(404).json({ message: 'Instancia de evento no encontrada' });
+    return;
+  }
+
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    await connection.query(
+      `
+        DELETE FROM attendance_event
+        WHERE instancia_evento_id = ?
+      `,
+      [instanceId]
+    );
+
+    await connection.query(
+      `
+        DELETE FROM events_instances
+        WHERE id = ?
+      `,
+      [instanceId]
+    );
+
+    const [remainingRows] = await connection.query<RowDataPacket[]>(
+      `
+        SELECT COUNT(*) AS total
+        FROM events_instances
+        WHERE evento_id = ?
+      `,
+      [instance.evento_id]
+    );
+
+    if (Number(remainingRows[0]?.total ?? 0) === 0) {
+      await connection.query(
+        `
+          DELETE FROM events
+          WHERE id = ?
+        `,
+        [instance.evento_id]
+      );
+    }
+
+    await connection.commit();
+
+    res.json({ message: 'Evento eliminado correctamente' });
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+});
+
 calendarRouter.post('/instances/:instanceId/attendance', requireRole('PLAYER'), async (req, res) => {
   const instanceId = Number(req.params.instanceId);
 

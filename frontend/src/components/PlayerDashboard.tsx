@@ -15,7 +15,10 @@ import { PlayerDashboardProps, PlayerSectionKey, ProfileFormState } from './play
 import { buildRadarMetrics, buildSummaryCards, getBestFundament, getWorstFundament } from './player-dashboard/utils';
 
 export function PlayerDashboard({ token }: PlayerDashboardProps) {
-  const [activeSection, setActiveSection] = useState<PlayerSectionKey>('resumen');
+  const [activeSection, setActiveSection] = useState<PlayerSectionKey>(() => {
+    const sectionParam = new URLSearchParams(window.location.search).get('section');
+    return sectionParam === 'calendario' ? 'calendario' : 'resumen';
+  });
   const [profile, setProfile] = useState<PlayerItem | null>(null);
   const [profileForm, setProfileForm] = useState<ProfileFormState>({ fullName: '', password: '' });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);

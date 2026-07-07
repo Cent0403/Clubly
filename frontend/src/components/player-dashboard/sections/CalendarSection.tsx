@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { AttendanceStatus } from '../../../types';
 import { CalendarEventModal } from '../../calendar/CalendarEventModal';
 import { MonthCalendar } from '../../calendar/MonthCalendar';
@@ -35,6 +36,29 @@ export function CalendarSection({
   } | null>(null);
 
   useEffect(() => {
+    const instanceIdParam = new URLSearchParams(window.location.search).get('calendarInstanceId');
+
+    if (!instanceIdParam) {
+      return;
+    }
+
+    const instanceId = Number(instanceIdParam);
+
+    if (!Number.isFinite(instanceId)) {
+      return;
+    }
+
+    for (const event of events) {
+      const instance = event.instances.find((item) => item.id === instanceId);
+
+      if (instance) {
+        setActivePreview({ event, instanceId: instance.id });
+        break;
+      }
+    }
+  }, [events]);
+
+  useEffect(() => {
     setDrafts((current) => {
       const nextDrafts = { ...current };
 
@@ -52,6 +76,18 @@ export function CalendarSection({
       return nextDrafts;
     });
   }, [events]);
+
+  async function handleShareSurvey(instanceId: number) {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('section', 'calendario');
+      url.searchParams.set('calendarInstanceId', String(instanceId));
+      await navigator.clipboard.writeText(url.toString());
+      toast.success('Link de la encuesta copiado.');
+    } catch {
+      toast.error('No se pudo copiar el link.');
+    }
+  }
 
   return (
     <section className={active ? 'card' : 'hidden'}>
@@ -92,7 +128,8 @@ export function CalendarSection({
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {instance.attending_players.length} asistencia(s) · {instance.lugar || 'Sin lugar'}
+                          {instance.requiere_asistencia ? `${instance.attending_players.length} asistencia(s) · ` : ''}
+                          {instance.lugar || 'Sin lugar'}
                         </p>
                       </div>
                       <span className="shrink-0 rounded-full bg-sky-500 px-3 py-1 text-[11px] font-semibold text-white">
@@ -142,76 +179,83 @@ export function CalendarSection({
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Asistirán {instance.attending_players.length}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {instance.attending_players.length > 0 ? (
-                    instance.attending_players.map((player) => (
-                      <span key={player.jugador_id} className="rounded-full bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">
-                        {player.jersey_number ? `#${player.jersey_number} ${player.full_name}` : player.full_name}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-sm text-slate-500 dark:text-slate-400">Todavía no hay jugadores confirmados.</span>
-                  )}
+              {instance.requiere_asistencia ? (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Asistirán {instance.attending_players.length}</p>
+                    <button type="button" className="btn-muted px-3 py-1 text-xs" onClick={() => void handleShareSurvey(instance.id)}>
+                      Compartir link
+                    </button>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {instance.attending_players.length > 0 ? (
+                      instance.attending_players.map((player) => (
+                        <span key={player.jugador_id} className="rounded-full bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">
+                          {player.jersey_number ? `#${player.jersey_number} ${player.full_name}` : player.full_name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-slate-500 dark:text-slate-400">Todavía no hay jugadores confirmados.</span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
-              {canRespond ? (
-                <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950/40">
-                  <select
-                    className="input"
-                    value={draft.estadoAsistencia}
-                    onChange={(event) =>
-                      setDrafts((current) => ({
-                        ...current,
-                        [instance.id]: {
-                          ...draft,
-                          estadoAsistencia: event.target.value as AttendanceStatus
-                        }
-                      }))
-                    }
-                  >
-                    <option value="pendiente">Pendiente</option>
-                    <option value="asistira">Asistiré</option>
-                    <option value="no_asistira">No asistiré</option>
-                    <option value="tarde">Llegaré tarde</option>
-                  </select>
-                  <textarea
-                    className="input min-h-20"
-                    placeholder="Comentario opcional"
-                    value={draft.comentario}
-                    onChange={(event) =>
-                      setDrafts((current) => ({
-                        ...current,
-                        [instance.id]: {
-                          ...draft,
-                          comentario: event.target.value
-                        }
-                      }))
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="btn-primary w-full"
-                    disabled={saving}
-                    onClick={() =>
-                      void onSubmitAttendance(instance.id, {
-                        estadoAsistencia: draft.estadoAsistencia,
-                        comentario: draft.comentario.trim()
-                      })
-                    }
-                  >
-                    {saving ? 'Guardando...' : 'Guardar respuesta'}
-                  </button>
-                </div>
-              ) : (
-                <p className="rounded-xl border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                  {instance.estado_instancia === 'cancelado'
-                    ? 'Esta instancia fue cancelada.'
-                    : 'La encuesta de asistencia no está activa para esta instancia.'}
-                </p>
-              )}
+              {instance.requiere_asistencia ? (
+                canRespond ? (
+                  <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950/40">
+                    <select
+                      className="input"
+                      value={draft.estadoAsistencia}
+                      onChange={(event) =>
+                        setDrafts((current) => ({
+                          ...current,
+                          [instance.id]: {
+                            ...draft,
+                            estadoAsistencia: event.target.value as AttendanceStatus
+                          }
+                        }))
+                      }
+                    >
+                      <option value="pendiente">Pendiente</option>
+                      <option value="asistira">Asistiré</option>
+                      <option value="no_asistira">No asistiré</option>
+                      <option value="tarde">Llegaré tarde</option>
+                    </select>
+                    <textarea
+                      className="input min-h-20"
+                      placeholder="Comentario opcional"
+                      value={draft.comentario}
+                      onChange={(event) =>
+                        setDrafts((current) => ({
+                          ...current,
+                          [instance.id]: {
+                            ...draft,
+                            comentario: event.target.value
+                          }
+                        }))
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="btn-primary w-full"
+                      disabled={saving}
+                      onClick={() =>
+                        void onSubmitAttendance(instance.id, {
+                          estadoAsistencia: draft.estadoAsistencia,
+                          comentario: draft.comentario.trim()
+                        })
+                      }
+                    >
+                      {saving ? 'Guardando...' : 'Guardar respuesta'}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="rounded-xl border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                    Esta instancia fue cancelada.
+                  </p>
+                )
+              ) : null}
             </div>
           );
         })() : null}

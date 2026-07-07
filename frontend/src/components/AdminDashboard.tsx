@@ -34,7 +34,10 @@ import { AdminDashboardProps, AdminSectionKey, CalendarEventFormState, EditUserF
 import { mapMatchRatingRowToRating } from './admin-dashboard/utils';
 
 export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: AdminDashboardProps) {
-  const [activeSection, setActiveSection] = useState<AdminSectionKey>('dashboard');
+  const [activeSection, setActiveSection] = useState<AdminSectionKey>(() => {
+    const sectionParam = new URLSearchParams(window.location.search).get('section');
+    return sectionParam === 'calendario' ? 'calendario' : 'dashboard';
+  });
   const today = new Date().toISOString().slice(0, 10);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [userSearchTerm, setUserSearchTerm] = useState('');
@@ -1005,6 +1008,39 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     toast.success('Edición cancelada.');
   }
 
+  async function handleDeleteCalendarEvent(event: CalendarEvent, instanceId: number) {
+    const instance = event.instances.find((item) => item.id === instanceId);
+
+    if (!instance) {
+      toast.error('No se encontró la instancia para eliminar.');
+      return;
+    }
+
+    const confirmed = window.confirm(`¿Eliminar la instancia de "${event.titulo}"? Esta acción no se puede deshacer.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setSavingCalendarEvent(true);
+
+    try {
+      await api.deleteCalendarEvent(token, instanceId);
+
+      if (editingCalendarInstanceId === instanceId) {
+        setEditingCalendarInstanceId(null);
+        setCalendarForm(EMPTY_CALENDAR_EVENT_FORM);
+      }
+
+      await loadCalendarData();
+      toast.success('Evento eliminado correctamente.');
+    } catch (deleteError) {
+      toast.error((deleteError as Error).message);
+    } finally {
+      setSavingCalendarEvent(false);
+    }
+  }
+
   function handleTeamLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) {
@@ -1123,6 +1159,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         onCalendarFormChange={(updater) => setCalendarForm(updater)}
         onCreateCalendarEvent={handleCreateCalendarEvent}
         onEditCalendarEvent={handleEditCalendarEvent}
+        onDeleteCalendarEvent={handleDeleteCalendarEvent}
         onCancelEditCalendarEvent={handleCancelEditCalendarEvent}
       />
 
