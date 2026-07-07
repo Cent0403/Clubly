@@ -1,4 +1,6 @@
 import { ReactNode } from 'react';
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface CalendarEventModalProps {
   open: boolean;
@@ -7,21 +9,57 @@ interface CalendarEventModalProps {
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
+  fullScreenOnMobile?: boolean;
+  fullScreen?: boolean;
 }
 
-export function CalendarEventModal({ open, title, subtitle, onClose, children, footer }: CalendarEventModalProps) {
+export function CalendarEventModal({
+  open,
+  title,
+  subtitle,
+  onClose,
+  children,
+  footer,
+  fullScreenOnMobile = false,
+  fullScreen = false
+}: CalendarEventModalProps) {
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   if (!open) {
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-      <div className="card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+  const containerClassName = fullScreen
+    ? 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm'
+    : fullScreenOnMobile
+    ? 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-0 backdrop-blur-sm sm:p-4'
+    : 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm';
+
+  const modalClassName = fullScreen
+    ? 'card h-full w-full overflow-y-auto rounded-none'
+    : fullScreenOnMobile
+    ? 'card h-full w-full overflow-y-auto rounded-none sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-3xl'
+    : 'card w-full max-w-2xl max-h-[90vh] overflow-y-auto';
+
+  const modalContent = (
+    <div className={containerClassName}>
+      <div className={modalClassName}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Calendario</p>
             <h3 className="mt-1 text-xl font-bold">{title}</h3>
-            {subtitle ? <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{subtitle}</p> : null}
+            {subtitle ? <p className="mt-1 whitespace-pre-line text-sm text-slate-600 dark:text-slate-300">{subtitle}</p> : null}
           </div>
           <button className="btn-muted" type="button" onClick={onClose}>
             Cerrar
@@ -34,4 +72,6 @@ export function CalendarEventModal({ open, title, subtitle, onClose, children, f
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

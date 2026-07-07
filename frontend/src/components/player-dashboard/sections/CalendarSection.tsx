@@ -30,33 +30,41 @@ export function CalendarSection({
   onSubmitAttendance
 }: CalendarSectionProps) {
   const [drafts, setDrafts] = useState<Record<number, DraftState>>({});
+  const [pendingDeepLinkInstanceId, setPendingDeepLinkInstanceId] = useState<number | null>(() => {
+    const instanceIdParam = new URLSearchParams(window.location.search).get('calendarInstanceId');
+
+    if (!instanceIdParam) {
+      return null;
+    }
+
+    const instanceId = Number(instanceIdParam);
+    return Number.isFinite(instanceId) ? instanceId : null;
+  });
   const [activePreview, setActivePreview] = useState<{
     event: import('../../../types').CalendarEvent;
     instanceId: number;
   } | null>(null);
 
   useEffect(() => {
-    const instanceIdParam = new URLSearchParams(window.location.search).get('calendarInstanceId');
-
-    if (!instanceIdParam) {
-      return;
-    }
-
-    const instanceId = Number(instanceIdParam);
-
-    if (!Number.isFinite(instanceId)) {
+    if (pendingDeepLinkInstanceId === null) {
       return;
     }
 
     for (const event of events) {
-      const instance = event.instances.find((item) => item.id === instanceId);
+      const instance = event.instances.find((item) => item.id === pendingDeepLinkInstanceId);
 
       if (instance) {
         setActivePreview({ event, instanceId: instance.id });
+        setPendingDeepLinkInstanceId(null);
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete('calendarInstanceId');
+        window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+
         break;
       }
     }
-  }, [events]);
+  }, [events, pendingDeepLinkInstanceId]);
 
   useEffect(() => {
     setDrafts((current) => {
