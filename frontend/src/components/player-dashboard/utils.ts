@@ -131,7 +131,7 @@ export function buildPlayerMedalGroups(history: PlayerHistoryItem[]): MedalGroup
     buildStreak('Remates +10', history),
     buildStreak('Saque +5', history),
     buildStreak('Defensas +10', history),
-    buildStreak('Armado <10 errores', history),
+    buildStreak('Armado +25 asistencias', history),
     buildStreak('Racha de partidos asistidos', history)
   ];
 }
