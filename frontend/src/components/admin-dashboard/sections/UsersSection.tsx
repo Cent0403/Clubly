@@ -4,6 +4,7 @@ import { MetricBars } from '../../charts/MetricBars';
 import { USER_POSITIONS } from '../constants';
 import { EditUserFormState, UserFormState } from '../types';
 import { formatPosition, formatPositionOption, formatRole } from '../utils';
+import { MedalsPanel } from '../../player-dashboard/MedalsPanel';
 
 interface UsersSectionProps {
   active: boolean;
@@ -161,35 +162,41 @@ export function UsersSection({
           </div>
 
           {selectedPlayerSummary ? (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl bg-slate-100 p-4 dark:bg-slate-800">
-                <p className="text-sm font-semibold">{selectedPlayerSummary.full_name}</p>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                  Eficiencia global: {selectedPlayerSummary.overall_score.toFixed(2)}%
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Partidos calificados: {selectedPlayerSummary.matches_rated}
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Puntos de ataque por set: {selectedPlayerSummary.avg_attack_points_per_set.toFixed(2)}
-                </p>
+            <>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-xl bg-slate-100 p-4 dark:bg-slate-800">
+                  <p className="text-sm font-semibold">{selectedPlayerSummary.full_name}</p>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                    Eficiencia global: {selectedPlayerSummary.overall_score.toFixed(2)}%
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Partidos calificados: {selectedPlayerSummary.matches_rated}
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Puntos de ataque por set: {selectedPlayerSummary.avg_attack_points_per_set.toFixed(2)}
+                  </p>
+                </div>
+
+                <div>
+                  <MetricBars
+                    maxValue={100}
+                    formatter={(value) => `${value.toFixed(1)}%`}
+                    metrics={[
+                      { label: 'Recepcion', value: selectedPlayerSummary.avg_reception },
+                      { label: 'Saque', value: selectedPlayerSummary.avg_serve },
+                      { label: 'Defensa', value: selectedPlayerSummary.avg_defense },
+                      { label: 'Ataque', value: selectedPlayerSummary.avg_attack },
+                      { label: 'Bloqueo', value: selectedPlayerSummary.avg_block },
+                      { label: 'Armado', value: selectedPlayerSummary.avg_setting }
+                    ]}
+                  />
+                </div>
               </div>
 
-              <div>
-                <MetricBars
-                  maxValue={100}
-                  formatter={(value) => `${value.toFixed(1)}%`}
-                  metrics={[
-                    { label: 'Recepcion', value: selectedPlayerSummary.avg_reception },
-                    { label: 'Saque', value: selectedPlayerSummary.avg_serve },
-                    { label: 'Defensa', value: selectedPlayerSummary.avg_defense },
-                    { label: 'Ataque', value: selectedPlayerSummary.avg_attack },
-                    { label: 'Bloqueo', value: selectedPlayerSummary.avg_block },
-                    { label: 'Armado', value: selectedPlayerSummary.avg_setting }
-                  ]}
-                />
+              <div className="mt-4">
+                <MedalsPanel history={selectedPlayerHistory} />
               </div>
-            </div>
+            </>
           ) : (
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
               Selecciona un jugador y presiona "Ver stats".

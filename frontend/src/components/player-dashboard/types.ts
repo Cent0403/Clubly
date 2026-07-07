@@ -41,6 +41,7 @@ export interface PerformanceSectionProps {
   active: boolean;
   summary: PlayerSummary | null;
   radarMetrics: RadarMetric[];
+  history: PlayerHistoryItem[];
 }
 
 export interface TopSectionProps {

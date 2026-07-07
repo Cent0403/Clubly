@@ -47,6 +47,95 @@ export function getWorstFundament(metrics: RadarMetric[]) {
   );
 }
 
+export interface MedalBadge {
+  threshold: number;
+  achieved: boolean;
+}
+
+export interface MedalGroup {
+  category: string;
+  description: string;
+  currentStreak: number;
+  badges: MedalBadge[];
+}
+
+const MEDAL_THRESHOLDS = [3, 6, 9, 12];
+
+function matchQualifies(category: string, match: PlayerHistoryItem): boolean {
+  switch (category) {
+    case 'Recepción sin errores':
+      return match.reception_zero === 0;
+    case 'Bloqueo +3':
+      return match.block_kill + match.block_touch >= 3;
+    case 'Remates +10':
+      return match.attack_points >= 10;
+    case 'Saque +5':
+      return match.serve_aces >= 5;
+    case 'Defensas +10':
+      return match.defense_successes + match.block_kill + match.block_touch >= 10;
+    case 'Armado <10 errores':
+      return match.set_errors < 10;
+    case 'Racha de partidos asistidos':
+      return match.set_assists > 0;
+    default:
+      return false;
+  }
+}
+
+function buildStreak(category: string, history: PlayerHistoryItem[]): MedalGroup {
+  const badges = MEDAL_THRESHOLDS.map((threshold) => ({ threshold, achieved: false }));
+  let currentStreak = 0;
+
+  for (const match of history) {
+    if (matchQualifies(category, match)) {
+      currentStreak += 1;
+      badges.forEach((badge) => {
+        if (currentStreak >= badge.threshold) {
+          badge.achieved = true;
+        }
+      });
+    } else {
+      currentStreak = 0;
+    }
+  }
+
+  return {
+    category,
+    description:
+      category === 'Recepción sin errores'
+        ? 'Partidos consecutivos sin recepciones fallidas.'
+        : category === 'Bloqueo +3'
+        ? 'Partidos consecutivos con al menos 3 bloqueos efectivos.'
+        : category === 'Remates +10'
+        ? 'Partidos consecutivos con 10 o más puntos de ataque.'
+        : category === 'Saque +5'
+        ? 'Partidos consecutivos con 5 o más aces de saque.'
+        : category === 'Defensas +10'
+        ? 'Partidos consecutivos con 10 o más acciones defensivas.'
+        : category === 'Armado <10 errores'
+        ? 'Partidos consecutivos con menos de 10 errores de armado.'
+        : 'Partidos consecutivos con al menos una asistencia de armado.',
+    currentStreak,
+    badges
+  };
+}
+
+export function buildPlayerMedalGroups(history: PlayerHistoryItem[]): MedalGroup[] {
+  if (history.length === 0) {
+    return [];
+  }
+
+  return [
+    buildStreak('Recepción sin errores', history),
+    buildStreak('Bloqueo +3', history),
+    buildStreak('Remates +10', history),
+    buildStreak('Saque +5', history),
+    buildStreak('Defensas +10', history),
+    buildStreak('Armado <10 errores', history),
+    buildStreak('Racha de partidos asistidos', history)
+  ];
+}
+
 export function buildSummaryCards(summary: PlayerSummary | null, bestFundament: RadarMetric, worstFundament: RadarMetric): SummaryCard[] {
   return [
     { label: 'Eficiencia global', value: summary?.overall_score ?? 0, accent: 'text-sky-500' },

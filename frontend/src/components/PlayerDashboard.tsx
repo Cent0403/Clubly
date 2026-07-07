@@ -189,7 +189,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
 
       <SummaryCardsSection active={activeSection === 'resumen'} summaryCards={summaryCards} />
 
-      <PerformanceSection active={activeSection === 'rendimiento'} summary={summary} radarMetrics={radarMetrics} />
+      <PerformanceSection active={activeSection === 'rendimiento'} summary={summary} radarMetrics={radarMetrics} history={history} />
 
       <HistorySection
         active={activeSection === 'historial'}

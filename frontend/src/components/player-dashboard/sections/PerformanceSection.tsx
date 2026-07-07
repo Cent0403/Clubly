@@ -1,8 +1,9 @@
 import { MetricBars } from '../../charts/MetricBars';
 import { RadarChart } from '../../charts/RadarChart';
 import { PerformanceSectionProps } from '../types';
+import { MedalsPanel } from '../MedalsPanel';
 
-export function PerformanceSection({ active, summary, radarMetrics }: PerformanceSectionProps) {
+export function PerformanceSection({ active, summary, radarMetrics, history }: PerformanceSectionProps) {
   return (
     <section className={active ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
       <article className="card xl:col-span-2">
@@ -27,6 +28,10 @@ export function PerformanceSection({ active, summary, radarMetrics }: Performanc
         <div className="flex flex-1 items-center justify-center py-4">
           <RadarChart metrics={radarMetrics} maxValue={100} />
         </div>
+      </article>
+
+      <article className="card xl:col-span-5">
+        <MedalsPanel history={history} />
       </article>
     </section>
   );
