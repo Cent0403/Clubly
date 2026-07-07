@@ -28,7 +28,7 @@ export function ProfileModal({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Editar perfil</p>
-            <h3 className="mt-1 text-xl font-bold">Actualiza tu nombre y contrasena</h3>
+            <h3 className="mt-1 text-xl font-bold">Actualiza tu perfil</h3>
           </div>
           <button className="btn-muted" type="button" onClick={onClose}>
             Cerrar
@@ -55,7 +55,16 @@ export function ProfileModal({
               placeholder="Dejar vacio para no cambiar"
             />
           </div>
-
+          <div>
+            <label className="mb-1 block text-xs font-medium">Numero de camiseta</label>
+            <input
+              className="input"
+              type="number"
+              value={profileForm.jerseyNumber ?? ''}
+              onChange={(event) => onProfileFormChange((current) => ({ ...current, jerseyNumber: event.target.value ? parseInt(event.target.value, 10) : null }))}
+              placeholder="Numero de camiseta"
+            />
+          </div>
           <div className="md:col-span-2 flex flex-wrap gap-2">
             <button className="btn-primary" type="submit" disabled={savingProfile}>
               {savingProfile ? 'Guardando perfil...' : 'Guardar cambios'}

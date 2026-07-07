@@ -141,6 +141,7 @@ export interface UpdateUserPayload {
 export interface UpdateMyProfilePayload {
   fullName?: string;
   password?: string;
+  jerseyNumber?: number | null;
 }
 
 export type CalendarEventType = 'partido' | 'entreno' | 'entrega' | 'otro';

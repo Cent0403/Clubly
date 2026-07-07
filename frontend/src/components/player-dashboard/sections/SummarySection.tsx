@@ -8,7 +8,7 @@ export function SummarySection({ active, profile, summary, globalStats, onOpenPr
       <article className="card xl:col-span-3">
         <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Perfil del jugador</p>
         <h2 className="mt-2 text-2xl font-bold">{profile?.full_name ?? summary?.full_name}</h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Edita tu nombre y contrasena desde el modal.</p>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Edita tu perfil de jugador.</p>
 
         <div className="mt-4">
           <button className="btn-primary" type="button" onClick={onOpenProfileModal}>

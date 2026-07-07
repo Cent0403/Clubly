@@ -20,7 +20,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
     return sectionParam === 'calendario' ? 'calendario' : 'resumen';
   });
   const [profile, setProfile] = useState<PlayerItem | null>(null);
-  const [profileForm, setProfileForm] = useState<ProfileFormState>({ fullName: '', password: '' });
+  const [profileForm, setProfileForm] = useState<ProfileFormState>({ fullName: '', password: '', jerseyNumber: null });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [summary, setSummary] = useState<PlayerSummary | null>(null);
@@ -58,7 +58,12 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         setTopPlayers(topPlayersData.players);
         setSelectedMatch(statsData.history[0] ?? null);
         setProfile(profileData.player);
-        setProfileForm((current) => ({ ...current, fullName: profileData.player.full_name }));
+        setProfileForm((current) => ({
+          ...current,
+          fullName: profileData.player.full_name,
+          jerseyNumber: profileData.player.jersey_number,
+          position: profileData.player.position
+        }));
         setFinanceSummary(debtsData.summary);
         setFinanceDebts(debtsData.debts);
         setUpcomingDebts(debtsData.upcomingDebts);
@@ -131,8 +136,9 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
     const nextFullName = profileForm.fullName.trim();
     const nextPassword = profileForm.password.trim();
     const fullNameChanged = nextFullName.length > 0 && nextFullName !== (profile?.full_name ?? '');
+    const jerseyChanged = profileForm.jerseyNumber !== profile?.jersey_number;
 
-    if (!fullNameChanged && nextPassword.length === 0) {
+    if (!fullNameChanged && nextPassword.length === 0 && !jerseyChanged) {
       toast.error('No hay cambios para guardar en el perfil.');
       return;
     }
@@ -142,12 +148,13 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
     try {
       const response = await api.updateMyProfile(token, {
         fullName: fullNameChanged ? nextFullName : undefined,
-        password: nextPassword.length > 0 ? nextPassword : undefined
+        password: nextPassword.length > 0 ? nextPassword : undefined,
+        jerseyNumber: jerseyChanged ? profileForm.jerseyNumber : undefined
       });
 
       setProfile(response.player);
       setSummary((current) => (current ? { ...current, full_name: response.player.full_name } : current));
-      setProfileForm({ fullName: response.player.full_name, password: '' });
+      setProfileForm({ fullName: response.player.full_name, password: '', jerseyNumber: response.player.jersey_number, position: response.player.position });
       toast.success('Perfil actualizado correctamente.');
       setIsProfileModalOpen(false);
     } catch (updateError) {
@@ -171,7 +178,13 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         summary={summary}
         globalStats={globalStats}
         onOpenProfileModal={() => {
-          setProfileForm((current) => ({ ...current, fullName: profile?.full_name ?? current.fullName, password: '' }));
+          setProfileForm((current) => ({
+            ...current,
+            fullName: profile?.full_name ?? current.fullName,
+            password: '',
+            jerseyNumber: profile?.jersey_number ?? current.jerseyNumber,
+            position: profile?.position ?? current.position
+          }));
           setIsProfileModalOpen(true);
         }}
       />

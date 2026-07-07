@@ -8,6 +8,7 @@ export interface PlayerDashboardProps {
 export interface ProfileFormState {
   fullName: string;
   password: string;
+  jerseyNumber: number | null;
 }
 
 export interface PlayerSection {
