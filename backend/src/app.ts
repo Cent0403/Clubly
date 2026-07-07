@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import { calendarRouter } from './routes/calendar.routes';
 import { authRouter } from './routes/auth.routes';
 import { financeRouter } from './routes/finance.routes';
 import { matchesRouter } from './routes/matches.routes';
@@ -65,6 +66,7 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/players', playersRouter);
 app.use('/api/matches', matchesRouter);
+app.use('/api/calendar', calendarRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/finance', financeRouter);
 

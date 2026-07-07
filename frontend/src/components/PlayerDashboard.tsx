@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { api } from '../lib/api';
-import { FinanceDebt, FinanceDebtPayment, GlobalStats, MatchRatingRow, PlayerFinanceDebtSummary, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../types';
+import { CalendarEvent, FinanceDebt, FinanceDebtPayment, GlobalStats, MatchRatingRow, PlayerFinanceDebtSummary, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../types';
 import { FinanceSection } from './player-dashboard/sections/FinanceSection';
+import { CalendarSection } from './player-dashboard/sections/CalendarSection';
 import { ProfileModal } from './player-dashboard/sections/ProfileModal';
 import { SectionTabs } from './player-dashboard/sections/SectionTabs';
 import { HistorySection } from './player-dashboard/sections/HistorySection';
@@ -23,6 +24,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
   const [history, setHistory] = useState<PlayerHistoryItem[]>([]);
   const [topPlayers, setTopPlayers] = useState<PlayerItem[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<PlayerHistoryItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [matchRatings, setMatchRatings] = useState<MatchRatingRow[]>([]);
@@ -31,18 +33,20 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
   const [financeDebts, setFinanceDebts] = useState<FinanceDebt[]>([]);
   const [upcomingDebts, setUpcomingDebts] = useState<FinanceDebt[]>([]);
   const [financePayments, setFinancePayments] = useState<FinanceDebtPayment[]>([]);
+  const [savingAttendanceInstanceId, setSavingAttendanceInstanceId] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
 
       try {
-        const [statsData, profileData, topPlayersData, globalStatsData, debtsData] = await Promise.all([
+        const [statsData, profileData, topPlayersData, globalStatsData, debtsData, calendarData] = await Promise.all([
           api.getMyStats(token),
           api.getMyProfile(token),
           api.getTopPlayers(token),
           api.getGlobalSummary(token),
-          api.getMyDebts(token)
+          api.getMyDebts(token),
+          api.getCalendar(token)
         ]);
 
         setSummary(statsData.summary);
@@ -56,6 +60,7 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         setFinanceDebts(debtsData.debts);
         setUpcomingDebts(debtsData.upcomingDebts);
         setFinancePayments(debtsData.payments);
+        setCalendarEvents(calendarData.events);
       } catch (requestError) {
         toast.error((requestError as Error).message);
       } finally {
@@ -87,6 +92,24 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
 
     void fetchMatchRatings();
   }, [selectedMatch, token]);
+
+  async function handleSubmitAttendance(
+    instanceId: number,
+    payload: { estadoAsistencia: import('../types').AttendanceStatus; comentario: string }
+  ) {
+    setSavingAttendanceInstanceId(instanceId);
+
+    try {
+      await api.saveCalendarAttendance(token, instanceId, payload);
+      const response = await api.getCalendar(token);
+      setCalendarEvents(response.events);
+      toast.success('Respuesta de asistencia guardada correctamente.');
+    } catch (attendanceError) {
+      toast.error((attendanceError as Error).message);
+    } finally {
+      setSavingAttendanceInstanceId(null);
+    }
+  }
 
   const radarMetrics = useMemo(() => buildRadarMetrics(summary), [summary]);
 
@@ -161,6 +184,13 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
         matchRatings={matchRatings}
         matchRatingsLoading={matchRatingsLoading}
         onSelectMatch={setSelectedMatch}
+      />
+
+      <CalendarSection
+        active={activeSection === 'calendario'}
+        events={calendarEvents}
+        savingAttendanceInstanceId={savingAttendanceInstanceId}
+        onSubmitAttendance={handleSubmitAttendance}
       />
 
       <FinanceSection

@@ -11,7 +11,7 @@ export interface ProfileFormState {
 }
 
 export interface PlayerSection {
-  key: 'resumen' | 'rendimiento' | 'historial' | 'finanzas' | 'top';
+  key: 'resumen' | 'rendimiento' | 'historial' | 'calendario' | 'finanzas' | 'top';
   label: string;
 }
 
@@ -62,4 +62,14 @@ export interface FinanceSectionProps {
   debts: FinanceDebt[];
   upcomingDebts: FinanceDebt[];
   payments: FinanceDebtPayment[];
+}
+
+export interface CalendarSectionProps {
+  active: boolean;
+  events: import('../../types').CalendarEvent[];
+  savingAttendanceInstanceId: number | null;
+  onSubmitAttendance: (
+    instanceId: number,
+    payload: { estadoAsistencia: import('../../types').AttendanceStatus; comentario: string }
+  ) => Promise<void>;
 }

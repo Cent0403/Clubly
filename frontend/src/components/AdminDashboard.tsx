@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { api } from '../lib/api';
 import {
   AdminUserItem,
+  CalendarEvent,
   FinanceCategory,
   FinanceDebt,
   FinanceDebtPayment,
@@ -20,14 +21,16 @@ import {
   TeamSettings
 } from '../types';
 import { EMPTY_EDIT_USER_FORM, EMPTY_MATCH_FORM, EMPTY_USER_FORM, createDefaultRating } from './admin-dashboard/constants';
+import { EMPTY_CALENDAR_EVENT_FORM } from './admin-dashboard/constants';
 import { DashboardSection } from './admin-dashboard/sections/DashboardSection';
+import { CalendarSection } from './admin-dashboard/sections/CalendarSection';
 import { FinanceSection } from './admin-dashboard/sections/FinanceSection';
 import { MatchesSection } from './admin-dashboard/sections/MatchesSection';
 import { SectionTabs } from './admin-dashboard/sections/SectionTabs';
 import { TeamSettingsSection } from './admin-dashboard/sections/TeamSettingsSection';
 import { TopSection } from './admin-dashboard/sections/TopSection';
 import { UsersSection } from './admin-dashboard/sections/UsersSection';
-import { AdminDashboardProps, AdminSectionKey, EditUserFormState, MatchFormState, UserFormState } from './admin-dashboard/types';
+import { AdminDashboardProps, AdminSectionKey, CalendarEventFormState, EditUserFormState, MatchFormState, UserFormState } from './admin-dashboard/types';
 import { mapMatchRatingRowToRating } from './admin-dashboard/utils';
 
 export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: AdminDashboardProps) {
@@ -39,6 +42,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   const [players, setPlayers] = useState<PlayerItem[]>([]);
   const [topPlayers, setTopPlayers] = useState<PlayerItem[]>([]);
   const [matches, setMatches] = useState<MatchItem[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
   const [evaluationPlayerSearchTerm, setEvaluationPlayerSearchTerm] = useState('');
@@ -83,6 +87,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   const [debtDueDate, setDebtDueDate] = useState('');
   const [debtPaymentAmount, setDebtPaymentAmount] = useState<Record<number, string>>({});
   const [debtPaymentDate, setDebtPaymentDate] = useState<Record<number, string>>({});
+  const [calendarForm, setCalendarForm] = useState<CalendarEventFormState>(EMPTY_CALENDAR_EVENT_FORM);
+  const [savingCalendarEvent, setSavingCalendarEvent] = useState(false);
+  const [editingCalendarInstanceId, setEditingCalendarInstanceId] = useState<number | null>(null);
 
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
@@ -132,11 +139,12 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     setLoading(true);
 
     try {
-      const [usersRes, playersRes, topPlayersRes, matchesRes, statsRes, financeOverviewRes, categoriesRes, transactionsRes, debtsRes] = await Promise.all([
+      const [usersRes, playersRes, topPlayersRes, matchesRes, calendarRes, statsRes, financeOverviewRes, categoriesRes, transactionsRes, debtsRes] = await Promise.all([
         api.getUsers(token),
         api.getPlayers(token),
         api.getTopPlayers(token),
         api.getMatches(token),
+        api.getCalendar(token),
         api.getGlobalStats(token),
         api.getFinanceOverview(token),
         api.getFinanceCategories(token),
@@ -148,6 +156,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       setPlayers(playersRes.players);
       setTopPlayers(topPlayersRes.players);
       setMatches(matchesRes.matches);
+      setCalendarEvents(calendarRes.events);
       setGlobalStats(statsRes);
       setFinanceOverview(financeOverviewRes);
       setFinanceCategories(categoriesRes.categories);
@@ -191,6 +200,11 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     setFinanceTransactions(transactionsRes.transactions);
     setFinanceDebts(debtsRes.debts);
     setFinanceDebtPayments(debtsRes.payments);
+  }
+
+  async function loadCalendarData() {
+    const response = await api.getCalendar(token);
+    setCalendarEvents(response.events);
   }
 
   useEffect(() => {
@@ -899,6 +913,98 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
     }
   }
 
+  async function handleCreateCalendarEvent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const titulo = calendarForm.titulo.trim();
+    const fechaHoraInicio = calendarForm.fechaHoraInicio.trim();
+    const fechaHoraFin = calendarForm.fechaHoraFin.trim();
+
+    if (!titulo || !fechaHoraInicio || !fechaHoraFin) {
+      toast.error('Completa titulo, inicio y fin para crear el evento.');
+      return;
+    }
+
+    if (calendarForm.esRepetitivo && !calendarForm.fechaFinSerie) {
+      toast.error('Indica la fecha fin de serie para eventos repetitivos.');
+      return;
+    }
+
+    if (calendarForm.esRepetitivo && !calendarForm.frecuenciaRepeticion) {
+      toast.error('Selecciona una frecuencia para el evento repetitivo.');
+      return;
+    }
+
+    setSavingCalendarEvent(true);
+
+    try {
+      const payload = {
+        titulo,
+        descripcion: calendarForm.descripcion.trim() || undefined,
+        tipoEvento: calendarForm.tipoEvento,
+        esRepetitivo: calendarForm.esRepetitivo,
+        frecuenciaRepeticion: calendarForm.esRepetitivo ? calendarForm.frecuenciaRepeticion || null : null,
+        fechaHoraInicio,
+        fechaHoraFin,
+        fechaFinSerie: calendarForm.esRepetitivo ? calendarForm.fechaFinSerie || null : null,
+        requiereAsistencia: calendarForm.requiereAsistencia,
+        lugar: calendarForm.lugar.trim() || null,
+        notas: calendarForm.notas.trim() || null
+      };
+
+      if (editingCalendarInstanceId) {
+        await api.updateCalendarEvent(token, editingCalendarInstanceId, {
+          ...payload,
+          estadoInstancia: 'programado'
+        });
+        toast.success('Evento actualizado correctamente.');
+      } else {
+        const response = await api.createCalendarEvent(token, payload);
+        toast.success(`Evento creado (${response.instancesCreated} instancia${response.instancesCreated === 1 ? '' : 's'}).`);
+      }
+
+      setCalendarForm(EMPTY_CALENDAR_EVENT_FORM);
+      setEditingCalendarInstanceId(null);
+      await loadCalendarData();
+    } catch (createError) {
+      toast.error((createError as Error).message);
+    } finally {
+      setSavingCalendarEvent(false);
+    }
+  }
+
+  function handleEditCalendarEvent(event: CalendarEvent, instanceId: number) {
+    const instance = event.instances.find((item) => item.id === instanceId);
+
+    if (!instance) {
+      toast.error('No se encontró la instancia para editar.');
+      return;
+    }
+
+    setEditingCalendarInstanceId(instance.id);
+    setCalendarForm({
+      titulo: event.titulo,
+      descripcion: event.descripcion ?? '',
+      tipoEvento: event.tipo_evento,
+      esRepetitivo: event.es_repetitivo,
+      frecuenciaRepeticion: event.frecuencia_repeticion ?? 'semanal',
+      fechaHoraInicio: instance.fecha_hora_inicio,
+      fechaHoraFin: instance.fecha_hora_fin,
+      fechaFinSerie: event.fecha_fin_serie ?? '',
+      requiereAsistencia: instance.requiere_asistencia,
+      lugar: instance.lugar ?? '',
+      notas: instance.notas ?? ''
+    });
+
+    toast(`Editando instancia #${instance.id}. Los datos de repetición quedan bloqueados en modo edición.`);
+  }
+
+  function handleCancelEditCalendarEvent() {
+    setEditingCalendarInstanceId(null);
+    setCalendarForm(EMPTY_CALENDAR_EVENT_FORM);
+    toast.success('Edición cancelada.');
+  }
+
   function handleTeamLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) {
@@ -1006,6 +1112,18 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
           setSelectedPlayers([]);
           setRatings({});
         }}
+      />
+
+      <CalendarSection
+        active={activeSection === 'calendario'}
+        events={calendarEvents}
+        calendarForm={calendarForm}
+        editingCalendarInstanceId={editingCalendarInstanceId}
+        savingCalendarEvent={savingCalendarEvent}
+        onCalendarFormChange={(updater) => setCalendarForm(updater)}
+        onCreateCalendarEvent={handleCreateCalendarEvent}
+        onEditCalendarEvent={handleEditCalendarEvent}
+        onCancelEditCalendarEvent={handleCancelEditCalendarEvent}
       />
 
       <FinanceSection

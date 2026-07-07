@@ -143,6 +143,85 @@ export interface UpdateMyProfilePayload {
   password?: string;
 }
 
+export type CalendarEventType = 'partido' | 'entreno' | 'entrega' | 'otro';
+export type CalendarFrequency = 'diaria' | 'semanal' | 'mensual';
+export type AttendanceStatus = 'asistira' | 'no_asistira' | 'pendiente' | 'tarde';
+
+export interface CalendarAttendanceCounts {
+  asistira: number;
+  no_asistira: number;
+  pendiente: number;
+  tarde: number;
+  responded: number;
+}
+
+export interface CalendarAttendingPlayer {
+  jugador_id: number;
+  full_name: string;
+  username: string;
+  jersey_number: number | null;
+  estado_asistencia: AttendanceStatus;
+  comentario: string | null;
+  respondido_en: string | null;
+}
+
+export interface CalendarAttendanceResponse {
+  estado_asistencia: AttendanceStatus;
+  comentario: string | null;
+  respondido_en: string | null;
+}
+
+export interface CalendarEventInstance {
+  id: number;
+  event_id: number;
+  fecha_hora_inicio: string;
+  fecha_hora_fin: string;
+  requiere_asistencia: boolean;
+  estado_instancia: 'programado' | 'cancelado' | 'completado';
+  lugar: string | null;
+  notas: string | null;
+  attendance_counts: CalendarAttendanceCounts;
+  attending_players: CalendarAttendingPlayer[];
+  my_response?: CalendarAttendanceResponse | null;
+}
+
+export interface CalendarEvent {
+  id: number;
+  titulo: string;
+  descripcion: string | null;
+  tipo_evento: CalendarEventType;
+  es_repetitivo: boolean;
+  frecuencia_repeticion: CalendarFrequency | null;
+  fecha_inicio_serie: string;
+  fecha_fin_serie: string | null;
+  creado_en: string;
+  actualizado_en: string;
+  instances: CalendarEventInstance[];
+}
+
+export interface CreateCalendarEventPayload {
+  titulo: string;
+  descripcion?: string;
+  tipoEvento: CalendarEventType;
+  esRepetitivo: boolean;
+  frecuenciaRepeticion?: CalendarFrequency | null;
+  fechaHoraInicio: string;
+  fechaHoraFin: string;
+  fechaFinSerie?: string | null;
+  requiereAsistencia?: boolean;
+  lugar?: string | null;
+  notas?: string | null;
+}
+
+export type UpdateCalendarEventPayload = CreateCalendarEventPayload & {
+  estadoInstancia?: 'programado' | 'cancelado' | 'completado';
+};
+
+export interface CalendarAttendancePayload {
+  estadoAsistencia: AttendanceStatus;
+  comentario?: string;
+}
+
 export interface PlayerStatsResponse {
   summary: PlayerSummary;
   history: PlayerHistoryItem[];

@@ -1,5 +1,9 @@
 import {
   AdminUserItem,
+  CalendarAttendancePayload,
+  CalendarEvent,
+  CreateCalendarEventPayload,
+  UpdateCalendarEventPayload,
   FinanceCategory,
   FinanceDebt,
   FinanceDebtPayment,
@@ -52,6 +56,26 @@ function toDateInput(value: unknown): string {
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const day = String(date.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function toDateTimeInput(value: unknown): string {
+  if (typeof value !== 'string' && !(value instanceof Date)) {
+    return '';
+  }
+
+  const normalizedValue = typeof value === 'string' ? value.replace(' ', 'T') : value;
+  const date = normalizedValue instanceof Date ? normalizedValue : new Date(normalizedValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 function normalizePlayer(player: PlayerItem): PlayerItem {
@@ -266,6 +290,45 @@ function normalizeFinanceDebtPayment(payment: FinanceDebtPayment): FinanceDebtPa
   };
 }
 
+function normalizeCalendarEvent(event: CalendarEvent): CalendarEvent {
+  return {
+    ...event,
+    id: toNumber(event.id),
+    es_repetitivo: Boolean(event.es_repetitivo),
+    fecha_inicio_serie: toDateInput(event.fecha_inicio_serie),
+    fecha_fin_serie: event.fecha_fin_serie ? toDateInput(event.fecha_fin_serie) : null,
+    creado_en: toDateTimeInput(event.creado_en),
+    actualizado_en: toDateTimeInput(event.actualizado_en),
+    instances: (event.instances ?? []).map((instance) => ({
+      ...instance,
+      id: toNumber(instance.id),
+      event_id: toNumber(instance.event_id),
+      fecha_hora_inicio: toDateTimeInput(instance.fecha_hora_inicio),
+      fecha_hora_fin: toDateTimeInput(instance.fecha_hora_fin),
+      requiere_asistencia: Boolean(instance.requiere_asistencia),
+      attendance_counts: {
+        asistira: toNumber(instance.attendance_counts?.asistira, 0),
+        no_asistira: toNumber(instance.attendance_counts?.no_asistira, 0),
+        pendiente: toNumber(instance.attendance_counts?.pendiente, 0),
+        tarde: toNumber(instance.attendance_counts?.tarde, 0),
+        responded: toNumber(instance.attendance_counts?.responded, 0)
+      },
+      attending_players: (instance.attending_players ?? []).map((player) => ({
+        ...player,
+        jugador_id: toNumber(player.jugador_id),
+        jersey_number: player.jersey_number === null ? null : toNumber(player.jersey_number)
+      })),
+      my_response: instance.my_response
+        ? {
+            estado_asistencia: instance.my_response.estado_asistencia,
+            comentario: instance.my_response.comentario,
+            respondido_en: instance.my_response.respondido_en ? toDateTimeInput(instance.my_response.respondido_en) : null
+          }
+        : instance.my_response ?? null
+    }))
+  };
+}
+
 function normalizeFinanceOverview(overview: FinanceOverview): FinanceOverview {
   return {
     totalIncome: toNumber(overview.totalIncome, 0),
@@ -368,6 +431,43 @@ export const api = {
       matches: response.matches.map(normalizeMatch)
     };
   },
+
+  getCalendar: async (token: string) => {
+    const response = await request<{ events: CalendarEvent[] }>('/calendar', {}, token);
+    return {
+      events: response.events.map(normalizeCalendarEvent)
+    };
+  },
+
+  createCalendarEvent: (token: string, payload: CreateCalendarEventPayload) =>
+    request<{ message: string; eventId: number; instancesCreated: number }>(
+      '/calendar',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
+
+  updateCalendarEvent: (token: string, instanceId: number, payload: UpdateCalendarEventPayload) =>
+    request<{ message: string }>(
+      `/calendar/instances/${instanceId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
+
+  saveCalendarAttendance: (token: string, instanceId: number, payload: CalendarAttendancePayload) =>
+    request<{ message: string }>(
+      `/calendar/instances/${instanceId}/attendance`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      },
+      token
+    ),
 
   createMatch: (
     token: string,

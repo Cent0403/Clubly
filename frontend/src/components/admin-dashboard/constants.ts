@@ -1,5 +1,5 @@
 import { RatingItem } from '../../types';
-import { AdminSection, EditUserFormState, EventFieldKey, MatchFormState, UserFormState } from './types';
+import { AdminSection, CalendarEventFormState, EditUserFormState, EventFieldKey, MatchFormState, UserFormState } from './types';
 
 export const EMPTY_MATCH_FORM: MatchFormState = {
   matchDate: '',
@@ -25,6 +25,20 @@ export const EMPTY_EDIT_USER_FORM: EditUserFormState = {
   role: 'PLAYER',
   jerseyNumber: '',
   position: ''
+};
+
+export const EMPTY_CALENDAR_EVENT_FORM: CalendarEventFormState = {
+  titulo: '',
+  descripcion: '',
+  tipoEvento: 'entreno',
+  esRepetitivo: false,
+  frecuenciaRepeticion: 'semanal',
+  fechaHoraInicio: '',
+  fechaHoraFin: '',
+  fechaFinSerie: '',
+  requiereAsistencia: true,
+  lugar: '',
+  notas: ''
 };
 
 export const USER_POSITIONS: Array<UserFormState['position']> = [
@@ -126,6 +140,7 @@ export const ADMIN_SECTIONS: AdminSection[] = [
   { key: 'personalización', label: 'Personalización' },
   { key: 'usuarios', label: 'Usuarios' },
   { key: 'partidos', label: 'Partidos' },
+  { key: 'calendario', label: 'Calendario' },
   { key: 'finanzas', label: 'Finanzas' },
   { key: 'top', label: 'Top' }
 ];
