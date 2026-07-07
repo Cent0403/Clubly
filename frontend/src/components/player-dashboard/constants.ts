@@ -5,8 +5,7 @@ export const PLAYER_SECTIONS: PlayerSection[] = [
   { key: 'rendimiento', label: 'Rendimiento' },
   { key: 'historial', label: 'Historial' },
   { key: 'calendario', label: 'Calendario' },
-  { key: 'finanzas', label: 'Finanzas' },
-  { key: 'top', label: 'Top' }
+  { key: 'finanzas', label: 'Finanzas' }
 ];
 
 export const POSITION_LABELS: Record<string, string> = {
