@@ -66,17 +66,17 @@ function matchQualifies(category: string, match: PlayerHistoryItem): boolean {
     case 'Recepción sin errores':
       return match.reception_zero === 0;
     case 'Bloqueo +3':
-      return match.block_kill + match.block_touch >= 3;
+      return match.block_kill >= 3;
     case 'Remates +10':
       return match.attack_points >= 10;
     case 'Saque +5':
       return match.serve_aces >= 5;
     case 'Defensas +10':
       return match.defense_successes + match.block_kill + match.block_touch >= 10;
-    case 'Armado <10 errores':
-      return match.set_errors < 10;
+    case 'Armado +25 asistencias':
+      return match.set_assists > 25;
     case 'Racha de partidos asistidos':
-      return match.set_assists > 0;
+      return match.set_assists >= 1;
     default:
       return false;
   }
@@ -112,8 +112,8 @@ function buildStreak(category: string, history: PlayerHistoryItem[]): MedalGroup
         ? 'Partidos consecutivos con 5 o más aces de saque.'
         : category === 'Defensas +10'
         ? 'Partidos consecutivos con 10 o más acciones defensivas.'
-        : category === 'Armado <10 errores'
-        ? 'Partidos consecutivos con menos de 10 errores de armado.'
+        : category === 'Armado +25 asistencias'
+        ? 'Partidos consecutivos con más de 25 asistencias de armado.'
         : 'Partidos consecutivos con al menos una asistencia de armado.',
     currentStreak,
     badges
