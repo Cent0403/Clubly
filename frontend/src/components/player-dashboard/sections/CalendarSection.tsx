@@ -18,6 +18,13 @@ function formatDateTime(value: string): string {
   }).format(date);
 }
 
+function buildSurveyUrl(instanceId: number): string {
+  const url = new URL(window.location.href);
+  url.searchParams.set('section', 'calendario');
+  url.searchParams.set('calendarInstanceId', String(instanceId));
+  return url.toString();
+}
+
 interface DraftState {
   estadoAsistencia: AttendanceStatus;
   comentario: string;
@@ -85,15 +92,35 @@ export function CalendarSection({
     });
   }, [events]);
 
-  async function handleShareSurvey(instanceId: number) {
+  async function handleShareSurvey(
+    eventTitle: string,
+    instanceId: number,
+    startAt: string,
+    endAt: string,
+    place: string | null
+  ) {
     try {
-      const url = new URL(window.location.href);
-      url.searchParams.set('section', 'calendario');
-      url.searchParams.set('calendarInstanceId', String(instanceId));
-      await navigator.clipboard.writeText(url.toString());
-      toast.success('Link de la encuesta copiado.');
+      const surveyUrl = buildSurveyUrl(instanceId);
+      const message = [
+        `Encuesta de asistencia: ${eventTitle}`,
+        `Horario: ${formatDateTime(startAt)} - ${formatDateTime(endAt)}`,
+        `Lugar: ${place || 'Sin lugar definido'}`,
+        '',
+        `Responde aqui: ${surveyUrl}`
+      ].join('\n');
+
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      const popup = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
+      if (!popup) {
+        await navigator.clipboard.writeText(message);
+        toast.success('Mensaje copiado. Pegalo en WhatsApp.');
+        return;
+      }
+
+      toast.success('Abriendo WhatsApp para compartir.');
     } catch {
-      toast.error('No se pudo copiar el link.');
+      toast.error('No se pudo compartir por WhatsApp.');
     }
   }
 
@@ -191,8 +218,20 @@ export function CalendarSection({
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Asistirán {instance.attending_players.length}</p>
-                    <button type="button" className="btn-muted px-3 py-1 text-xs" onClick={() => void handleShareSurvey(instance.id)}>
-                      Compartir link
+                    <button
+                      type="button"
+                      className="btn-muted px-3 py-1 text-xs"
+                      onClick={() =>
+                        void handleShareSurvey(
+                          activePreview.event.titulo,
+                          instance.id,
+                          instance.fecha_hora_inicio,
+                          instance.fecha_hora_fin,
+                          instance.lugar
+                        )
+                      }
+                    >
+                      Compartir por WhatsApp
                     </button>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
