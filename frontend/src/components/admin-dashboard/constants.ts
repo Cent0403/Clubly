@@ -37,8 +37,7 @@ export const EMPTY_CALENDAR_EVENT_FORM: CalendarEventFormState = {
   fechaHoraFin: '',
   fechaFinSerie: '',
   requiereAsistencia: true,
-  lugar: '',
-  notas: ''
+  lugar: ''
 };
 
 export const USER_POSITIONS: Array<UserFormState['position']> = [

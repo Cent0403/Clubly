@@ -951,8 +951,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
         fechaHoraFin,
         fechaFinSerie: calendarForm.esRepetitivo ? calendarForm.fechaFinSerie || null : null,
         requiereAsistencia: calendarForm.requiereAsistencia,
-        lugar: calendarForm.lugar.trim() || null,
-        notas: calendarForm.notas.trim() || null
+        lugar: calendarForm.lugar.trim() || null
       };
 
       if (editingCalendarInstanceId) {
@@ -995,8 +994,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       fechaHoraFin: instance.fecha_hora_fin,
       fechaFinSerie: event.fecha_fin_serie ?? '',
       requiereAsistencia: instance.requiere_asistencia,
-      lugar: instance.lugar ?? '',
-      notas: instance.notas ?? ''
+      lugar: instance.lugar ?? ''
     });
 
     toast(`Editando instancia #${instance.id}. Los datos de repetición quedan bloqueados en modo edición.`);

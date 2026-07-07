@@ -17,7 +17,6 @@ export interface CalendarEventFormState {
   fechaFinSerie: string;
   requiereAsistencia: boolean;
   lugar: string;
-  notas: string;
 }
 
 export interface MatchFormState {

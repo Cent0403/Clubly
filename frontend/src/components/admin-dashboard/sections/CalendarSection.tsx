@@ -207,13 +207,6 @@ export function CalendarSection({
             />
           </label>
 
-          <textarea
-            className="input min-h-24"
-            placeholder="Notas"
-            value={calendarForm.notas}
-            onChange={(event) => onCalendarFormChange((current) => ({ ...current, notas: event.target.value }))}
-          />
-
           <button className="btn-primary w-full" type="submit" disabled={savingCalendarEvent}>
             {savingCalendarEvent ? 'Guardando evento...' : isEditing ? 'Guardar cambios' : 'Crear evento'}
           </button>
