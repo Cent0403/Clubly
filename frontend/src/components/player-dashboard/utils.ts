@@ -1,4 +1,4 @@
-import { PlayerSummary } from '../../types';
+import { PlayerSummary, PlayerHistoryItem } from '../../types';
 import { POSITION_LABELS } from './constants';
 import { RadarMetric, SummaryCard } from './types';
 
