@@ -63,6 +63,16 @@ function toDateTimeInput(value: unknown): string {
     return '';
   }
 
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+
+    // Preserve wall-clock time from API responses and avoid timezone shifts.
+    const plainDateTimeMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
+    if (plainDateTimeMatch) {
+      return `${plainDateTimeMatch[1]}T${plainDateTimeMatch[2]}`;
+    }
+  }
+
   const normalizedValue = typeof value === 'string' ? value.replace(' ', 'T') : value;
   const date = normalizedValue instanceof Date ? normalizedValue : new Date(normalizedValue);
 
