@@ -1,4 +1,5 @@
-import { FormEvent } from 'react';
+import { FormEvent, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ProfileFormState } from '../types';
 
 interface ProfileModalProps {
@@ -18,13 +19,26 @@ export function ProfileModal({
   onSubmit,
   onProfileFormChange
 }: ProfileModalProps) {
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   if (!open) {
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
-      <div className="card w-full max-w-2xl">
+  const modalContent = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+      <div className="card w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Editar perfil</p>
@@ -35,46 +49,50 @@ export function ProfileModal({
           </button>
         </div>
 
-        <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={onSubmit}>
-          <div>
-            <label className="mb-1 block text-xs font-medium">Nombre completo</label>
-            <input
-              className="input"
-              value={profileForm.fullName}
-              onChange={(event) => onProfileFormChange((current) => ({ ...current, fullName: event.target.value }))}
-              placeholder="Tu nombre completo"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium">Nueva contrasena</label>
-            <input
-              className="input"
-              type="password"
-              value={profileForm.password}
-              onChange={(event) => onProfileFormChange((current) => ({ ...current, password: event.target.value }))}
-              placeholder="Dejar vacio para no cambiar"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium">Numero de camiseta</label>
-            <input
-              className="input"
-              type="number"
-              value={profileForm.jerseyNumber ?? ''}
-              onChange={(event) => onProfileFormChange((current) => ({ ...current, jerseyNumber: event.target.value ? parseInt(event.target.value, 10) : null }))}
-              placeholder="Numero de camiseta"
-            />
-          </div>
-          <div className="md:col-span-2 flex flex-wrap gap-2">
-            <button className="btn-primary" type="submit" disabled={savingProfile}>
-              {savingProfile ? 'Guardando perfil...' : 'Guardar cambios'}
-            </button>
-            <button className="btn-muted" type="button" onClick={onClose}>
-              Cancelar
-            </button>
-          </div>
-        </form>
+        <div className="mt-4">
+          <form className="grid gap-3 md:grid-cols-2" onSubmit={onSubmit}>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Nombre completo</label>
+              <input
+                className="input"
+                value={profileForm.fullName}
+                onChange={(event) => onProfileFormChange((current) => ({ ...current, fullName: event.target.value }))}
+                placeholder="Tu nombre completo"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Nueva contrasena</label>
+              <input
+                className="input"
+                type="password"
+                value={profileForm.password}
+                onChange={(event) => onProfileFormChange((current) => ({ ...current, password: event.target.value }))}
+                placeholder="Dejar vacio para no cambiar"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium">Numero de camiseta</label>
+              <input
+                className="input"
+                type="number"
+                value={profileForm.jerseyNumber ?? ''}
+                onChange={(event) => onProfileFormChange((current) => ({ ...current, jerseyNumber: event.target.value ? parseInt(event.target.value, 10) : null }))}
+                placeholder="Numero de camiseta"
+              />
+            </div>
+            <div className="md:col-span-2 flex flex-wrap gap-2">
+              <button className="btn-primary" type="submit" disabled={savingProfile}>
+                {savingProfile ? 'Guardando perfil...' : 'Guardar cambios'}
+              </button>
+              <button className="btn-muted" type="button" onClick={onClose}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

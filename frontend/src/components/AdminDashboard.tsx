@@ -33,7 +33,7 @@ import { UsersSection } from './admin-dashboard/sections/UsersSection';
 import { AdminDashboardProps, AdminSectionKey, CalendarEventFormState, EditUserFormState, MatchFormState, UserFormState } from './admin-dashboard/types';
 import { mapMatchRatingRowToRating } from './admin-dashboard/utils';
 
-export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: AdminDashboardProps) {
+export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onLogout }: AdminDashboardProps) {
   const [activeSection, setActiveSection] = useState<AdminSectionKey>(() => {
     const sectionParam = new URLSearchParams(window.location.search).get('section');
     return sectionParam === 'calendario' ? 'calendario' : 'dashboard';
@@ -1060,21 +1060,20 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
   }
 
   return (
-    <div className="space-y-6">
-      <SectionTabs activeSection={activeSection} onSelectSection={setActiveSection} />
-
+    <div className="space-y-6 md:ml-72">
       <DashboardSection active={activeSection === 'dashboard'} globalStats={globalStats} />
+      <SectionTabs activeSection={activeSection} onSelectSection={setActiveSection} teamSettings={teamSettings} onLogout={onLogout} />
+      <div className="space-y-6">
+        <TeamSettingsSection
+          active={activeSection === 'personalización'}
+          settingsForm={settingsForm}
+          savingSettings={savingSettings}
+          onSettingsFormChange={(updater) => setSettingsForm(updater)}
+          onSaveTeamSettings={handleSaveTeamSettings}
+          onTeamLogoFileChange={handleTeamLogoFileChange}
+        />
 
-      <TeamSettingsSection
-        active={activeSection === 'personalización'}
-        settingsForm={settingsForm}
-        savingSettings={savingSettings}
-        onSettingsFormChange={(updater) => setSettingsForm(updater)}
-        onSaveTeamSettings={handleSaveTeamSettings}
-        onTeamLogoFileChange={handleTeamLogoFileChange}
-      />
-
-      <UsersSection
+        <UsersSection
         active={activeSection === 'usuarios'}
         userForm={userForm}
         creatingUser={creatingUser}
@@ -1218,6 +1217,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated }: A
       />
 
       <TopSection active={activeSection === 'top'} topPlayers={topPlayers} />
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ export interface AdminDashboardProps {
   token: string;
   teamSettings: TeamSettings;
   onTeamSettingsUpdated: (settings: TeamSettings) => void;
+  onLogout: () => void;
 }
 
 export interface CalendarEventFormState {

@@ -3,6 +3,7 @@ import { FinanceDebt, FinanceDebtPayment, PlayerFinanceDebtSummary } from '../..
 
 export interface PlayerDashboardProps {
   token: string;
+  onLogout: () => void;
 }
 
 export interface ProfileFormState {

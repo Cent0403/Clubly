@@ -14,7 +14,7 @@ import { TopSection } from './player-dashboard/sections/TopSection';
 import { PlayerDashboardProps, PlayerSectionKey, ProfileFormState } from './player-dashboard/types';
 import { buildRadarMetrics, buildSummaryCards, getBestFundament, getWorstFundament } from './player-dashboard/utils';
 
-export function PlayerDashboard({ token }: PlayerDashboardProps) {
+export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
   const [activeSection, setActiveSection] = useState<PlayerSectionKey>(() => {
     const sectionParam = new URLSearchParams(window.location.search).get('section');
     return sectionParam === 'calendario' ? 'calendario' : 'resumen';
@@ -168,54 +168,56 @@ export function PlayerDashboard({ token }: PlayerDashboardProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <SectionTabs activeSection={activeSection} onSelectSection={setActiveSection} />
+    <div className="space-y-6 md:ml-72">
+      <SectionTabs activeSection={activeSection} onSelectSection={setActiveSection} profile={profile} onLogout={onLogout} />
 
-      <SummarySection
-        active={activeSection === 'resumen'}
-        profile={profile}
-        summary={summary}
-        globalStats={globalStats}
-        onOpenProfileModal={() => {
-          setProfileForm((current) => ({
-            ...current,
-            fullName: profile?.full_name ?? current.fullName,
-            password: '',
-            jerseyNumber: profile?.jersey_number ?? current.jerseyNumber
-          }));
-          setIsProfileModalOpen(true);
-        }}
-      />
+      <div className="space-y-6">
+        <SummarySection
+          active={activeSection === 'resumen'}
+          profile={profile}
+          summary={summary}
+          globalStats={globalStats}
+          onOpenProfileModal={() => {
+            setProfileForm((current) => ({
+              ...current,
+              fullName: profile?.full_name ?? current.fullName,
+              password: '',
+              jerseyNumber: profile?.jersey_number ?? current.jerseyNumber
+            }));
+            setIsProfileModalOpen(true);
+          }}
+        />
 
-      <SummaryCardsSection active={activeSection === 'resumen'} summaryCards={summaryCards} />
+        <SummaryCardsSection active={activeSection === 'resumen'} summaryCards={summaryCards} />
 
-      <PerformanceSection active={activeSection === 'rendimiento'} summary={summary} radarMetrics={radarMetrics} history={history} />
+        <PerformanceSection active={activeSection === 'rendimiento'} summary={summary} radarMetrics={radarMetrics} history={history} />
 
-      <HistorySection
-        active={activeSection === 'historial'}
-        history={history}
-        selectedMatch={selectedMatch}
-        matchRatings={matchRatings}
-        matchRatingsLoading={matchRatingsLoading}
-        onSelectMatch={setSelectedMatch}
-      />
+        <HistorySection
+          active={activeSection === 'historial'}
+          history={history}
+          selectedMatch={selectedMatch}
+          matchRatings={matchRatings}
+          matchRatingsLoading={matchRatingsLoading}
+          onSelectMatch={setSelectedMatch}
+        />
 
-      <CalendarSection
-        active={activeSection === 'calendario'}
-        events={calendarEvents}
-        savingAttendanceInstanceId={savingAttendanceInstanceId}
-        onSubmitAttendance={handleSubmitAttendance}
-      />
+        <CalendarSection
+          active={activeSection === 'calendario'}
+          events={calendarEvents}
+          savingAttendanceInstanceId={savingAttendanceInstanceId}
+          onSubmitAttendance={handleSubmitAttendance}
+        />
 
-      <FinanceSection
-        active={activeSection === 'finanzas'}
-        summary={financeSummary}
-        debts={financeDebts}
-        upcomingDebts={upcomingDebts}
-        payments={financePayments}
-      />
+        <FinanceSection
+          active={activeSection === 'finanzas'}
+          summary={financeSummary}
+          debts={financeDebts}
+          upcomingDebts={upcomingDebts}
+          payments={financePayments}
+        />
 
-      <TopSection active={activeSection === 'top'} topPlayers={topPlayers} />
+        <TopSection active={activeSection === 'top'} topPlayers={topPlayers} />
+      </div>
 
       <ProfileModal
         open={isProfileModalOpen}
