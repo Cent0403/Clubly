@@ -157,17 +157,17 @@ export function CalendarSection({
                     <button
                       key={instance.id}
                       type="button"
-                      className=" p-3 flex w-full items-center justify-between gap-3 text-left"
+                      className="p-3 flex w-full items-center justify-between gap-3 overflow-hidden text-left"
                       onClick={() => setActivePreview({ event, instanceId: instance.id })}
                     >
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
+                        <p className="max-w-full whitespace-normal break-all font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                           {instance.requiere_asistencia ? `${instance.attending_players.length} asistencia(s) · ` : ''}
                           {instance.lugar || 'Sin lugar'}
                         </p>
                       </div>
-                      <span className="btn-muted">
+                      <span className="btn-primary">
                         Ver
                       </span>
                     </button>
@@ -202,15 +202,15 @@ export function CalendarSection({
           return (
             <div className="space-y-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                <div className="card p-3">
+                <div className="card p-3 min-w-0">
                   <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Horario</p>
-                  <p className="mt-1 font-semibold text-slate-900 dark:text-white">
+                  <p className="mt-1 font-semibold text-slate-900 dark:text-white break-words whitespace-normal">
                     {formatDateTime(instance.fecha_hora_inicio)} - {formatDateTime(instance.fecha_hora_fin)}
                   </p>
                 </div>
-                <div className="card p-3">
+                <div className="card p-3 min-w-0">
                   <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Lugar</p>
-                  <p className="mt-1 font-semibold text-slate-900 dark:text-white">{instance.lugar || 'Sin lugar definido'}</p>
+                  <p className="mt-1 font-semibold text-slate-900 dark:text-white break-words whitespace-normal">{instance.lugar || 'Sin lugar definido'}</p>
                 </div>
               </div>
 

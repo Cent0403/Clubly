@@ -1,3 +1,4 @@
+import type { ComponentType, SVGProps } from 'react';
 import { CalendarEvent, CalendarEventType, CalendarFrequency, PlayerPosition, RatingItem, Role, TeamSettings } from '../../types';
 
 export interface AdminDashboardProps {
@@ -51,6 +52,7 @@ export type EventFieldKey = keyof Omit<RatingItem, 'playerId' | 'minutesPlayed'>
 export interface AdminSection {
   key: 'dashboard' | 'personalización' | 'usuarios' | 'partidos' | 'calendario' | 'finanzas' | 'top';
   label: string;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
 export type AdminSectionKey = AdminSection['key'];

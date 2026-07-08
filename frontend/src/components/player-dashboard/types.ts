@@ -1,3 +1,4 @@
+import type { ComponentType, SVGProps } from 'react';
 import { GlobalStats, MatchRatingRow, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../../types';
 import { FinanceDebt, FinanceDebtPayment, PlayerFinanceDebtSummary } from '../../types';
 
@@ -15,6 +16,7 @@ export interface ProfileFormState {
 export interface PlayerSection {
   key: 'resumen' | 'rendimiento' | 'historial' | 'calendario' | 'finanzas' | 'top' | 'perfil' ;
   label: string;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
 export type PlayerSectionKey = PlayerSection['key'];

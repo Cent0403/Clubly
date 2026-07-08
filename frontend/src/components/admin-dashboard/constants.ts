@@ -1,5 +1,6 @@
 import { RatingItem } from '../../types';
 import { AdminSection, CalendarEventFormState, EditUserFormState, EventFieldKey, MatchFormState, UserFormState } from './types';
+import { CalendarIcon, TopIcon, DashboardIcon, FinancesIcon, MatchesIcon, PersonalizationIcon, UsersIcon } from '../icons/SidebarIcons';
 
 export const EMPTY_MATCH_FORM: MatchFormState = {
   matchDate: '',
@@ -135,13 +136,13 @@ export const TOP_RANKINGS = [
 ] as const;
 
 export const ADMIN_SECTIONS: AdminSection[] = [
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'personalización', label: 'Personalización' },
-  { key: 'usuarios', label: 'Usuarios' },
-  { key: 'partidos', label: 'Partidos' },
-  { key: 'calendario', label: 'Calendario' },
-  { key: 'finanzas', label: 'Finanzas' },
-  { key: 'top', label: 'Top' }
+  { key: 'dashboard', label: 'Dashboard', icon: DashboardIcon },
+  { key: 'personalización', label: 'Personalización', icon: PersonalizationIcon },
+  { key: 'usuarios', label: 'Usuarios', icon: UsersIcon },
+  { key: 'partidos', label: 'Partidos', icon: MatchesIcon },
+  { key: 'calendario', label: 'Calendario', icon: CalendarIcon },
+  { key: 'finanzas', label: 'Finanzas', icon: FinancesIcon },
+  { key: 'top', label: 'Top', icon: TopIcon }
 ];
 
 export function createDefaultRating(playerId: number): RatingItem {

@@ -115,12 +115,14 @@ export function CalendarSection({
             value={calendarForm.titulo}
             onChange={(event) => onCalendarFormChange((current) => ({ ...current, titulo: event.target.value }))}
             required
+            maxLength={80}
           />
           <textarea
             className="input min-h-24"
             placeholder="Descripcion"
             value={calendarForm.descripcion}
             onChange={(event) => onCalendarFormChange((current) => ({ ...current, descripcion: event.target.value }))}
+            maxLength={500}
           />
           <div className="grid gap-3 md:grid-cols-2">
             <select
@@ -143,6 +145,7 @@ export function CalendarSection({
               placeholder="Lugar"
               value={calendarForm.lugar}
               onChange={(event) => onCalendarFormChange((current) => ({ ...current, lugar: event.target.value }))}
+              maxLength={100}
             />
           </div>
 
@@ -262,11 +265,11 @@ export function CalendarSection({
                 <button
                   key={instance.id}
                   type="button"
-                  className=" p-3 flex w-full items-center justify-between gap-3 text-left"
+                  className="p-3 flex min-w-0 w-full items-center justify-between gap-3 overflow-hidden text-left"
                   onClick={() => setActivePreview({ event, instanceId: instance.id })}
                 >
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
+                  <div className="min-w-0 overflow-hidden">
+                    <p className="max-w-full whitespace-normal break-all font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {instance.requiere_asistencia ? `${instance.attending_players.length} asistencia(s) · ` : ''}
                       {instance.lugar || 'Sin lugar'}
@@ -324,15 +327,15 @@ export function CalendarSection({
           return (
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="card p-3">
+                <div className="card p-3 min-w-0">
                   <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Hora</p>
-                  <p className="mt-1 font-semibold text-slate-900 dark:text-white">
+                  <p className="mt-1 font-semibold text-slate-900 dark:text-white break-words whitespace-normal">
                     {formatDateTime(instance.fecha_hora_inicio)} - {formatDateTime(instance.fecha_hora_fin)}
                   </p>
                 </div>
-                <div className="card p-3">
+                <div className="card p-3 min-w-0">
                   <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Lugar</p>
-                  <p className="mt-1 font-semibold text-slate-900 dark:text-white">{instance.lugar || 'Sin lugar definido'}</p>
+                  <p className="mt-1 font-semibold text-slate-900 dark:text-white break-words whitespace-normal">{instance.lugar || 'Sin lugar definido'}</p>
                 </div>
               </div>
 

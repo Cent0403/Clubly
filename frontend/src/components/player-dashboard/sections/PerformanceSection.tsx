@@ -1,7 +1,7 @@
 import { MetricBars } from '../../charts/MetricBars';
 import { RadarChart } from '../../charts/RadarChart';
 import { PerformanceSectionProps } from '../types';
-import { MedalsPanel } from '../MedalsPanel';
+import { MedalsPanel } from '../../medals/MedalsPanel';
 
 export function PerformanceSection({ active, summary, radarMetrics, history }: PerformanceSectionProps) {
   return (

@@ -270,12 +270,12 @@ export function MonthCalendar({ events, actionPanel, selectedDayPanel, emptyMess
               selectedDayEvents.map(({ event, instance }) => (
                 <div
                   key={instance.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900/50"
+                  className="flex min-w-0 items-center justify-between gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900/50"
                 >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                  <div className="min-w-0 overflow-hidden">
+                    <div className="flex min-w-0 items-center gap-2">
                       <span className={`h-2.5 w-2.5 rounded-full ${getEventTypeColor(event.tipo_evento)}`} />
-                      <p className="truncate font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
+                      <p className="max-w-full whitespace-normal break-all font-semibold text-slate-900 dark:text-white">{event.titulo}</p>
                     </div>
                     <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                       {formatDateTime(instance.fecha_hora_inicio)}

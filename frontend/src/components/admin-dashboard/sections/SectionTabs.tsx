@@ -51,15 +51,15 @@ export function SectionTabs({ activeSection, onSelectSection, teamSettings, onLo
             <nav className="sidebar-nav">
               {ADMIN_SECTIONS.map((section) => {
                 const isActive = activeSection === section.key;
-
                 return (
                   <button
                     key={section.key}
                     type="button"
-                    className={`sidebar-item ${isActive ? 'sidebar-item-active' : 'sidebar-item-inactive'}`}
+                    className={`sidebar-item flex items-center gap-2 ${isActive ? 'sidebar-item-active' : 'sidebar-item-inactive'}`}
                     onClick={() => onSelectSection(section.key)}
                     aria-current={isActive ? 'page' : undefined}
                   >
+                    <section.icon className="h-5 w-5" />
                     {section.label}
                   </button>
                 );
@@ -108,12 +108,13 @@ export function SectionTabs({ activeSection, onSelectSection, teamSettings, onLo
                   <button
                     key={section.key}
                     type="button"
-                    className={`w-full text-left my-1 ${isActive ? 'btn-primary' : 'btn-muted'}`}
+                    className={`w-full text-left my-1 flex items-center gap-2 ${isActive ? 'btn-primary' : 'btn-muted'}`}
                     onClick={() => {
                       onSelectSection(section.key);
                       setMobileOpen(false);
                     }}
                   >
+                    <section.icon className="h-5 w-5" />
                     {section.label}
                   </button>
                 );

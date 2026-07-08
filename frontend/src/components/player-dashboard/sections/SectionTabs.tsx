@@ -29,28 +29,28 @@ export function SectionTabs({ activeSection, onSelectSection, profile, onLogout 
           Menu
         </button>
       </div>
-
-      {/* horizontal pill menu removed in favor of drawer menu on mobile */}
-
       <aside className="sidebar-aside">
         <div className="sidebar-scroll">
           <div className="sidebar-top">
             <div className="sidebar-card flex items-center gap-3">
-              <p className="sidebar-profile-name">{profile?.full_name ?? 'Jugador'}</p>
-              <p className="sidebar-profile-position">{formatPosition(profile?.position)}</p>
+              <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">{profile?.full_name ? profile.full_name.charAt(0) : 'J'}</div>
+              <div className="min-w-0">
+                <p className="sidebar-profile-name">{profile?.full_name ?? 'Jugador'}</p>
+                <p className="sidebar-profile-position">{formatPosition(profile?.position)}</p>
+              </div>
             </div>
             <nav className="sidebar-nav">
               {PLAYER_SECTIONS.map((section) => {
                 const isActive = activeSection === section.key;
-
                 return (
                   <button
                     key={section.key}
                     type="button"
-                    className={`sidebar-item ${isActive ? 'sidebar-item-active' : 'sidebar-item-inactive'}`}
+                    className={`sidebar-item flex items-center gap-2 ${isActive ? 'sidebar-item-active' : 'sidebar-item-inactive'}`}
                     onClick={() => onSelectSection(section.key)}
                     aria-current={isActive ? 'page' : undefined}
                   >
+                    <section.icon className="h-5 w-5" />
                     {section.label}
                   </button>
                 );
@@ -77,7 +77,7 @@ export function SectionTabs({ activeSection, onSelectSection, profile, onLogout 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">{profile?.full_name ? profile.full_name.charAt(0) : 'J'}</div>
-                <div>
+                <div className="min-w-0">
                   <p className="sidebar-profile-name">{profile?.full_name ?? 'Jugador'}</p>
                   <p className="sidebar-profile-position">{formatPosition(profile?.position)}</p>
                 </div>
@@ -95,13 +95,16 @@ export function SectionTabs({ activeSection, onSelectSection, profile, onLogout 
                   <button
                     key={section.key}
                     type="button"
-                    className={`w-full text-left my-1 ${isActive ? 'btn-primary' : 'btn-muted'}`}
+                    className={`w-full text-left my-1 flex items-center gap-2 ${isActive ? 'btn-primary' : 'btn-muted'}`}
                     onClick={() => {
                       onSelectSection(section.key);
                       setMobileOpen(false);
                     }}
                   >
-                    {section.label}
+                    <span className="flex items-center gap-2">
+                      <section.icon className="h-5 w-5" />
+                      {section.label}
+                    </span>
                   </button>
                 );
               })}

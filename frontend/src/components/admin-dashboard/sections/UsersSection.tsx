@@ -4,7 +4,7 @@ import { MetricBars } from '../../charts/MetricBars';
 import { USER_POSITIONS } from '../constants';
 import { EditUserFormState, UserFormState } from '../types';
 import { formatPosition, formatPositionOption, formatRole } from '../utils';
-import { MedalsPanel } from '../../player-dashboard/MedalsPanel';
+import { MedalsPanel } from '../../medals/MedalsPanel';
 
 interface UsersSectionProps {
   active: boolean;

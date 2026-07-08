@@ -1,5 +1,5 @@
 import { PlayerHistoryItem } from '../../types';
-import { buildPlayerMedalGroups } from './utils';
+import { buildPlayerMedalGroups } from '../player-dashboard/utils';
 
 interface MedalsPanelProps {
   history: PlayerHistoryItem[];

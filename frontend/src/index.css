@@ -175,7 +175,7 @@ html.dark .btn-muted {
 }
 
 .sidebar-top {
-  @apply space-y-6 overflow-y-auto pb-6;
+  @apply space-y-2 overflow-y-auto pb-6;
 }
 
 .sidebar-card {

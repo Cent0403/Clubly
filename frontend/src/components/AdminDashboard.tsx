@@ -924,7 +924,35 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     const fechaHoraFin = calendarForm.fechaHoraFin.trim();
 
     if (!titulo || !fechaHoraInicio || !fechaHoraFin) {
-      toast.error('Completa titulo, inicio y fin para crear el evento.');
+      toast.error('Completa título, inicio y fin para crear el evento.');
+      return;
+    }
+
+    if (titulo.length > 80) {
+      toast.error('El título no puede superar los 80 caracteres.');
+      return;
+    }
+
+    if (calendarForm.descripcion.trim().length > 500) {
+      toast.error('La descripción no puede superar los 500 caracteres.');
+      return;
+    }
+
+    if (calendarForm.lugar.trim().length > 100) {
+      toast.error('El lugar no puede superar los 100 caracteres.');
+      return;
+    }
+
+    const startDate = new Date(fechaHoraInicio);
+    const endDate = new Date(fechaHoraFin);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      toast.error('Las fechas de inicio y fin deben ser válidas.');
+      return;
+    }
+
+    if (endDate <= startDate) {
+      toast.error('La fecha de fin debe ser posterior a la fecha de inicio.');
       return;
     }
 
@@ -936,6 +964,20 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     if (calendarForm.esRepetitivo && !calendarForm.frecuenciaRepeticion) {
       toast.error('Selecciona una frecuencia para el evento repetitivo.');
       return;
+    }
+
+    if (calendarForm.esRepetitivo) {
+      const endRepeatDate = new Date(calendarForm.fechaFinSerie);
+
+      if (Number.isNaN(endRepeatDate.getTime())) {
+        toast.error('La fecha fin de serie no es válida.');
+        return;
+      }
+
+      if (endRepeatDate <= startDate) {
+        toast.error('La fecha fin de serie debe ser posterior a la fecha de inicio.');
+        return;
+      }
     }
 
     setSavingCalendarEvent(true);

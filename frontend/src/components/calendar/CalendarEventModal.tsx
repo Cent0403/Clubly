@@ -47,21 +47,21 @@ export function CalendarEventModal({
     : 'fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm';
 
   const modalClassName = fullScreen
-    ? 'card h-full w-full overflow-y-auto rounded-none'
+    ? 'card h-full w-full overflow-x-hidden overflow-y-auto rounded-none'
     : fullScreenOnMobile
-    ? 'card h-full w-full overflow-y-auto rounded-none sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-3xl'
-    : 'card w-full max-w-2xl max-h-[90vh] overflow-y-auto';
+    ? 'card h-full w-full overflow-x-hidden overflow-y-auto rounded-none sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-3xl'
+    : 'card w-full max-w-2xl max-h-[90vh] overflow-x-hidden overflow-y-auto';
 
   const modalContent = (
     <div className={containerClassName}>
       <div className={modalClassName}>
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Calendario</p>
-            <h3 className="mt-1 text-xl font-bold">{title}</h3>
+            <h3 className="mt-1 text-xl font-bold max-w-full whitespace-normal break-all overflow-hidden">{title}</h3>
             {subtitle ? <p className="mt-1 whitespace-pre-line text-sm text-slate-600 dark:text-slate-300">{subtitle}</p> : null}
           </div>
-          <button className="btn-muted" type="button" onClick={onClose}>
+          <button className="btn-muted shrink-0" type="button" onClick={onClose}>
             Cerrar
           </button>
         </div>
