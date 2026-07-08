@@ -38,11 +38,11 @@ export function LoginForm({ onSubmit, loading, teamSettings }: LoginFormProps) {
         
       </div>
 
-      <section className="card p-8">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Iniciar sesion</h2>
+      <section className="card p-8 text-center">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Iniciar sesion</h2>
         <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="mb-1 block text-sm font-medium">Usuario</label>
+            <label className="mb-1 block text-sm text-left font-medium">Usuario</label>
             <input
               className="input"
               placeholder="Tu usuario"
@@ -52,7 +52,7 @@ export function LoginForm({ onSubmit, loading, teamSettings }: LoginFormProps) {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">Contrasena</label>
+            <label className="mb-1 block text-sm text-left font-medium">Contrasena</label>
             <input
               className="input"
               type="password"

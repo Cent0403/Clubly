@@ -113,7 +113,7 @@ function App() {
       {loadingSession ? (
         <div className="p-2 text-sm text-slate-600 dark:text-slate-300">Validando sesion...</div>
       ) : (
-        <div className="w-full"> {/* Asegura que ocupe el ancho correcto */}
+        <div className="w-full"> 
           {!user || !token ? (
             <LoginForm onSubmit={handleLogin} loading={loggingIn} teamSettings={teamSettings} />
           ) : user.role === 'ADMIN' ? (
