@@ -42,7 +42,7 @@ export function DashboardSection({ active, globalStats }: DashboardSectionProps)
           <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">{ranking.title}</h3>
           <ol className="mt-3 space-y-2 text-sm">
             {(globalStats?.topPlayers[ranking.key] ?? []).map((item) => (
-              <li key={item.full_name} className="flex justify-between rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-800">
+              <li key={item.full_name} className="card p-2 flex justify-between">
                 <span>{item.full_name}</span>
                 <span className="font-semibold">{item.score.toFixed(2)}%</span>
               </li>

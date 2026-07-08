@@ -17,11 +17,11 @@ export function SummarySection({ active, globalStats }: SummarySectionProps) {
 
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {TOP_RANKINGS.map((ranking) => (
-            <article key={ranking.key} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+              <article key={ranking.key} className="card p-4">
               <h4 className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">{ranking.title}</h4>
               <ol className="mt-3 space-y-2 text-sm">
                 {(globalStats?.topPlayers[ranking.key] ?? []).map((item, index) => (
-                  <li key={`${ranking.key}-${item.full_name}`} className="flex justify-between rounded-lg bg-slate-100 px-3 py-2 dark:bg-slate-800">
+                  <li key={`${ranking.key}-${item.full_name}`} className="flex justify-between rounded-lg bg-slate-100 px-3 py-2 dark:bg-[#171821] ">
                     <span>#{index + 1} {item.full_name}</span>
                     <span className="font-semibold">{item.score.toFixed(2)}%</span>
                   </li>

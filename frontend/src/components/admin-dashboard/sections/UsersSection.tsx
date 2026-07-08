@@ -164,7 +164,7 @@ export function UsersSection({
           {selectedPlayerSummary ? (
             <>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl bg-slate-100 p-4 dark:bg-slate-800">
+                <div className="card p-4">
                   <p className="text-sm font-semibold">{selectedPlayerSummary.full_name}</p>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                     Eficiencia global: {selectedPlayerSummary.overall_score.toFixed(2)}%
@@ -339,10 +339,7 @@ export function UsersSection({
           </p>
           <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
             {filteredUsers.map((user) => (
-              <div
-                key={user.id}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
-              >
+              <div key={user.id} className="card p-3 text-sm">
                 <p className="font-semibold">{user.full_name}</p>
                 <p className="text-xs text-slate-600 dark:text-slate-300">
                   @{user.username} | {formatRole(user.role)}
@@ -364,10 +361,11 @@ export function UsersSection({
               </div>
             ))}
             {filteredUsers.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+              <p className="card p-3 text-sm text-slate-600 dark:text-slate-300">
                 No hay usuarios que coincidan con los filtros actuales.
               </p>
             ) : null}
+          </div>
           </div>
         </article>
       </section>

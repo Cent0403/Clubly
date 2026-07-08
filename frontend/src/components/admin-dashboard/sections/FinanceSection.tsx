@@ -231,10 +231,7 @@ export function FinanceSection({
           <h4 className="mt-5 text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">Categorías existentes</h4>
           <div className="mt-3 max-h-44 space-y-2 overflow-y-auto pr-1">
             {categories.map((category) => (
-              <div
-                key={category.id}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/60"
-              >
+              <div key={category.id} className="card p-2 text-sm">
                 <p className="font-semibold">{category.name}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {category.type === 'income' ? 'Entrada' : 'Salida'}
@@ -247,7 +244,7 @@ export function FinanceSection({
               </div>
             ))}
             {categories.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+              <p className="card p-3 text-sm text-slate-600 dark:text-slate-300">
                 Aún no hay categorías registradas.
               </p>
             ) : null}
@@ -340,10 +337,7 @@ export function FinanceSection({
 
           <div className="mt-3 max-h-56 space-y-2 overflow-y-auto pr-1">
             {filteredTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/60"
-              >
+              <div key={transaction.id} className="card p-2 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-semibold">{transaction.description || 'Sin descripción'}</p>
                   <p className={transaction.type === 'income' ? 'font-bold text-emerald-500' : 'font-bold text-rose-500'}>
@@ -361,7 +355,7 @@ export function FinanceSection({
               </div>
             ))}
             {filteredTransactions.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+              <p className="card p-3 text-sm text-slate-600 dark:text-slate-300">
                 No hay movimientos que coincidan con los filtros.
               </p>
             ) : null}
@@ -448,10 +442,7 @@ export function FinanceSection({
               const debtSpecificPayments = debtPayments.filter((payment) => payment.debt_id === debt.id);
 
               return (
-                <div
-                  key={debt.id}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60"
-                >
+                <div key={debt.id} className="card p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                     <p className="font-semibold">{debt.player_name}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">{formatDebtStatus(debt.status)}</p>
@@ -498,7 +489,7 @@ export function FinanceSection({
                   </div>
 
                   {debtSpecificPayments.length > 0 ? (
-                    <div className="mt-3 max-h-24 overflow-y-auto rounded-lg bg-white/70 p-2 text-xs dark:bg-slate-900/60">
+                    <div className="mt-3 max-h-24 overflow-y-auto card p-2 text-xs">
                       {debtSpecificPayments.map((payment) => (
                         <p key={payment.id}>
                           {payment.payment_date}: {formatMoney(payment.amount_paid)}
@@ -510,7 +501,7 @@ export function FinanceSection({
               );
             })}
             {filteredDebts.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+              <p className="card p-3 text-sm text-slate-600 dark:text-slate-300">
                 No hay deudas que coincidan con los filtros.
               </p>
             ) : null}

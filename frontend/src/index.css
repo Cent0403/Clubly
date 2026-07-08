@@ -6,14 +6,92 @@
 
 :root {
   color-scheme: light;
+  --sidebar-bg: rgba(255, 255, 255, 0.95);
+  --sidebar-border: rgba(226, 232, 240, 0.8);
+  --sidebar-card-bg: rgba(15, 23, 42, 0.05);
+  --sidebar-brand-bg: rgba(226, 232, 240, 0.8);
+  --sidebar-brand-text: #334155;
+  --sidebar-header-text: #64748b;
+  --sidebar-header-title: #0f172a;
+  --sidebar-section-text: #64748b;
+  --sidebar-profile-text: #0f172a;
+  --sidebar-profile-muted: #64748b;
+  --sidebar-active-bg: #0ea5e9;
+  --sidebar-active-text: #ffffff;
+  --sidebar-inactive-bg: #f1f5f9;
+  --sidebar-inactive-text: #334155;
+  --sidebar-inactive-hover: #e2e8f0;
+  --sidebar-logout-bg: #f1f5f9;
+  --sidebar-logout-text: #334155;
+  --sidebar-logout-hover: #e2e8f0;
 }
 
 html.dark {
   color-scheme: dark;
+  --sidebar-bg: #171821;
+  --sidebar-border: #1f2937;
+  --sidebar-card-bg: #171821;
+  --sidebar-brand-bg: #171821;
+  --sidebar-brand-text: #e2e8f0;
+  --sidebar-header-text: #94a3b8;
+  --sidebar-header-title: #ffffff;
+  --sidebar-section-text: #94a3b8;
+  --sidebar-profile-text: #ffffff;
+  --sidebar-profile-muted: #94a3b8;
+  --sidebar-active-bg: #ffffff;
+  --sidebar-active-text: #000000;
+  --sidebar-inactive-bg: #1f2937;
+  --sidebar-inactive-text: #e2e8f0;
+  --sidebar-inactive-hover: #334155;
+  --sidebar-logout-bg: #1f2937;
+  --sidebar-logout-text: #e2e8f0;
+  --sidebar-logout-hover: #334155;
+}
+
+/* Global accent colors for primary actions and highlights */
+:root {
+  --accent: #0ea5e9; /* sky-500 */
+  --accent-100: rgba(14,165,233,0.08); /* light accent background */
+  --accent-text: #ffffff;
+}
+
+html.dark {
+  --accent: #06b6d4; /* slightly different in dark */
+  --accent-100: rgba(14,165,233,0.06);
+  --accent-text: #ffffff;
+}
+
+/* Reusable accent classes used across player views */
+.badge-accent {
+  @apply rounded-full px-3 py-1 text-[11px] font-semibold;
+  background-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.badge-accent-soft {
+  @apply rounded-full px-2 py-1 text-[11px] font-semibold;
+  background-color: var(--accent-100);
+  color: var(--sidebar-active-text, #0ea5e9);
+}
+
+.accent-text {
+  color: var(--accent);
+}
+
+.card-accent {
+  border: 2px solid var(--accent);
+  background-color: var(--accent-100);
+  border-radius: 0.75rem; /* rounded-2xl */
+  padding: 0.75rem; /* p-3 */
+}
+
+.list-selected {
+  background-color: var(--accent-100);
+  border-color: var(--accent);
 }
 
 body {
-  @apply min-h-screen bg-slate-100 text-slate-900 ;
+  @apply min-h-screen text-slate-900 ;
 }
 
 html.dark body {
@@ -56,7 +134,7 @@ html.dark .input-date:invalid::-webkit-datetime-edit {
 }
 
 .btn {
-  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition;
+  @apply inline-flex items-center border-slate-700 justify-center rounded-xl px-4 py-2 text-sm font-semibold transition;
 }
 
 .btn-primary {
@@ -67,8 +145,88 @@ html.dark .input-date:invalid::-webkit-datetime-edit {
   @apply btn bg-slate-200 text-slate-800 hover:bg-slate-300;
 }
 
+.profile-button {
+  @apply mt-4 rounded-lg bg-[#171821]  px-4 py-2 text-white hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2;
+}
+
 html.dark .btn-muted {
-  @apply bg-slate-800 text-slate-100 hover:bg-slate-700;
+  @apply btn bg-[#171821] text-white hover:bg-white hover:text-[#171821] border border-[#171821] hover:border-[#171821];
+}
+
+.sidebar-aside {
+  @apply hidden md:block fixed inset-y-0 left-0 w-72 border-r p-4 shadow-glow backdrop-blur;
+  background-color: var(--sidebar-bg);
+  border-color: var(--sidebar-border);
+}
+
+.sidebar-scroll {
+  @apply flex h-full flex-col;
+}
+
+.sidebar-top {
+  @apply space-y-6 overflow-y-auto pb-6;
+}
+
+.sidebar-card {
+  @apply rounded-3xl p-4;
+}
+
+.sidebar-brand-fallback {
+  @apply flex h-12 w-12 items-center justify-center rounded-2xl;
+  color: var(--sidebar-brand-text);
+}
+
+.sidebar-header-label,
+.sidebar-section-title {
+  @apply text-xs uppercase tracking-[0.2em];
+  color: var(--sidebar-section-text);
+}
+
+.sidebar-header-title {
+  @apply text-sm font-semibold;
+  color: var(--sidebar-header-title);
+}
+
+.sidebar-profile-name {
+  @apply  text-sm font-semibold;
+  color: var(--sidebar-profile-text);
+}
+
+.sidebar-profile-position {
+  @apply text-xs;
+  color: var(--sidebar-profile-muted);
+}
+
+.sidebar-nav {
+  @apply space-y-3;
+}
+
+.sidebar-item {
+  @apply w-full text-left rounded-xl px-4 py-3 text-sm font-medium transition;
+}
+
+.sidebar-item-active {
+  background-color: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+
+.sidebar-item-inactive {
+  color: var(--sidebar-inactive-text);
+}
+
+.sidebar-item-inactive:hover {
+  background-color: none;
+  color: var(--sidebar-inactive-hover);
+}
+
+.sidebar-logout {
+  @apply flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition;
+  color: var(--sidebar-logout-text);
+}
+
+.sidebar-logout:hover {
+  background-color: none;
+  color: var(--sidebar-logout-hover);
 }
 
 .scrollbar-hide {

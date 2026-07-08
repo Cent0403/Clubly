@@ -94,7 +94,7 @@ export function FinanceSection({ active, summary, debts, upcomingDebts, payments
           {filteredUpcomingDebts.map((debt) => (
             <div
               key={debt.id}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/60"
+              className="card p-2 text-sm"
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold">{debt.description || 'Deuda registrada'}</p>
@@ -104,7 +104,7 @@ export function FinanceSection({ active, summary, debts, upcomingDebts, payments
             </div>
           ))}
           {filteredUpcomingDebts.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+            <p className="card p-3 text-sm text-slate-600 dark:text-slate-300">
               No tienes pagos próximos registrados.
             </p>
           ) : null}
@@ -133,7 +133,7 @@ export function FinanceSection({ active, summary, debts, upcomingDebts, payments
           {filteredDebts.map((debt) => (
             <div
               key={debt.id}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/60"
+              className="card p-2 text-sm"
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold">{debt.description || 'Deuda registrada'}</p>
@@ -145,8 +145,8 @@ export function FinanceSection({ active, summary, debts, upcomingDebts, payments
               <p className="text-xs text-slate-500 dark:text-slate-400">Vence: {debt.due_date ?? 'Sin fecha'}</p>
             </div>
           ))}
-          {filteredDebts.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-slate-300 p-3 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+            {filteredDebts.length === 0 ? (
+            <p className="card p-3 text-sm text-slate-600 dark:text-slate-300">
               No tienes deudas que coincidan con los filtros.
             </p>
           ) : null}
@@ -180,7 +180,7 @@ export function FinanceSection({ active, summary, debts, upcomingDebts, payments
           {filteredPayments.map((payment) => (
             <div
               key={payment.id}
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/60"
+              className="card p-2 text-sm"
             >
               <p className="font-semibold">{formatMoney(payment.amount_paid)}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400">Fecha: {payment.payment_date}</p>

@@ -175,7 +175,7 @@ export function MonthCalendar({ events, actionPanel, selectedDayPanel, emptyMess
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white/80 px-3 py-3 shadow-sm backdrop-blur sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-4 dark:border-slate-800 dark:bg-slate-950/30">
+      <div className="card p-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:px-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Calendario</p>
           <h3 className="text-xl font-black capitalize tracking-tight text-slate-900 sm:text-2xl dark:text-white">
@@ -197,7 +197,7 @@ export function MonthCalendar({ events, actionPanel, selectedDayPanel, emptyMess
       </div>
 
       <div className="grid gap-3 xl:grid-cols-[1.55fr_1fr]">
-        <section className="rounded-3xl border border-slate-200 bg-white/80 p-3 shadow-sm backdrop-blur sm:p-4 dark:border-slate-800 dark:bg-slate-950/30">
+        <section className="card p-3 sm:p-4">
           <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 sm:gap-2 sm:text-[11px] dark:text-slate-400">
             {['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'].map((day) => (
               <div key={day} className="py-1 sm:py-2">
@@ -252,7 +252,7 @@ export function MonthCalendar({ events, actionPanel, selectedDayPanel, emptyMess
           </div>
         </section>
 
-        <aside className="rounded-3xl border border-slate-200 bg-white/80 p-3 shadow-sm backdrop-blur sm:p-4 dark:border-slate-800 dark:bg-slate-950/30">
+        <aside className="card p-3 sm:p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Día seleccionado</p>

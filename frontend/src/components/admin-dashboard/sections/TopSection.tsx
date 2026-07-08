@@ -22,10 +22,7 @@ export function TopSection({ active, topPlayers }: TopSectionProps) {
 
         <div className="mt-4 max-h-[34rem] space-y-2 overflow-y-auto pr-1">
           {topPlayers.map((player, index) => (
-            <div
-              key={player.player_id}
-              className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
-            >
+            <div key={player.player_id} className="card p-3 flex items-center justify-between">
               <div className="min-w-0">
                 <p className="font-semibold">#{index + 1} {player.full_name}</p>
                 <p className="text-xs text-slate-600 dark:text-slate-300 break-words">
@@ -37,7 +34,7 @@ export function TopSection({ active, topPlayers }: TopSectionProps) {
           ))}
 
           {topPlayers.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+            <p className="card p-4 text-sm text-slate-600 dark:text-slate-300">
               No hay jugadores para mostrar en el ranking.
             </p>
           ) : null}

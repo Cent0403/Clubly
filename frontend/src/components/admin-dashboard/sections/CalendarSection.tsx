@@ -171,7 +171,7 @@ export function CalendarSection({
             </label>
           </div>
 
-          <label className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 px-4 py-3 dark:border-slate-700">
+          <label className="card p-3 flex items-center justify-between gap-3">
             <div>
               <p className="font-semibold">Evento repetitivo</p>
               <p className="text-xs text-slate-500 dark:text-slate-400">Genera varias instancias con la misma duración.</p>
@@ -214,12 +214,12 @@ export function CalendarSection({
           ) : null}
 
           {isEditing ? (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
+            <div className="card p-3 text-xs text-slate-600 dark:text-slate-300">
               Para cambiar repetición, crea un evento nuevo. En esta vista puedes ajustar la instancia seleccionada y los datos base.
             </div>
           ) : null}
 
-          <label className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 px-4 py-3 dark:border-slate-700">
+          <label className="card p-3 flex items-center justify-between gap-3">
             <div>
               <p className="font-semibold">Activar encuesta de asistencia</p>
               <p className="text-xs text-slate-500 dark:text-slate-400">Si la desactivas, el jugador solo verá la información del evento.</p>
@@ -248,21 +248,21 @@ export function CalendarSection({
 
       <MonthCalendar
         events={events}
-        emptyMessage="Todavía no hay días con eventos creados."
+        emptyMessage="Todavía no hay eventos creados en este día."
         selectedDayPanel={({ selectedDayEvents }) => {
           if (selectedDayEvents.length === 0) {
             return null;
           }
 
           return (
-            <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+            <div className="card p-3 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Eventos del día</p>
 
               {selectedDayEvents.map(({ event, instance }) => (
                 <button
                   key={instance.id}
                   type="button"
-                  className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-left dark:border-slate-700 dark:bg-slate-950/40"
+                  className="card p-3 flex w-full items-center justify-between gap-3 text-left"
                   onClick={() => setActivePreview({ event, instanceId: instance.id })}
                 >
                   <div className="min-w-0">
@@ -272,7 +272,7 @@ export function CalendarSection({
                       {instance.lugar || 'Sin lugar'}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-sky-500 px-3 py-1 text-[11px] font-semibold text-white">
+                  <span className="btn badge-accent">
                     Ver
                   </span>
                 </button>
@@ -324,20 +324,20 @@ export function CalendarSection({
           return (
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                <div className="card p-3">
                   <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Hora</p>
                   <p className="mt-1 font-semibold text-slate-900 dark:text-white">
                     {formatDateTime(instance.fecha_hora_inicio)} - {formatDateTime(instance.fecha_hora_fin)}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                <div className="card p-3">
                   <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Lugar</p>
                   <p className="mt-1 font-semibold text-slate-900 dark:text-white">{instance.lugar || 'Sin lugar definido'}</p>
                 </div>
               </div>
 
               {instance.requiere_asistencia ? (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                <div className="card p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Asistirán {instance.attending_players.length}</p>
                     <button
@@ -359,7 +359,7 @@ export function CalendarSection({
                   <div className="mt-2 flex flex-wrap gap-2">
                     {instance.attending_players.length > 0 ? (
                       instance.attending_players.map((player) => (
-                        <span key={player.jugador_id} className="rounded-full bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">
+                        <span key={player.jugador_id} className="badge-accent-soft">
                           {player.jersey_number ? `#${player.jersey_number} ${player.full_name}` : player.full_name}
                         </span>
                       ))

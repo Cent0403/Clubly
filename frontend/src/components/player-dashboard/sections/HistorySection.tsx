@@ -16,7 +16,7 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
       <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Acciones</p>
       <h3 className="text-xl font-bold">Punto por punto</h3>
       <div className="mt-4 space-y-3 text-xs">
-        <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+          <div className="card p-3">
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">ATAQUE</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
@@ -50,7 +50,7 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+        <div className="card p-3">
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">SAQUE</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
@@ -84,7 +84,7 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+        <div className="card p-3">
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">RECEPCIÓN</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
@@ -124,7 +124,7 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+        <div className="card p-3">
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">DEFENSA & BLOQUEO</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
@@ -176,7 +176,7 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700">
+        <div className="card p-3">
           <p className="mb-3 font-semibold text-slate-700 dark:text-slate-300">ARMADO</p>
           <div className="space-y-1">
             <div className="flex justify-between px-2">
@@ -206,8 +206,8 @@ function MatchActions({ selectedMatch }: MatchActionsProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border-2 border-sky-500 bg-sky-50 p-3 dark:bg-slate-900/50">
-          <p className="mb-3 font-semibold text-sky-700 dark:text-sky-400">EFICIENCIA GLOBAL DEL PARTIDO</p>
+        <div className="card-accent">
+          <p className="mb-3 font-semibold accent-text dark:accent-text">EFICIENCIA GLOBAL DEL PARTIDO</p>
           <div className="space-y-1 text-xs">
             <div className="flex justify-between px-2">
               <span>Suma de ataque, saque, recepción, armado, defensa y bloqueo dividida entre 4 (tope 100%)</span>
@@ -293,7 +293,7 @@ export function HistorySection({
               type="button"
               className={`w-full rounded-2xl border p-3 text-left transition ${
                 selectedMatch?.match_id === match.match_id
-                  ? 'border-sky-500 bg-sky-50 dark:border-sky-400 dark:bg-slate-800'
+                  ? 'list-selected'
                   : 'border-slate-200 bg-white/70 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60 dark:hover:bg-slate-800'
               }`}
               onClick={() => onSelectMatch(match)}
@@ -345,7 +345,7 @@ export function HistorySection({
         <h3 className="text-xl font-bold">Desglose del partido</h3>
         {selectedMatch ? (
           <div className="mt-4 space-y-4 text-sm">
-            <div className="rounded-2xl bg-slate-100 p-4 dark:bg-slate-800">
+            <div className="card p-4">
               <p className="font-semibold">{selectedMatch.match_date}</p>
               <p className="text-slate-600 dark:text-slate-300">vs {selectedMatch.opponent}</p>
               <p className="break-words text-slate-600 dark:text-slate-300">{selectedMatch.tournament}</p>

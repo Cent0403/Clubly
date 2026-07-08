@@ -47,7 +47,7 @@ export function TeamSettingsSection({
               <img
                 src={settingsForm.teamLogoUrl}
                 alt="Vista previa del logo"
-                className="h-20 w-20 rounded-xl object-cover"
+                className="h-20 w-20 rounded-full object-cover"
               />
               <button
                 className="btn-muted"
@@ -71,18 +71,18 @@ export function TeamSettingsSection({
           Asi se mostrara el encabezado de la plataforma para todos los usuarios.
         </p>
 
-        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/70 p-4 dark:border-slate-700 dark:bg-slate-900/70">
+        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/70 p-4 dark:border-slate-700 dark:bg-[#171821]">
           {settingsForm.teamLogoUrl ? (
             <img
               src={settingsForm.teamLogoUrl}
               alt="Logo del equipo"
-              className="h-14 w-14 rounded-xl object-cover"
+              className="h-14 w-14 rounded-full object-cover"
             />
           ) : null}
           <div>
             <p className="text-xl font-bold">{settingsForm.teamName || 'Clubly'}</p>
-            <p className="text-sm text-slate-600 dark:text-slate-300"></p>
-          </div>Club Deportivo de Voleibol
+            <p className="text-sm text-slate-600 dark:text-slate-300">Club Deportivo de Voleibol</p>
+          </div>
         </div>
       </article>
     </section>

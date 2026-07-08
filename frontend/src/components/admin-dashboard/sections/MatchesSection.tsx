@@ -160,7 +160,7 @@ export function MatchesSection({
             const playerRating = ratings[player.player_id] ?? createDefaultRating(player.player_id);
 
             return (
-              <div key={player.player_id} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+              <div key={player.player_id} className="card p-3">
                 <label className="flex items-center justify-between gap-3">
                   <span className="font-semibold">{player.full_name}</span>
                   <input
@@ -188,7 +188,7 @@ export function MatchesSection({
 
                     <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                       {FUNDAMENT_GROUPS.map((group) => (
-                        <section key={group.title} className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-800/70">
+                        <section key={group.title} className="card p-3">
                           <div className="mb-3">
                             <p className="text-sm font-semibold">{group.title}</p>
                             <p className="text-xs text-slate-500 dark:text-slate-400">{group.description}</p>
@@ -226,7 +226,7 @@ export function MatchesSection({
             );
           })}
           {filteredEvaluationPlayers.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+            <p className="card p-4 text-sm text-slate-600 dark:text-slate-300">
               No hay jugadores que coincidan con la busqueda.
             </p>
           ) : null}
