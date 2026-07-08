@@ -2,6 +2,7 @@ import { PLAYER_SECTIONS } from '../constants';
 import { PlayerSectionKey } from '../types';
 import { PlayerItem } from '../../../types';
 import { LogoutIcon } from '../../icons/LogoutIcon';
+import { formatPosition } from '../utils';
 
 interface SectionTabsProps {
   activeSection: PlayerSectionKey;
@@ -39,7 +40,7 @@ export function SectionTabs({ activeSection, onSelectSection, profile, onLogout 
             <div className="rounded-3xl bg-slate-900/5 p-4 dark:bg-slate-900/40">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Perfil</p>
               <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">{profile?.full_name ?? 'Jugador'}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">#{profile?.jersey_number ?? '--'}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{formatPosition(profile?.position)}</p>
             </div>
 
             <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">

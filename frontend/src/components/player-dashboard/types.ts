@@ -13,7 +13,7 @@ export interface ProfileFormState {
 }
 
 export interface PlayerSection {
-  key: 'resumen' | 'rendimiento' | 'historial' | 'calendario' | 'finanzas' | 'top';
+  key: 'resumen' | 'rendimiento' | 'historial' | 'calendario' | 'finanzas' | 'top' | 'perfil' ;
   label: string;
 }
 
@@ -32,9 +32,13 @@ export interface SummaryCard {
 
 export interface SummarySectionProps {
   active: boolean;
+  globalStats: GlobalStats | null;
+}
+
+export interface ProfileSectionProps {
+  active: boolean;
   profile: PlayerItem | null;
   summary: PlayerSummary | null;
-  globalStats: GlobalStats | null;
   onOpenProfileModal: () => void;
 }
 

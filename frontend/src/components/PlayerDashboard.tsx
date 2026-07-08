@@ -13,6 +13,7 @@ import { SummarySection } from './player-dashboard/sections/SummarySection';
 import { TopSection } from './player-dashboard/sections/TopSection';
 import { PlayerDashboardProps, PlayerSectionKey, ProfileFormState } from './player-dashboard/types';
 import { buildRadarMetrics, buildSummaryCards, getBestFundament, getWorstFundament } from './player-dashboard/utils';
+import { ProfileSection } from './player-dashboard/sections/ProfileSection';
 
 export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
   const [activeSection, setActiveSection] = useState<PlayerSectionKey>(() => {
@@ -174,9 +175,25 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
       <div className="space-y-6">
         <SummarySection
           active={activeSection === 'resumen'}
-          profile={profile}
-          summary={summary}
           globalStats={globalStats}
+        />
+
+        <SummaryCardsSection 
+          active={activeSection === 'resumen'} 
+          summaryCards={summaryCards} 
+        />
+
+        <PerformanceSection 
+          active={activeSection === 'rendimiento'} 
+          summary={summary} 
+          radarMetrics={radarMetrics} 
+          history={history} 
+        />
+
+        <ProfileSection 
+          active={activeSection === 'perfil'} 
+          profile={profile} 
+          summary={summary} 
           onOpenProfileModal={() => {
             setProfileForm((current) => ({
               ...current,
@@ -187,11 +204,6 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
             setIsProfileModalOpen(true);
           }}
         />
-
-        <SummaryCardsSection active={activeSection === 'resumen'} summaryCards={summaryCards} />
-
-        <PerformanceSection active={activeSection === 'rendimiento'} summary={summary} radarMetrics={radarMetrics} history={history} />
-
         <HistorySection
           active={activeSection === 'historial'}
           history={history}
@@ -216,7 +228,9 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
           payments={financePayments}
         />
 
-        <TopSection active={activeSection === 'top'} topPlayers={topPlayers} />
+        <TopSection 
+          active={activeSection === 'top'} 
+          topPlayers={topPlayers} />
       </div>
 
       <ProfileModal

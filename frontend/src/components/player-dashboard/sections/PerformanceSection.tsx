@@ -7,10 +7,8 @@ export function PerformanceSection({ active, summary, radarMetrics, history }: P
   return (
     <section className={active ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
       <article className="card xl:col-span-2">
-        <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Perfil</p>
-        <h2 className="mt-2 text-2xl font-bold">{summary?.full_name}</h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Usuario: {summary?.username}</p>
-
+        <p className="text-xs uppercase tracking-[0.18em] text-sky-500">ESTADÍSTICAS</p>
+        <h3 className="mt-1 text-xl font-bold">Eficiencia en cada fundamento</h3>
         <div className="mt-5 space-y-3">
           <MetricBars metrics={radarMetrics} maxValue={100} formatter={(value) => `${value.toFixed(1)}%`} />
         </div>
