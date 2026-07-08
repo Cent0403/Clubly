@@ -70,7 +70,7 @@ export function LoginForm({ onSubmit, loading, teamSettings }: LoginFormProps) {
         
       </section>
       <div className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
-        <p className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Clubly</p>
+        <p className="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Clubly Voley</p>
       </div>
     </div>
   );
