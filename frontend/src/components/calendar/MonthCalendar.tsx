@@ -290,7 +290,7 @@ export function MonthCalendar({ events, actionPanel, selectedDayPanel, emptyMess
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-300 p-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+              <div className="card">
                 {emptyMessage}
               </div>
             )}

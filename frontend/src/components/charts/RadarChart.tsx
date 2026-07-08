@@ -33,7 +33,7 @@ export function RadarChart({ metrics, maxValue = 10 }: RadarChartProps) {
     .join(' ');
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto h-72 w-72">
+    <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto h-48 w-48 md:h-72 md:w-72">
       {levels.map((level) => {
         const radius = (level / maxValue) * maxRadius;
         const ringPoints = metrics

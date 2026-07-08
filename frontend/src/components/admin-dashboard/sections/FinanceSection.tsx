@@ -291,7 +291,7 @@ export function FinanceSection({
             />
 
             <input
-              className="input input-date min-w-[10.5rem]"
+              className="input input-date w-full md:w-auto md:min-w-[10.5rem]"
               type="date"
               value={transactionDate}
               onChange={(event) => onTransactionDateChange(event.target.value)}
@@ -390,12 +390,12 @@ export function FinanceSection({
               onChange={(event) => onDebtAmountDueChange(event.target.value)}
               required
             />
-            <input
-              className="input input-date min-w-[10.5rem]"
-              type="date"
-              value={debtDueDate}
-              onChange={(event) => onDebtDueDateChange(event.target.value)}
-            />
+                    <input
+                      className="input input-date w-full md:w-auto md:min-w-[10.5rem]"
+                      type="date"
+                      value={debtDueDate}
+                      onChange={(event) => onDebtDueDateChange(event.target.value)}
+                    />
             <textarea
               className="input min-h-24"
               placeholder="Descripción"
@@ -467,7 +467,7 @@ export function FinanceSection({
                       onChange={(event) => onDebtPaymentAmountChange(debt.id, event.target.value)}
                     />
                     <input
-                      className="input input-date min-w-[10.5rem]"
+                      className="input input-date w-full md:w-auto md:min-w-[10.5rem]"
                       type="date"
                       value={debtPaymentDate[debt.id] ?? ''}
                       onChange={(event) => onDebtPaymentDateChange(debt.id, event.target.value)}

@@ -142,7 +142,7 @@ export function UsersSection({
             <h3 className="text-xl font-bold">Estadisticas jugador por jugador</h3>
             <div className="flex gap-2">
               <select
-                className="input w-72"
+                className="input w-full md:w-72"
                 value={selectedPlayerStatId ?? ''}
                 onChange={(event) => onSelectedPlayerStatChange(Number(event.target.value))}
               >
@@ -365,7 +365,6 @@ export function UsersSection({
                 No hay usuarios que coincidan con los filtros actuales.
               </p>
             ) : null}
-          </div>
           </div>
         </article>
       </section>

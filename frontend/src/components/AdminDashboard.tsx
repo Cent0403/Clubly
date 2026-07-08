@@ -1061,9 +1061,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
   return (
     <div className="space-y-6 md:ml-72">
-      <DashboardSection active={activeSection === 'dashboard'} globalStats={globalStats} />
       <SectionTabs activeSection={activeSection} onSelectSection={setActiveSection} teamSettings={teamSettings} onLogout={onLogout} />
       <div className="space-y-6">
+      <DashboardSection active={activeSection === 'dashboard'} globalStats={globalStats} />
         <TeamSettingsSection
           active={activeSection === 'personalización'}
           settingsForm={settingsForm}

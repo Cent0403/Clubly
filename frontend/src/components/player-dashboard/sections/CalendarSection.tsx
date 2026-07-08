@@ -157,7 +157,7 @@ export function CalendarSection({
                     <button
                       key={instance.id}
                       type="button"
-                      className="card p-3 flex w-full items-center justify-between gap-3 text-left"
+                      className=" p-3 flex w-full items-center justify-between gap-3 text-left"
                       onClick={() => setActivePreview({ event, instanceId: instance.id })}
                     >
                       <div className="min-w-0">
@@ -236,11 +236,15 @@ export function CalendarSection({
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {instance.attending_players.length > 0 ? (
-                      instance.attending_players.map((player) => (
-                        <span key={player.jugador_id} className="badge-accent-soft">
-                          {player.jersey_number ? `#${player.jersey_number} ${player.full_name}` : player.full_name}
-                        </span>
-                      ))
+                      instance.attending_players.map((player) => {
+                        const label = player.jersey_number ? `#${player.jersey_number} ${player.full_name}` : player.full_name;
+
+                        return (
+                          <span key={player.jugador_id} className="badge-accent-soft" title={label} aria-label={label}>
+                            {label}
+                          </span>
+                        );
+                      })
                     ) : (
                       <span className="text-sm text-slate-500 dark:text-slate-400">Todavía no hay jugadores confirmados.</span>
                     )}

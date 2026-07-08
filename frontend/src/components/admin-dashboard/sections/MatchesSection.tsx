@@ -117,7 +117,7 @@ export function MatchesSection({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-xl font-bold">Evaluacion por eventos</h3>
           <select
-            className="input w-72"
+            className="input w-full md:w-72"
             value={selectedMatchId ?? ''}
             onChange={(event) => onSelectedMatchChange(Number(event.target.value))}
           >

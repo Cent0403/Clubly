@@ -3,6 +3,7 @@ import { PlayerSectionKey } from '../types';
 import { PlayerItem } from '../../../types';
 import { LogoutIcon } from '../../icons/LogoutIcon';
 import { formatPosition } from '../utils';
+import { useState } from 'react';
 
 interface SectionTabsProps {
   activeSection: PlayerSectionKey;
@@ -12,27 +13,24 @@ interface SectionTabsProps {
 }
 
 export function SectionTabs({ activeSection, onSelectSection, profile, onLogout }: SectionTabsProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <div className="">
-      <section className="card md:hidden">
-        <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-2">
-          {PLAYER_SECTIONS.map((section) => {
-            const isActive = activeSection === section.key;
-
-            return (
-              <button
-                key={section.key}
-                type="button"
-                className={`${isActive ? 'btn-primary' : 'btn-muted'} shrink-0 whitespace-nowrap`}
-                onClick={() => onSelectSection(section.key)}
-                aria-pressed={isActive}
-              >
-                {section.label}
-              </button>
-            );
-          })}
+      <div className="flex items-center justify-between md:hidden mb-2">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+            {profile?.full_name ? profile.full_name.charAt(0) : 'J'}
+          </div>
+          <div>
+            <p className="text-sm font-semibold">{profile?.full_name ?? 'Jugador'}</p>
+          </div>
         </div>
-      </section>
+        <button type="button" className="btn" onClick={() => setMobileOpen(true)} aria-label="Abrir menú">
+          Menu
+        </button>
+      </div>
+
+      {/* horizontal pill menu removed in favor of drawer menu on mobile */}
 
       <aside className="sidebar-aside">
         <div className="sidebar-scroll">
@@ -72,6 +70,52 @@ export function SectionTabs({ activeSection, onSelectSection, profile, onLogout 
           </div>
         </div>
       </aside>
+      {mobileOpen ? (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-slate-900/60 mobile-backdrop" onClick={() => setMobileOpen(false)} />
+          <div className="relative w-72 bg-white dark:bg-[#171821] p-4 mobile-drawer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">{profile?.full_name ? profile.full_name.charAt(0) : 'J'}</div>
+                <div>
+                  <p className="sidebar-profile-name">{profile?.full_name ?? 'Jugador'}</p>
+                  <p className="sidebar-profile-position">{formatPosition(profile?.position)}</p>
+                </div>
+              </div>
+              <button type="button" className="btn-muted" onClick={() => setMobileOpen(false)}>
+                Cerrar
+              </button>
+            </div>
+
+            <nav className="mt-4">
+              {PLAYER_SECTIONS.map((section) => {
+                const isActive = activeSection === section.key;
+
+                return (
+                  <button
+                    key={section.key}
+                    type="button"
+                    className={`w-full text-left my-1 ${isActive ? 'btn-primary' : 'btn-muted'}`}
+                    onClick={() => {
+                      onSelectSection(section.key);
+                      setMobileOpen(false);
+                    }}
+                  >
+                    {section.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="mt-4">
+              <button type="button" className="sidebar-logout w-full" onClick={() => { setMobileOpen(false); onLogout(); }}>
+                <LogoutIcon className="h-5 w-5" />
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
