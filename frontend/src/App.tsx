@@ -107,7 +107,7 @@ function App() {
       {loadingSession ? null : (
       <div>
         { !user || !token ? (
-          <LoginForm onSubmit={handleLogin} loading={loggingIn} />
+          <LoginForm onSubmit={handleLogin} loading={loggingIn} teamSettings={teamSettings} />
         ) : user.role === 'ADMIN' ? (
           <AdminDashboard token={token} teamSettings={teamSettings} onTeamSettingsUpdated={setTeamSettings} onLogout={handleLogout} />
         ) : (

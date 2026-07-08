@@ -13,27 +13,19 @@ html.dark {
 }
 
 body {
-  @apply min-h-screen bg-slate-100 text-slate-900 antialiased transition-colors duration-300;
-  background-image:
-    radial-gradient(circle at 10% 10%, rgba(14, 165, 233, 0.12), transparent 32%),
-    radial-gradient(circle at 90% 20%, rgba(245, 158, 11, 0.12), transparent 38%),
-    linear-gradient(160deg, rgba(15, 23, 42, 0.02), rgba(15, 23, 42, 0));
+  @apply min-h-screen bg-slate-100 text-slate-900 ;
 }
 
 html.dark body {
-  @apply bg-slate-950 text-slate-100;
-  background-image:
-    radial-gradient(circle at 12% 15%, rgba(14, 165, 233, 0.25), transparent 30%),
-    radial-gradient(circle at 88% 20%, rgba(245, 158, 11, 0.18), transparent 34%),
-    linear-gradient(165deg, rgba(2, 6, 23, 0.92), rgba(2, 6, 23, 0.75));
+  @apply bg-[#171821]  text-slate-100;
 }
 
 .card {
-  @apply rounded-2xl border border-slate-200/80 bg-white/85 p-5 shadow-glow backdrop-blur;
+  @apply  border border-slate-200/80 bg-white/85 p-5 shadow-glow backdrop-blur;
 }
 
 html.dark .card {
-  @apply border-slate-700/70 bg-slate-900/70;
+  @apply border-slate-700/70 bg-[#21222D];
 }
 
 .input {
@@ -41,7 +33,7 @@ html.dark .card {
 }
 
 html.dark .input {
-  @apply border-slate-700 bg-slate-900 text-slate-100 focus:border-sky-400;
+  @apply border-slate-700 bg-[#171821] text-slate-100 focus:border-sky-400;
 }
 
 .input-date {
@@ -68,7 +60,7 @@ html.dark .input-date:invalid::-webkit-datetime-edit {
 }
 
 .btn-primary {
-  @apply btn bg-sky-500 text-white hover:bg-sky-400;
+  @apply btn bg-[#171821] text-white hover:bg-white hover:text-[#171821] border border-[#171821] hover:border-[#171821];
 }
 
 .btn-muted {

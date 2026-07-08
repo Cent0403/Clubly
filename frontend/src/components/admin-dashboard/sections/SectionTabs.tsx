@@ -49,11 +49,6 @@ export function SectionTabs({ activeSection, onSelectSection, teamSettings, onLo
                 <p className="text-sm font-semibold text-slate-900 dark:text-white">{teamSettings.teamName}</p>
               </div>
             </div>
-
-            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-              Navegación
-            </div>
-
             <nav className="space-y-2">
               {ADMIN_SECTIONS.map((section) => {
                 const isActive = activeSection === section.key;
