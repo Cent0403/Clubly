@@ -1,5 +1,5 @@
 import { ADMIN_SECTIONS } from '../constants';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AdminSectionKey } from '../types';
 import { TeamSettings } from '../../../types';
 import { LogoutIcon } from '../../icons/LogoutIcon';
@@ -13,6 +13,17 @@ interface SectionTabsProps {
 
 export function SectionTabs({ activeSection, onSelectSection, teamSettings, onLogout }: SectionTabsProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
   return (
     <div>
       <div className="flex items-center justify-between md:hidden mb-2">

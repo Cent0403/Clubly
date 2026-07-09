@@ -3,7 +3,7 @@ import { PlayerSectionKey } from '../types';
 import { PlayerItem } from '../../../types';
 import { LogoutIcon } from '../../icons/LogoutIcon';
 import { formatPosition } from '../utils';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface SectionTabsProps {
   activeSection: PlayerSectionKey;
@@ -14,6 +14,17 @@ interface SectionTabsProps {
 
 export function SectionTabs({ activeSection, onSelectSection, profile, onLogout }: SectionTabsProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
   return (
     <div className="">
       <div className="flex items-center justify-between md:hidden mb-2">

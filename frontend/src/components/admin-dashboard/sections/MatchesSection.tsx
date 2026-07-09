@@ -146,7 +146,7 @@ export function MatchesSection({
 
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
           {selectedMatch
-            ? `Partido: ${selectedMatch.match_date} vs ${selectedMatch.opponent}`
+            ? `Partido del ${selectedMatch.match_date} contra ${selectedMatch.opponent}`
             : 'Selecciona un partido para iniciar evaluacion.'}
         </p>
 
