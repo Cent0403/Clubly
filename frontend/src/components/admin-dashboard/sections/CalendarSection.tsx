@@ -275,7 +275,7 @@ export function CalendarSection({
                       {instance.lugar || 'Sin lugar'}
                     </p>
                   </div>
-                  <span className="btn badge-accent">
+                  <span className="btn-primary">
                     Ver
                   </span>
                 </button>
