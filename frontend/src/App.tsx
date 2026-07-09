@@ -124,11 +124,11 @@ function App() {
 
           <button
             type="button"
-            className="fixed bottom-6 right-6 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+            className="fixed bottom-6 right-6 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
             onClick={toggleDarkMode}
             aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
           >
-            {darkMode ? <SunIcon className="h-7 w-7" /> : <MoonIcon className="h-7 w-7" />}
+            {darkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-7 w-7" />}
           </button>
         </div>
       )}

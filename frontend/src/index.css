@@ -110,7 +110,7 @@ html.dark body {
 }
 
 .card {
-  @apply  border border-slate-200/80 bg-white/85 p-5 shadow-glow backdrop-blur;
+  @apply  border border-slate-700/70 bg-white/85 p-5  backdrop-blur;
 }
 
 html.dark .card {
