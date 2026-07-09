@@ -64,7 +64,7 @@ const MEDAL_THRESHOLDS = [3, 6, 9, 12];
 function matchQualifies(category: string, match: PlayerHistoryItem): boolean {
   switch (category) {
     case 'Recepción sin errores':
-      return match.reception_zero === 0;
+      return match.reception_zero === 0 && match.reception_attempts > 0;
     case 'Bloqueo +3':
       return match.block_kill >= 3;
     case 'Remates +10':
@@ -128,14 +128,20 @@ export function buildPlayerMedalGroups(history: PlayerHistoryItem[]): MedalGroup
     return [];
   }
 
+  const sortedHistory = [...history].sort((a, b) => {
+    const aTime = new Date(a.match_date).getTime();
+    const bTime = new Date(b.match_date).getTime();
+    return aTime - bTime;
+  });
+
   return [
-    buildStreak('Recepción sin errores', history),
-    buildStreak('Bloqueo +3', history),
-    buildStreak('Remates +10', history),
-    buildStreak('Saque +5', history),
-    buildStreak('Defensas +10', history),
-    buildStreak('Armado +25 asistencias', history),
-    buildStreak('Racha de partidos asistidos', history)
+    buildStreak('Recepción sin errores', sortedHistory),
+    buildStreak('Bloqueo +3', sortedHistory),
+    buildStreak('Remates +10', sortedHistory),
+    buildStreak('Saque +5', sortedHistory),
+    buildStreak('Defensas +10', sortedHistory),
+    buildStreak('Armado +25 asistencias', sortedHistory),
+    buildStreak('Racha de partidos asistidos', sortedHistory)
   ];
 }
 
