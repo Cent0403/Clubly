@@ -1,6 +1,6 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { api } from '../lib/api';
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { toast } from "react-hot-toast";
+import { api } from "../lib/api";
 import {
   AdminUserItem,
   CalendarEvent,
@@ -18,37 +18,57 @@ import {
   PlayerSummary,
   RatingItem,
   Role,
-  TeamSettings
-} from '../types';
-import { EMPTY_EDIT_USER_FORM, EMPTY_MATCH_FORM, EMPTY_USER_FORM, createDefaultRating } from './admin-dashboard/constants';
-import { EMPTY_CALENDAR_EVENT_FORM } from './admin-dashboard/constants';
-import { DashboardSection } from './admin-dashboard/sections/DashboardSection';
-import { CalendarSection } from './admin-dashboard/sections/CalendarSection';
-import { FinanceSection } from './admin-dashboard/sections/FinanceSection';
-import { MatchesSection } from './admin-dashboard/sections/MatchesSection';
-import { SectionTabs } from './admin-dashboard/sections/SectionTabs';
-import { TeamSettingsSection } from './admin-dashboard/sections/TeamSettingsSection';
-import { TopSection } from './admin-dashboard/sections/TopSection';
-import { UsersSection } from './admin-dashboard/sections/UsersSection';
-import { AdminDashboardProps, AdminSectionKey, CalendarEventFormState, EditUserFormState, MatchFormState, UserFormState } from './admin-dashboard/types';
-import { mapMatchRatingRowToRating } from './admin-dashboard/utils';
+  TeamSettings,
+} from "../types";
+import {
+  EMPTY_EDIT_USER_FORM,
+  EMPTY_MATCH_FORM,
+  EMPTY_USER_FORM,
+  createDefaultRating,
+} from "./admin-dashboard/constants";
+import { EMPTY_CALENDAR_EVENT_FORM } from "./admin-dashboard/constants";
+import { DashboardSection } from "./admin-dashboard/sections/DashboardSection";
+import { CalendarSection } from "./admin-dashboard/sections/CalendarSection";
+import { FinanceSection } from "./admin-dashboard/sections/FinanceSection";
+import { MatchesSection } from "./admin-dashboard/sections/MatchesSection";
+import { SectionTabs } from "./admin-dashboard/sections/SectionTabs";
+import { TeamSettingsSection } from "./admin-dashboard/sections/TeamSettingsSection";
+import { TopSection } from "./admin-dashboard/sections/TopSection";
+import { UsersSection } from "./admin-dashboard/sections/UsersSection";
+import {
+  AdminDashboardProps,
+  AdminSectionKey,
+  CalendarEventFormState,
+  EditUserFormState,
+  MatchFormState,
+  UserFormState,
+} from "./admin-dashboard/types";
+import { mapMatchRatingRowToRating } from "./admin-dashboard/utils";
 
-export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onLogout }: AdminDashboardProps) {
+export function AdminDashboard({
+  token,
+  teamSettings,
+  onTeamSettingsUpdated,
+  onLogout,
+}: AdminDashboardProps) {
   const [activeSection, setActiveSection] = useState<AdminSectionKey>(() => {
-    const sectionParam = new URLSearchParams(window.location.search).get('section');
-    return sectionParam === 'calendario' ? 'calendario' : 'dashboard';
+    const sectionParam = new URLSearchParams(window.location.search).get(
+      "section",
+    );
+    return sectionParam === "calendario" ? "calendario" : "dashboard";
   });
   const today = new Date().toISOString().slice(0, 10);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
-  const [userSearchTerm, setUserSearchTerm] = useState('');
-  const [userRoleFilter, setUserRoleFilter] = useState<'ALL' | Role>('ALL');
+  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState<"ALL" | Role>("ALL");
   const [players, setPlayers] = useState<PlayerItem[]>([]);
   const [topPlayers, setTopPlayers] = useState<PlayerItem[]>([]);
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
-  const [evaluationPlayerSearchTerm, setEvaluationPlayerSearchTerm] = useState('');
+  const [evaluationPlayerSearchTerm, setEvaluationPlayerSearchTerm] =
+    useState("");
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
   const [ratings, setRatings] = useState<Record<number, RatingItem>>({});
   const [saving, setSaving] = useState(false);
@@ -59,51 +79,78 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
   const [loadingMatchRatings, setLoadingMatchRatings] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
-  const [editingUserForm, setEditingUserForm] = useState<EditUserFormState>(EMPTY_EDIT_USER_FORM);
+  const [editingUserForm, setEditingUserForm] =
+    useState<EditUserFormState>(EMPTY_EDIT_USER_FORM);
   const [savingUserEdit, setSavingUserEdit] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
-  const [selectedPlayerStatId, setSelectedPlayerStatId] = useState<number | null>(null);
-  const [selectedPlayerSummary, setSelectedPlayerSummary] = useState<PlayerSummary | null>(null);
-  const [selectedPlayerHistory, setSelectedPlayerHistory] = useState<PlayerHistoryItem[]>([]);
+  const [selectedPlayerStatId, setSelectedPlayerStatId] = useState<
+    number | null
+  >(null);
+  const [selectedPlayerSummary, setSelectedPlayerSummary] =
+    useState<PlayerSummary | null>(null);
+  const [selectedPlayerHistory, setSelectedPlayerHistory] = useState<
+    PlayerHistoryItem[]
+  >([]);
   const [loadingPlayerStats, setLoadingPlayerStats] = useState(false);
   const [settingsForm, setSettingsForm] = useState<TeamSettings>(teamSettings);
   const [savingSettings, setSavingSettings] = useState(false);
-  const [financeOverview, setFinanceOverview] = useState<FinanceOverview | null>(null);
-  const [financeCategories, setFinanceCategories] = useState<FinanceCategory[]>([]);
-  const [financeTransactions, setFinanceTransactions] = useState<FinanceTransaction[]>([]);
+  const [financeOverview, setFinanceOverview] =
+    useState<FinanceOverview | null>(null);
+  const [financeCategories, setFinanceCategories] = useState<FinanceCategory[]>(
+    [],
+  );
+  const [financeTransactions, setFinanceTransactions] = useState<
+    FinanceTransaction[]
+  >([]);
   const [financeDebts, setFinanceDebts] = useState<FinanceDebt[]>([]);
-  const [financeDebtPayments, setFinanceDebtPayments] = useState<FinanceDebtPayment[]>([]);
+  const [financeDebtPayments, setFinanceDebtPayments] = useState<
+    FinanceDebtPayment[]
+  >([]);
   const [loadingFinance, setLoadingFinance] = useState(false);
-  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
-  const [categoryName, setCategoryName] = useState('');
-  const [categoryType, setCategoryType] = useState<FinanceType>('income');
-  const [transactionType, setTransactionType] = useState<FinanceType>('expense');
-  const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null);
-  const [transactionCategoryId, setTransactionCategoryId] = useState('');
-  const [transactionAmount, setTransactionAmount] = useState('');
-  const [transactionDescription, setTransactionDescription] = useState('');
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
+    null,
+  );
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryType, setCategoryType] = useState<FinanceType>("income");
+  const [transactionType, setTransactionType] =
+    useState<FinanceType>("expense");
+  const [editingTransactionId, setEditingTransactionId] = useState<
+    number | null
+  >(null);
+  const [transactionCategoryId, setTransactionCategoryId] = useState("");
+  const [transactionAmount, setTransactionAmount] = useState("");
+  const [transactionDescription, setTransactionDescription] = useState("");
   const [transactionDate, setTransactionDate] = useState(today);
-  const [debtPlayerId, setDebtPlayerId] = useState('');
+  const [debtPlayerId, setDebtPlayerId] = useState("");
   const [editingDebtId, setEditingDebtId] = useState<number | null>(null);
-  const [debtAmountDue, setDebtAmountDue] = useState('');
-  const [debtDescription, setDebtDescription] = useState('');
-  const [debtDueDate, setDebtDueDate] = useState('');
-  const [debtPaymentAmount, setDebtPaymentAmount] = useState<Record<number, string>>({});
-  const [debtPaymentDate, setDebtPaymentDate] = useState<Record<number, string>>({});
-  const [calendarForm, setCalendarForm] = useState<CalendarEventFormState>(EMPTY_CALENDAR_EVENT_FORM);
+  const [debtAmountDue, setDebtAmountDue] = useState("");
+  const [debtDescription, setDebtDescription] = useState("");
+  const [debtDueDate, setDebtDueDate] = useState("");
+  const [debtPaymentAmount, setDebtPaymentAmount] = useState<
+    Record<number, string>
+  >({});
+  const [debtPaymentDate, setDebtPaymentDate] = useState<
+    Record<number, string>
+  >({});
+  const [calendarForm, setCalendarForm] = useState<CalendarEventFormState>(
+    EMPTY_CALENDAR_EVENT_FORM,
+  );
   const [savingCalendarEvent, setSavingCalendarEvent] = useState(false);
-  const [editingCalendarInstanceId, setEditingCalendarInstanceId] = useState<number | null>(null);
+  const [editingCalendarInstanceId, setEditingCalendarInstanceId] = useState<
+    number | null
+  >(null);
 
   const selectedMatch = useMemo(
     () => matches.find((match) => match.id === selectedMatchId) ?? null,
-    [matches, selectedMatchId]
+    [matches, selectedMatchId],
   );
 
   const filteredUsers = useMemo(() => {
     const search = userSearchTerm.trim().toLowerCase();
 
     return users.filter((user) => {
-      const roleMatches = userRoleFilter === 'ALL' || user.role === userRoleFilter;
+      const roleMatches =
+        userRoleFilter === "ALL" || user.role === userRoleFilter;
 
       if (!roleMatches) {
         return false;
@@ -116,7 +163,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       return (
         user.full_name.toLowerCase().includes(search) ||
         user.username.toLowerCase().includes(search) ||
-        (user.position ?? '').toLowerCase().includes(search)
+        (user.position ?? "").toLowerCase().includes(search)
       );
     });
   }, [users, userRoleFilter, userSearchTerm]);
@@ -132,8 +179,8 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       return (
         player.full_name.toLowerCase().includes(search) ||
         player.username.toLowerCase().includes(search) ||
-        (player.position ?? '').toLowerCase().includes(search) ||
-        String(player.jersey_number ?? '').includes(search)
+        (player.position ?? "").toLowerCase().includes(search) ||
+        String(player.jersey_number ?? "").includes(search)
       );
     });
   }, [evaluationPlayerSearchTerm, players]);
@@ -142,7 +189,18 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     setLoading(true);
 
     try {
-      const [usersRes, playersRes, topPlayersRes, matchesRes, calendarRes, statsRes, financeOverviewRes, categoriesRes, transactionsRes, debtsRes] = await Promise.all([
+      const [
+        usersRes,
+        playersRes,
+        topPlayersRes,
+        matchesRes,
+        calendarRes,
+        statsRes,
+        financeOverviewRes,
+        categoriesRes,
+        transactionsRes,
+        debtsRes,
+      ] = await Promise.all([
         api.getUsers(token),
         api.getPlayers(token),
         api.getTopPlayers(token),
@@ -152,7 +210,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
         api.getFinanceOverview(token),
         api.getFinanceCategories(token),
         api.getFinanceTransactions(token),
-        api.getPlayerDebts(token)
+        api.getPlayerDebts(token),
       ]);
 
       setUsers(usersRes.users);
@@ -191,12 +249,13 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
   }
 
   async function loadFinanceData() {
-    const [overviewRes, categoriesRes, transactionsRes, debtsRes] = await Promise.all([
-      api.getFinanceOverview(token),
-      api.getFinanceCategories(token),
-      api.getFinanceTransactions(token),
-      api.getPlayerDebts(token)
-    ]);
+    const [overviewRes, categoriesRes, transactionsRes, debtsRes] =
+      await Promise.all([
+        api.getFinanceOverview(token),
+        api.getFinanceCategories(token),
+        api.getFinanceTransactions(token),
+        api.getPlayerDebts(token),
+      ]);
 
     setFinanceOverview(overviewRes);
     setFinanceCategories(categoriesRes.categories);
@@ -258,7 +317,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
   function togglePlayer(playerId: number) {
     setSelectedPlayers((current) =>
-      current.includes(playerId) ? current.filter((id) => id !== playerId) : [...current, playerId]
+      current.includes(playerId)
+        ? current.filter((id) => id !== playerId)
+        : [...current, playerId],
     );
 
     setRatings((current) => {
@@ -268,27 +329,43 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
       return {
         ...current,
-        [playerId]: createDefaultRating(playerId)
+        [playerId]: createDefaultRating(playerId),
       };
     });
   }
 
-  function updateEventCount(playerId: number, field: keyof Omit<RatingItem, 'playerId' | 'minutesPlayed'>, value: number) {
-    const sanitizedValue = Math.max(0, Math.floor(Number.isFinite(value) ? value : 0));
+  function updateEventCount(
+    playerId: number,
+    field: keyof Omit<RatingItem, "playerId" | "minutesPlayed">,
+    value: number,
+  ) {
+    const sanitizedValue = Math.max(
+      0,
+      Math.floor(Number.isFinite(value) ? value : 0),
+    );
 
     setRatings((current) => {
       const nextRating = {
         ...(current[playerId] ?? createDefaultRating(playerId)),
-        [field]: sanitizedValue
+        [field]: sanitizedValue,
       } as RatingItem;
 
-      nextRating.attackAttempts = Math.max(nextRating.attackAttempts, nextRating.attackPoints + nextRating.attackErrors);
-      nextRating.serveAttempts = Math.max(nextRating.serveAttempts, nextRating.serveAces + nextRating.serveErrors);
-      nextRating.setAttempts = Math.max(nextRating.setAttempts, nextRating.setAssists + nextRating.setErrors);
+      nextRating.attackAttempts = Math.max(
+        nextRating.attackAttempts,
+        nextRating.attackPoints + nextRating.attackErrors,
+      );
+      nextRating.serveAttempts = Math.max(
+        nextRating.serveAttempts,
+        nextRating.serveAces + nextRating.serveErrors,
+      );
+      nextRating.setAttempts = Math.max(
+        nextRating.setAttempts,
+        nextRating.setAssists + nextRating.setErrors,
+      );
 
       return {
         ...current,
-        [playerId]: nextRating
+        [playerId]: nextRating,
       };
     });
   }
@@ -298,8 +375,8 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       ...current,
       [playerId]: {
         ...(current[playerId] ?? createDefaultRating(playerId)),
-        minutesPlayed: value
-      }
+        minutesPlayed: value,
+      },
     }));
   }
 
@@ -307,11 +384,12 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     setEditingUserId(user.id);
     setEditingUserForm({
       username: user.username,
-      password: '',
+      password: "",
       fullName: user.full_name,
       role: user.role,
-      jerseyNumber: user.jersey_number === null ? '' : String(user.jersey_number),
-      position: (user.position as EditUserFormState['position']) ?? ''
+      jerseyNumber:
+        user.jersey_number === null ? "" : String(user.jersey_number),
+      position: (user.position as EditUserFormState["position"]) ?? "",
     });
     toast(`Editando usuario: ${user.full_name}`);
   }
@@ -320,12 +398,12 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     event.preventDefault();
 
     if (!editingUserId) {
-      toast.error('Selecciona un usuario para editar.');
+      toast.error("Selecciona un usuario para editar.");
       return;
     }
 
     if (!editingUserForm.username.trim() || !editingUserForm.fullName.trim()) {
-      toast.error('Username y nombre completo son obligatorios.');
+      toast.error("Username y nombre completo son obligatorios.");
       return;
     }
 
@@ -336,31 +414,44 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
         username: editingUserForm.username.trim(),
         fullName: editingUserForm.fullName.trim(),
         role: editingUserForm.role,
-        ...(editingUserForm.password.trim() ? { password: editingUserForm.password.trim() } : {}),
-        ...(editingUserForm.role === 'PLAYER'
+        ...(editingUserForm.password.trim()
+          ? { password: editingUserForm.password.trim() }
+          : {}),
+        ...(editingUserForm.role === "PLAYER"
           ? {
-              jerseyNumber: editingUserForm.jerseyNumber ? Number(editingUserForm.jerseyNumber) : null,
-              position: editingUserForm.position || null
+              jerseyNumber: editingUserForm.jerseyNumber
+                ? Number(editingUserForm.jerseyNumber)
+                : null,
+              position: editingUserForm.position || null,
             }
-          : {})
+          : {}),
       };
 
       const response = await api.updateUser(token, editingUserId, payload);
 
-      setUsers((current) => current.map((user) => (user.id === editingUserId ? response.user : user)));
+      setUsers((current) =>
+        current.map((user) =>
+          user.id === editingUserId ? response.user : user,
+        ),
+      );
 
       const playersRes = await api.getPlayers(token);
       setPlayers(playersRes.players);
       await refreshTopPlayers();
 
-      if (selectedPlayerStatId && !playersRes.players.some((player) => player.player_id === selectedPlayerStatId)) {
+      if (
+        selectedPlayerStatId &&
+        !playersRes.players.some(
+          (player) => player.player_id === selectedPlayerStatId,
+        )
+      ) {
         setSelectedPlayerStatId(null);
         setSelectedPlayerSummary(null);
         setSelectedPlayerHistory([]);
       }
 
-      setEditingUserForm((current) => ({ ...current, password: '' }));
-      toast.success('Usuario actualizado correctamente.');
+      setEditingUserForm((current) => ({ ...current, password: "" }));
+      toast.success("Usuario actualizado correctamente.");
     } catch (updateUserError) {
       toast.error((updateUserError as Error).message);
     } finally {
@@ -370,7 +461,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
   async function handleDeleteUser(user: AdminUserItem) {
     const confirmDelete = window.confirm(
-      `Esta accion eliminara el usuario ${user.full_name}${user.role === 'PLAYER' ? ' y su perfil de jugador' : ''}.`
+      `Esta accion eliminara el usuario ${user.full_name}${user.role === "PLAYER" ? " y su perfil de jugador" : ""}.`,
     );
 
     if (!confirmDelete) {
@@ -384,8 +475,12 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       setUsers((current) => current.filter((item) => item.id !== user.id));
 
       if (user.player_id) {
-        setPlayers((current) => current.filter((player) => player.player_id !== user.player_id));
-        setSelectedPlayers((current) => current.filter((playerId) => playerId !== user.player_id));
+        setPlayers((current) =>
+          current.filter((player) => player.player_id !== user.player_id),
+        );
+        setSelectedPlayers((current) =>
+          current.filter((playerId) => playerId !== user.player_id),
+        );
         setRatings((current) => {
           const next = { ...current };
           delete next[user.player_id as number];
@@ -406,7 +501,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
         setEditingUserForm(EMPTY_EDIT_USER_FORM);
       }
 
-      toast.success('Usuario eliminado correctamente.');
+      toast.success("Usuario eliminado correctamente.");
     } catch (deleteUserError) {
       toast.error((deleteUserError as Error).message);
     } finally {
@@ -418,7 +513,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     event.preventDefault();
 
     if (!userForm.username || !userForm.password || !userForm.fullName) {
-      toast.error('Completa username, password y nombre completo para crear usuario.');
+      toast.error(
+        "Completa username, password y nombre completo para crear usuario.",
+      );
       return;
     }
 
@@ -431,10 +528,13 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
         fullName: userForm.fullName.trim(),
         role: userForm.role,
         jerseyNumber:
-          userForm.role === 'PLAYER' && userForm.jerseyNumber
+          userForm.role === "PLAYER" && userForm.jerseyNumber
             ? Number(userForm.jerseyNumber)
             : undefined,
-        position: userForm.role === 'PLAYER' && userForm.position ? userForm.position : undefined
+        position:
+          userForm.role === "PLAYER" && userForm.position
+            ? userForm.position
+            : undefined,
       });
 
       setUserForm(EMPTY_USER_FORM);
@@ -447,12 +547,16 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
           full_name: response.user.fullName,
           role: response.user.role,
           player_id: response.user.playerId,
-          jersey_number: userForm.role === 'PLAYER' && userForm.jerseyNumber ? Number(userForm.jerseyNumber) : null,
-          position: userForm.role === 'PLAYER' ? userForm.position || null : null
-        }
+          jersey_number:
+            userForm.role === "PLAYER" && userForm.jerseyNumber
+              ? Number(userForm.jerseyNumber)
+              : null,
+          position:
+            userForm.role === "PLAYER" ? userForm.position || null : null,
+        },
       ]);
 
-      if (response.user.role === 'PLAYER' && response.user.playerId) {
+      if (response.user.role === "PLAYER" && response.user.playerId) {
         setPlayers((current) => [
           ...current,
           {
@@ -460,22 +564,27 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
             user_id: response.user.id,
             username: response.user.username,
             full_name: response.user.fullName,
-            jersey_number: userForm.jerseyNumber ? Number(userForm.jerseyNumber) : null,
+            jersey_number: userForm.jerseyNumber
+              ? Number(userForm.jerseyNumber)
+              : null,
             position: userForm.position || null,
-            overall_score: 0
-          }
+            overall_score: 0,
+          },
         ]);
       }
 
-      if (response.user.role === 'PLAYER' && response.user.playerId) {
+      if (response.user.role === "PLAYER" && response.user.playerId) {
         setSelectedPlayerStatId(response.user.playerId);
-        const playerStats = await api.getPlayerStats(token, response.user.playerId);
+        const playerStats = await api.getPlayerStats(
+          token,
+          response.user.playerId,
+        );
         setSelectedPlayerSummary(playerStats.summary);
         setSelectedPlayerHistory(playerStats.history);
       }
 
       await refreshTopPlayers();
-      toast.success('Usuario creado correctamente.');
+      toast.success("Usuario creado correctamente.");
     } catch (createUserError) {
       toast.error((createUserError as Error).message);
     } finally {
@@ -485,7 +594,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
   async function handleLoadPlayerStats() {
     if (!selectedPlayerStatId) {
-      toast.error('Selecciona un jugador para consultar estadisticas.');
+      toast.error("Selecciona un jugador para consultar estadisticas.");
       return;
     }
 
@@ -509,7 +618,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       const response = await api.createMatch(token, {
         ...matchForm,
         location: matchForm.location || undefined,
-        notes: matchForm.notes || undefined
+        notes: matchForm.notes || undefined,
       });
 
       toast.success(`Partido creado (#${response.id})`);
@@ -522,9 +631,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
           tournament: matchForm.tournament,
           location: matchForm.location || null,
           notes: matchForm.notes || null,
-          participant_count: 0
+          participant_count: 0,
         },
-        ...current
+        ...current,
       ]);
       setSelectedMatchId(response.id);
     } catch (createError) {
@@ -534,7 +643,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
   async function handleUpdateMatch() {
     if (!editingMatchId) {
-      toast.error('Primero carga un partido en el formulario para editar.');
+      toast.error("Primero carga un partido en el formulario para editar.");
       return;
     }
 
@@ -542,10 +651,10 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       await api.updateMatch(token, editingMatchId, {
         ...matchForm,
         location: matchForm.location || undefined,
-        notes: matchForm.notes || undefined
+        notes: matchForm.notes || undefined,
       });
 
-      toast.success('Partido actualizado correctamente.');
+      toast.success("Partido actualizado correctamente.");
       setMatches((current) =>
         current.map((match) =>
           match.id === editingMatchId
@@ -555,10 +664,10 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
                 opponent: matchForm.opponent,
                 tournament: matchForm.tournament,
                 location: matchForm.location || null,
-                notes: matchForm.notes || null
+                notes: matchForm.notes || null,
               }
-            : match
-        )
+            : match,
+        ),
       );
     } catch (updateError) {
       toast.error((updateError as Error).message);
@@ -567,7 +676,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
   function handleLoadMatchForEdit() {
     if (!selectedMatch) {
-      toast.error('Selecciona un partido para editar.');
+      toast.error("Selecciona un partido para editar.");
       return;
     }
 
@@ -576,32 +685,36 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       matchDate: selectedMatch.match_date,
       opponent: selectedMatch.opponent,
       tournament: selectedMatch.tournament,
-      location: selectedMatch.location ?? '',
-      notes: selectedMatch.notes ?? ''
+      location: selectedMatch.location ?? "",
+      notes: selectedMatch.notes ?? "",
     });
     toast(`Editando partido #${selectedMatch.id}`);
   }
 
   async function handleDeleteMatch() {
     if (!selectedMatchId) {
-      toast.error('Selecciona un partido para eliminar.');
+      toast.error("Selecciona un partido para eliminar.");
       return;
     }
 
-    const confirmDelete = window.confirm('Esta accion eliminara el partido, participantes y calificaciones asociadas.');
+    const confirmDelete = window.confirm(
+      "Esta accion eliminara el partido, participantes y calificaciones asociadas.",
+    );
     if (!confirmDelete) {
       return;
     }
 
     try {
       await api.deleteMatch(token, selectedMatchId);
-      toast.success('Partido eliminado correctamente.');
+      toast.success("Partido eliminado correctamente.");
       setEditingMatchId(null);
       setMatchForm(EMPTY_MATCH_FORM);
       setSelectedMatchId(null);
       setSelectedPlayers([]);
       setRatings({});
-      setMatches((current) => current.filter((match) => match.id !== selectedMatchId));
+      setMatches((current) =>
+        current.filter((match) => match.id !== selectedMatchId),
+      );
     } catch (deleteError) {
       toast.error((deleteError as Error).message);
     }
@@ -609,12 +722,12 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
   async function handleSaveEvaluation() {
     if (!selectedMatchId) {
-      toast.error('Selecciona un partido antes de guardar la evaluacion.');
+      toast.error("Selecciona un partido antes de guardar la evaluacion.");
       return;
     }
 
     if (selectedPlayers.length === 0) {
-      toast.error('Selecciona al menos un jugador.');
+      toast.error("Selecciona al menos un jugador.");
       return;
     }
 
@@ -628,17 +741,21 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
         .filter(Boolean) as RatingItem[];
 
       await api.saveRatings(token, selectedMatchId, payload);
-      toast.success('Participantes y evaluacion por eventos guardados correctamente.');
+      toast.success(
+        "Participantes y evaluacion por eventos guardados correctamente.",
+      );
 
       const [matchRatings, updatedStats] = await Promise.all([
         api.getMatchRatings(token, selectedMatchId),
-        api.getGlobalStats(token)
+        api.getGlobalStats(token),
       ]);
 
       setGlobalStats(updatedStats);
       await refreshTopPlayers();
 
-      const nextSelectedPlayers = matchRatings.ratings.map((row) => row.player_id);
+      const nextSelectedPlayers = matchRatings.ratings.map(
+        (row) => row.player_id,
+      );
       const nextRatings: Record<number, RatingItem> = {};
 
       matchRatings.ratings.forEach((row) => {
@@ -649,7 +766,10 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       setRatings(nextRatings);
 
       if (selectedPlayerStatId) {
-        const playerStats = await api.getPlayerStats(token, selectedPlayerStatId);
+        const playerStats = await api.getPlayerStats(
+          token,
+          selectedPlayerStatId,
+        );
         setSelectedPlayerSummary(playerStats.summary);
         setSelectedPlayerHistory(playerStats.history);
       }
@@ -665,7 +785,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
     const nextName = settingsForm.teamName.trim();
     if (!nextName) {
-      toast.error('El nombre del equipo no puede estar vacio.');
+      toast.error("El nombre del equipo no puede estar vacio.");
       return;
     }
 
@@ -674,12 +794,12 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     try {
       const response = await api.updateTeamSettings(token, {
         teamName: nextName,
-        teamLogoUrl: settingsForm.teamLogoUrl
+        teamLogoUrl: settingsForm.teamLogoUrl,
       });
 
       onTeamSettingsUpdated(response.settings);
       setSettingsForm(response.settings);
-      toast.success('Personalizacion del equipo guardada correctamente.');
+      toast.success("Personalizacion del equipo guardada correctamente.");
     } catch (updateError) {
       toast.error((updateError as Error).message);
     } finally {
@@ -687,12 +807,14 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     }
   }
 
-  async function handleCreateFinanceCategory(event: FormEvent<HTMLFormElement>) {
+  async function handleCreateFinanceCategory(
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     const nextCategoryName = categoryName.trim();
     if (!nextCategoryName) {
-      toast.error('El nombre de la categoria es obligatorio.');
+      toast.error("El nombre de la categoria es obligatorio.");
       return;
     }
 
@@ -700,15 +822,25 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
     try {
       if (editingCategoryId) {
-        await api.updateFinanceCategory(token, editingCategoryId, { name: nextCategoryName, type: categoryType });
+        await api.updateFinanceCategory(token, editingCategoryId, {
+          name: nextCategoryName,
+          type: categoryType,
+        });
       } else {
-        await api.createFinanceCategory(token, { name: nextCategoryName, type: categoryType });
+        await api.createFinanceCategory(token, {
+          name: nextCategoryName,
+          type: categoryType,
+        });
       }
 
       await loadFinanceData();
       setEditingCategoryId(null);
-      setCategoryName('');
-      toast.success(editingCategoryId ? 'Categoría actualizada correctamente.' : 'Categoria financiera creada correctamente.');
+      setCategoryName("");
+      toast.success(
+        editingCategoryId
+          ? "Categoría actualizada correctamente."
+          : "Categoria financiera creada correctamente.",
+      );
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
@@ -720,33 +852,35 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     const category = financeCategories.find((item) => item.id === categoryId);
 
     if (!category) {
-      toast.error('No se encontró la categoría a editar.');
+      toast.error("No se encontró la categoría a editar.");
       return;
     }
 
     setEditingCategoryId(category.id);
     setCategoryName(category.name);
     setCategoryType(category.type);
-    toast('Editando categoría financiera.');
+    toast("Editando categoría financiera.");
   }
 
   function handleCancelEditCategory() {
     setEditingCategoryId(null);
-    setCategoryName('');
-    setCategoryType('income');
+    setCategoryName("");
+    setCategoryType("income");
   }
 
-  async function handleCreateFinanceTransaction(event: FormEvent<HTMLFormElement>) {
+  async function handleCreateFinanceTransaction(
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     const amount = Number(transactionAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
-      toast.error('Ingresa un monto valido mayor a 0 para el movimiento.');
+      toast.error("Ingresa un monto valido mayor a 0 para el movimiento.");
       return;
     }
 
     if (!transactionDate) {
-      toast.error('Selecciona una fecha para el movimiento.');
+      toast.error("Selecciona una fecha para el movimiento.");
       return;
     }
 
@@ -755,29 +889,37 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     try {
       if (editingTransactionId) {
         await api.updateFinanceTransaction(token, editingTransactionId, {
-          categoryId: transactionCategoryId ? Number(transactionCategoryId) : null,
+          categoryId: transactionCategoryId
+            ? Number(transactionCategoryId)
+            : null,
           amount,
           type: transactionType,
           description: transactionDescription.trim() || undefined,
-          transactionDate
+          transactionDate,
         });
       } else {
         await api.createFinanceTransaction(token, {
-          categoryId: transactionCategoryId ? Number(transactionCategoryId) : null,
+          categoryId: transactionCategoryId
+            ? Number(transactionCategoryId)
+            : null,
           amount,
           type: transactionType,
           description: transactionDescription.trim() || undefined,
-          transactionDate
+          transactionDate,
         });
       }
 
       await loadFinanceData();
       setEditingTransactionId(null);
-      setTransactionAmount('');
-      setTransactionDescription('');
-      setTransactionCategoryId('');
+      setTransactionAmount("");
+      setTransactionDescription("");
+      setTransactionCategoryId("");
       setTransactionDate(today);
-      toast.success(editingTransactionId ? 'Movimiento actualizado correctamente.' : 'Movimiento financiero registrado correctamente.');
+      toast.success(
+        editingTransactionId
+          ? "Movimiento actualizado correctamente."
+          : "Movimiento financiero registrado correctamente.",
+      );
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
@@ -786,28 +928,32 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
   }
 
   function handleEditTransaction(transactionId: number) {
-    const transaction = financeTransactions.find((item) => item.id === transactionId);
+    const transaction = financeTransactions.find(
+      (item) => item.id === transactionId,
+    );
 
     if (!transaction) {
-      toast.error('No se encontró el movimiento a editar.');
+      toast.error("No se encontró el movimiento a editar.");
       return;
     }
 
     setEditingTransactionId(transaction.id);
     setTransactionType(transaction.type);
-    setTransactionCategoryId(transaction.category_id ? String(transaction.category_id) : '');
+    setTransactionCategoryId(
+      transaction.category_id ? String(transaction.category_id) : "",
+    );
     setTransactionAmount(String(transaction.amount));
-    setTransactionDescription(transaction.description ?? '');
+    setTransactionDescription(transaction.description ?? "");
     setTransactionDate(transaction.transaction_date || today);
-    toast('Editando movimiento financiero.');
+    toast("Editando movimiento financiero.");
   }
 
   function handleCancelEditTransaction() {
     setEditingTransactionId(null);
-    setTransactionType('expense');
-    setTransactionCategoryId('');
-    setTransactionAmount('');
-    setTransactionDescription('');
+    setTransactionType("expense");
+    setTransactionCategoryId("");
+    setTransactionAmount("");
+    setTransactionDescription("");
     setTransactionDate(today);
   }
 
@@ -818,12 +964,12 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     const amountDue = Number(debtAmountDue);
 
     if (!Number.isInteger(playerId) || playerId <= 0) {
-      toast.error('Selecciona un jugador para registrar la deuda.');
+      toast.error("Selecciona un jugador para registrar la deuda.");
       return;
     }
 
     if (!Number.isFinite(amountDue) || amountDue <= 0) {
-      toast.error('Ingresa un monto de deuda valido mayor a 0.');
+      toast.error("Ingresa un monto de deuda valido mayor a 0.");
       return;
     }
 
@@ -834,24 +980,28 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
         await api.updatePlayerDebt(token, editingDebtId, {
           amountDue,
           description: debtDescription.trim() || null,
-          dueDate: debtDueDate || null
+          dueDate: debtDueDate || null,
         });
       } else {
         await api.createPlayerDebt(token, {
           playerId,
           amountDue,
           description: debtDescription.trim() || undefined,
-          dueDate: debtDueDate || undefined
+          dueDate: debtDueDate || undefined,
         });
       }
 
       await loadFinanceData();
       setEditingDebtId(null);
-      setDebtPlayerId('');
-      setDebtAmountDue('');
-      setDebtDescription('');
-      setDebtDueDate('');
-      toast.success(editingDebtId ? 'Deuda actualizada correctamente.' : 'Deuda registrada correctamente.');
+      setDebtPlayerId("");
+      setDebtAmountDue("");
+      setDebtDescription("");
+      setDebtDueDate("");
+      toast.success(
+        editingDebtId
+          ? "Deuda actualizada correctamente."
+          : "Deuda registrada correctamente.",
+      );
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
@@ -863,37 +1013,37 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     const debt = financeDebts.find((item) => item.id === debtId);
 
     if (!debt) {
-      toast.error('No se encontró la deuda a editar.');
+      toast.error("No se encontró la deuda a editar.");
       return;
     }
 
     setEditingDebtId(debt.id);
     setDebtPlayerId(String(debt.player_id));
     setDebtAmountDue(String(debt.amount_due));
-    setDebtDescription(debt.description ?? '');
-    setDebtDueDate(debt.due_date ?? '');
-    toast('Editando deuda del jugador.');
+    setDebtDescription(debt.description ?? "");
+    setDebtDueDate(debt.due_date ?? "");
+    toast("Editando deuda del jugador.");
   }
 
   function handleCancelEditDebt() {
     setEditingDebtId(null);
-    setDebtPlayerId('');
-    setDebtAmountDue('');
-    setDebtDescription('');
-    setDebtDueDate('');
+    setDebtPlayerId("");
+    setDebtAmountDue("");
+    setDebtDescription("");
+    setDebtDueDate("");
   }
 
   async function handleCreateDebtPayment(debtId: number) {
-    const amount = Number(debtPaymentAmount[debtId] ?? '');
-    const paymentDate = debtPaymentDate[debtId] || '';
+    const amount = Number(debtPaymentAmount[debtId] ?? "");
+    const paymentDate = debtPaymentDate[debtId] || "";
 
     if (!Number.isFinite(amount) || amount <= 0) {
-      toast.error('Ingresa un monto de pago valido mayor a 0.');
+      toast.error("Ingresa un monto de pago valido mayor a 0.");
       return;
     }
 
     if (!paymentDate) {
-      toast.error('Selecciona la fecha del pago.');
+      toast.error("Selecciona la fecha del pago.");
       return;
     }
 
@@ -902,13 +1052,13 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     try {
       await api.createPlayerDebtPayment(token, debtId, {
         amountPaid: amount,
-        paymentDate
+        paymentDate,
       });
 
       await loadFinanceData();
-      setDebtPaymentAmount((current) => ({ ...current, [debtId]: '' }));
-      setDebtPaymentDate((current) => ({ ...current, [debtId]: '' }));
-      toast.success('Pago registrado correctamente.');
+      setDebtPaymentAmount((current) => ({ ...current, [debtId]: "" }));
+      setDebtPaymentDate((current) => ({ ...current, [debtId]: "" }));
+      toast.success("Pago registrado correctamente.");
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
@@ -924,22 +1074,22 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     const fechaHoraFin = calendarForm.fechaHoraFin.trim();
 
     if (!titulo || !fechaHoraInicio || !fechaHoraFin) {
-      toast.error('Completa título, inicio y fin para crear el evento.');
+      toast.error("Completa título, inicio y fin para crear el evento.");
       return;
     }
 
     if (titulo.length > 80) {
-      toast.error('El título no puede superar los 80 caracteres.');
+      toast.error("El título no puede superar los 80 caracteres.");
       return;
     }
 
     if (calendarForm.descripcion.trim().length > 500) {
-      toast.error('La descripción no puede superar los 500 caracteres.');
+      toast.error("La descripción no puede superar los 500 caracteres.");
       return;
     }
 
     if (calendarForm.lugar.trim().length > 100) {
-      toast.error('El lugar no puede superar los 100 caracteres.');
+      toast.error("El lugar no puede superar los 100 caracteres.");
       return;
     }
 
@@ -947,22 +1097,22 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     const endDate = new Date(fechaHoraFin);
 
     if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-      toast.error('Las fechas de inicio y fin deben ser válidas.');
+      toast.error("Las fechas de inicio y fin deben ser válidas.");
       return;
     }
 
     if (endDate <= startDate) {
-      toast.error('La fecha de fin debe ser posterior a la fecha de inicio.');
+      toast.error("La fecha de fin debe ser posterior a la fecha de inicio.");
       return;
     }
 
     if (calendarForm.esRepetitivo && !calendarForm.fechaFinSerie) {
-      toast.error('Indica la fecha fin de serie para eventos repetitivos.');
+      toast.error("Indica la fecha fin de serie para eventos repetitivos.");
       return;
     }
 
     if (calendarForm.esRepetitivo && !calendarForm.frecuenciaRepeticion) {
-      toast.error('Selecciona una frecuencia para el evento repetitivo.');
+      toast.error("Selecciona una frecuencia para el evento repetitivo.");
       return;
     }
 
@@ -970,12 +1120,14 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       const endRepeatDate = new Date(calendarForm.fechaFinSerie);
 
       if (Number.isNaN(endRepeatDate.getTime())) {
-        toast.error('La fecha fin de serie no es válida.');
+        toast.error("La fecha fin de serie no es válida.");
         return;
       }
 
       if (endRepeatDate <= startDate) {
-        toast.error('La fecha fin de serie debe ser posterior a la fecha de inicio.');
+        toast.error(
+          "La fecha fin de serie debe ser posterior a la fecha de inicio.",
+        );
         return;
       }
     }
@@ -988,23 +1140,29 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
         descripcion: calendarForm.descripcion.trim() || undefined,
         tipoEvento: calendarForm.tipoEvento,
         esRepetitivo: calendarForm.esRepetitivo,
-        frecuenciaRepeticion: calendarForm.esRepetitivo ? calendarForm.frecuenciaRepeticion || null : null,
+        frecuenciaRepeticion: calendarForm.esRepetitivo
+          ? calendarForm.frecuenciaRepeticion || null
+          : null,
         fechaHoraInicio,
         fechaHoraFin,
-        fechaFinSerie: calendarForm.esRepetitivo ? calendarForm.fechaFinSerie || null : null,
+        fechaFinSerie: calendarForm.esRepetitivo
+          ? calendarForm.fechaFinSerie || null
+          : null,
         requiereAsistencia: calendarForm.requiereAsistencia,
-        lugar: calendarForm.lugar.trim() || null
+        lugar: calendarForm.lugar.trim() || null,
       };
 
       if (editingCalendarInstanceId) {
         await api.updateCalendarEvent(token, editingCalendarInstanceId, {
           ...payload,
-          estadoInstancia: 'programado'
+          estadoInstancia: "programado",
         });
-        toast.success('Evento actualizado correctamente.');
+        toast.success("Evento actualizado correctamente.");
       } else {
         const response = await api.createCalendarEvent(token, payload);
-        toast.success(`Evento creado (${response.instancesCreated} instancia${response.instancesCreated === 1 ? '' : 's'}).`);
+        toast.success(
+          `Evento creado (${response.instancesCreated} instancia${response.instancesCreated === 1 ? "" : "s"}).`,
+        );
       }
 
       setCalendarForm(EMPTY_CALENDAR_EVENT_FORM);
@@ -1021,42 +1179,49 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     const instance = event.instances.find((item) => item.id === instanceId);
 
     if (!instance) {
-      toast.error('No se encontró la instancia para editar.');
+      toast.error("No se encontró la instancia para editar.");
       return;
     }
 
     setEditingCalendarInstanceId(instance.id);
     setCalendarForm({
       titulo: event.titulo,
-      descripcion: event.descripcion ?? '',
+      descripcion: event.descripcion ?? "",
       tipoEvento: event.tipo_evento,
       esRepetitivo: event.es_repetitivo,
-      frecuenciaRepeticion: event.frecuencia_repeticion ?? 'semanal',
+      frecuenciaRepeticion: event.frecuencia_repeticion ?? "semanal",
       fechaHoraInicio: instance.fecha_hora_inicio,
       fechaHoraFin: instance.fecha_hora_fin,
-      fechaFinSerie: event.fecha_fin_serie ?? '',
+      fechaFinSerie: event.fecha_fin_serie ?? "",
       requiereAsistencia: instance.requiere_asistencia,
-      lugar: instance.lugar ?? ''
+      lugar: instance.lugar ?? "",
     });
 
-    toast(`Editando instancia #${instance.id}. Los datos de repetición quedan bloqueados en modo edición.`);
+    toast(
+      `Editando instancia #${instance.id}. Los datos de repetición quedan bloqueados en modo edición.`,
+    );
   }
 
   function handleCancelEditCalendarEvent() {
     setEditingCalendarInstanceId(null);
     setCalendarForm(EMPTY_CALENDAR_EVENT_FORM);
-    toast.success('Edición cancelada.');
+    toast.success("Edición cancelada.");
   }
 
-  async function handleDeleteCalendarEvent(event: CalendarEvent, instanceId: number) {
+  async function handleDeleteCalendarEvent(
+    event: CalendarEvent,
+    instanceId: number,
+  ) {
     const instance = event.instances.find((item) => item.id === instanceId);
 
     if (!instance) {
-      toast.error('No se encontró la instancia para eliminar.');
+      toast.error("No se encontró la instancia para eliminar.");
       return;
     }
 
-    const confirmed = window.confirm(`¿Eliminar la instancia de "${event.titulo}"? Esta acción no se puede deshacer.`);
+    const confirmed = window.confirm(
+      `¿Eliminar la instancia de "${event.titulo}"? Esta acción no se puede deshacer.`,
+    );
 
     if (!confirmed) {
       return;
@@ -1073,7 +1238,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
       }
 
       await loadCalendarData();
-      toast.success('Evento eliminado correctamente.');
+      toast.success("Evento eliminado correctamente.");
     } catch (deleteError) {
       toast.error((deleteError as Error).message);
     } finally {
@@ -1081,7 +1246,9 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
     }
   }
 
-  function handleTeamLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleTeamLogoFileChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
     const file = event.target.files?.[0];
     if (!file) {
       return;
@@ -1089,7 +1256,7 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
     const reader = new FileReader();
     reader.onload = () => {
-      const result = typeof reader.result === 'string' ? reader.result : null;
+      const result = typeof reader.result === "string" ? reader.result : null;
       if (result) {
         setSettingsForm((current) => ({ ...current, teamLogoUrl: result }));
       }
@@ -1103,11 +1270,19 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
 
   return (
     <div className="space-y-6 md:ml-72">
-      <SectionTabs activeSection={activeSection} onSelectSection={setActiveSection} teamSettings={teamSettings} onLogout={onLogout} />
+      <SectionTabs
+        activeSection={activeSection}
+        onSelectSection={setActiveSection}
+        teamSettings={teamSettings}
+        onLogout={onLogout}
+      />
       <div className="space-y-6">
-      <DashboardSection active={activeSection === 'dashboard'} globalStats={globalStats} />
+        <DashboardSection
+          active={activeSection === "dashboard"}
+          globalStats={globalStats}
+        />
         <TeamSettingsSection
-          active={activeSection === 'personalización'}
+          active={activeSection === "personalización"}
           settingsForm={settingsForm}
           savingSettings={savingSettings}
           onSettingsFormChange={(updater) => setSettingsForm(updater)}
@@ -1116,149 +1291,152 @@ export function AdminDashboard({ token, teamSettings, onTeamSettingsUpdated, onL
         />
 
         <UsersSection
-        active={activeSection === 'usuarios'}
-        userForm={userForm}
-        creatingUser={creatingUser}
-        onUserFormChange={(updater) => setUserForm(updater)}
-        onCreateUser={handleCreateUser}
-        selectedPlayerStatId={selectedPlayerStatId}
-        players={players}
-        loadingPlayerStats={loadingPlayerStats}
-        selectedPlayerSummary={selectedPlayerSummary}
-        selectedPlayerHistory={selectedPlayerHistory}
-        onSelectedPlayerStatChange={setSelectedPlayerStatId}
-        onLoadPlayerStats={handleLoadPlayerStats}
-        editingUserId={editingUserId}
-        editingUserForm={editingUserForm}
-        savingUserEdit={savingUserEdit}
-        users={users}
-        filteredUsers={filteredUsers}
-        userSearchTerm={userSearchTerm}
-        userRoleFilter={userRoleFilter}
-        deletingUserId={deletingUserId}
-        onEditingUserFormChange={(updater) => setEditingUserForm(updater)}
-        onUpdateUser={handleUpdateUser}
-        onCancelEditUser={() => {
-          setEditingUserId(null);
-          setEditingUserForm(EMPTY_EDIT_USER_FORM);
-        }}
-        onUserSearchTermChange={setUserSearchTerm}
-        onUserRoleFilterChange={setUserRoleFilter}
-        onLoadUserIntoEditForm={loadUserIntoEditForm}
-        onDeleteUser={(user) => {
-          void handleDeleteUser(user);
-        }}
-      />
+          active={activeSection === "usuarios"}
+          userForm={userForm}
+          creatingUser={creatingUser}
+          onUserFormChange={(updater) => setUserForm(updater)}
+          onCreateUser={handleCreateUser}
+          selectedPlayerStatId={selectedPlayerStatId}
+          players={players}
+          loadingPlayerStats={loadingPlayerStats}
+          selectedPlayerSummary={selectedPlayerSummary}
+          selectedPlayerHistory={selectedPlayerHistory}
+          onSelectedPlayerStatChange={setSelectedPlayerStatId}
+          onLoadPlayerStats={handleLoadPlayerStats}
+          editingUserId={editingUserId}
+          editingUserForm={editingUserForm}
+          savingUserEdit={savingUserEdit}
+          users={users}
+          filteredUsers={filteredUsers}
+          userSearchTerm={userSearchTerm}
+          userRoleFilter={userRoleFilter}
+          deletingUserId={deletingUserId}
+          onEditingUserFormChange={(updater) => setEditingUserForm(updater)}
+          onUpdateUser={handleUpdateUser}
+          onCancelEditUser={() => {
+            setEditingUserId(null);
+            setEditingUserForm(EMPTY_EDIT_USER_FORM);
+          }}
+          onUserSearchTermChange={setUserSearchTerm}
+          onUserRoleFilterChange={setUserRoleFilter}
+          onLoadUserIntoEditForm={loadUserIntoEditForm}
+          onDeleteUser={(user) => {
+            void handleDeleteUser(user);
+          }}
+        />
 
-      <MatchesSection
-        active={activeSection === 'partidos'}
-        editingMatchId={editingMatchId}
-        matchForm={matchForm}
-        selectedMatchId={selectedMatchId}
-        selectedMatch={selectedMatch}
-        matches={matches}
-        players={players}
-        filteredEvaluationPlayers={filteredEvaluationPlayers}
-        evaluationPlayerSearchTerm={evaluationPlayerSearchTerm}
-        selectedPlayers={selectedPlayers}
-        ratings={ratings}
-        loadingMatchRatings={loadingMatchRatings}
-        saving={saving}
-        onMatchFormChange={(updater) => setMatchForm(updater)}
-        onCreateMatch={handleCreateMatch}
-        onUpdateMatch={handleUpdateMatch}
-        onClearMatchForm={() => {
-          setEditingMatchId(null);
-          setMatchForm(EMPTY_MATCH_FORM);
-        }}
-        onSelectedMatchChange={setSelectedMatchId}
-        onEvaluationPlayerSearchTermChange={setEvaluationPlayerSearchTerm}
-        onTogglePlayer={togglePlayer}
-        onUpdateMinutesPlayed={updateMinutesPlayed}
-        onUpdateEventCount={updateEventCount}
-        onSaveEvaluation={() => {
-          void handleSaveEvaluation();
-        }}
-        onLoadMatchForEdit={handleLoadMatchForEdit}
-        onDeleteMatch={() => {
-          void handleDeleteMatch();
-        }}
-        onClearSelection={() => {
-          setSelectedPlayers([]);
-          setRatings({});
-        }}
-      />
+        <MatchesSection
+          active={activeSection === "partidos"}
+          editingMatchId={editingMatchId}
+          matchForm={matchForm}
+          selectedMatchId={selectedMatchId}
+          selectedMatch={selectedMatch}
+          matches={matches}
+          players={players}
+          filteredEvaluationPlayers={filteredEvaluationPlayers}
+          evaluationPlayerSearchTerm={evaluationPlayerSearchTerm}
+          selectedPlayers={selectedPlayers}
+          ratings={ratings}
+          loadingMatchRatings={loadingMatchRatings}
+          saving={saving}
+          onMatchFormChange={(updater) => setMatchForm(updater)}
+          onCreateMatch={handleCreateMatch}
+          onUpdateMatch={handleUpdateMatch}
+          onClearMatchForm={() => {
+            setEditingMatchId(null);
+            setMatchForm(EMPTY_MATCH_FORM);
+          }}
+          onSelectedMatchChange={setSelectedMatchId}
+          onEvaluationPlayerSearchTermChange={setEvaluationPlayerSearchTerm}
+          onTogglePlayer={togglePlayer}
+          onUpdateMinutesPlayed={updateMinutesPlayed}
+          onUpdateEventCount={updateEventCount}
+          onSaveEvaluation={() => {
+            void handleSaveEvaluation();
+          }}
+          onLoadMatchForEdit={handleLoadMatchForEdit}
+          onDeleteMatch={() => {
+            void handleDeleteMatch();
+          }}
+          onClearSelection={() => {
+            setSelectedPlayers([]);
+            setRatings({});
+          }}
+        />
 
-      <CalendarSection
-        active={activeSection === 'calendario'}
-        events={calendarEvents}
-        calendarForm={calendarForm}
-        editingCalendarInstanceId={editingCalendarInstanceId}
-        savingCalendarEvent={savingCalendarEvent}
-        onCalendarFormChange={(updater) => setCalendarForm(updater)}
-        onCreateCalendarEvent={handleCreateCalendarEvent}
-        onEditCalendarEvent={handleEditCalendarEvent}
-        onDeleteCalendarEvent={handleDeleteCalendarEvent}
-        onCancelEditCalendarEvent={handleCancelEditCalendarEvent}
-      />
+        <CalendarSection
+          active={activeSection === "calendario"}
+          events={calendarEvents}
+          calendarForm={calendarForm}
+          editingCalendarInstanceId={editingCalendarInstanceId}
+          savingCalendarEvent={savingCalendarEvent}
+          onCalendarFormChange={(updater) => setCalendarForm(updater)}
+          onCreateCalendarEvent={handleCreateCalendarEvent}
+          onEditCalendarEvent={handleEditCalendarEvent}
+          onDeleteCalendarEvent={handleDeleteCalendarEvent}
+          onCancelEditCalendarEvent={handleCancelEditCalendarEvent}
+        />
 
-      <FinanceSection
-        active={activeSection === 'finanzas'}
-        loadingFinance={loadingFinance}
-        editingCategoryId={editingCategoryId}
-        editingTransactionId={editingTransactionId}
-        editingDebtId={editingDebtId}
-        overview={financeOverview}
-        categories={financeCategories}
-        transactions={financeTransactions}
-        debts={financeDebts}
-        debtPayments={financeDebtPayments}
-        players={players}
-        categoryName={categoryName}
-        categoryType={categoryType}
-        transactionType={transactionType}
-        transactionCategoryId={transactionCategoryId}
-        transactionAmount={transactionAmount}
-        transactionDescription={transactionDescription}
-        transactionDate={transactionDate}
-        debtPlayerId={debtPlayerId}
-        debtAmountDue={debtAmountDue}
-        debtDescription={debtDescription}
-        debtDueDate={debtDueDate}
-        debtPaymentAmount={debtPaymentAmount}
-        debtPaymentDate={debtPaymentDate}
-        onCategoryNameChange={setCategoryName}
-        onCategoryTypeChange={setCategoryType}
-        onCreateCategory={handleCreateFinanceCategory}
-        onEditCategory={handleEditCategory}
-        onCancelEditCategory={handleCancelEditCategory}
-        onTransactionTypeChange={setTransactionType}
-        onTransactionCategoryIdChange={setTransactionCategoryId}
-        onTransactionAmountChange={setTransactionAmount}
-        onTransactionDescriptionChange={setTransactionDescription}
-        onTransactionDateChange={setTransactionDate}
-        onCreateTransaction={handleCreateFinanceTransaction}
-        onEditTransaction={handleEditTransaction}
-        onCancelEditTransaction={handleCancelEditTransaction}
-        onDebtPlayerIdChange={setDebtPlayerId}
-        onDebtAmountDueChange={setDebtAmountDue}
-        onDebtDescriptionChange={setDebtDescription}
-        onDebtDueDateChange={setDebtDueDate}
-        onCreateDebt={handleCreateDebt}
-        onEditDebt={handleEditDebt}
-        onCancelEditDebt={handleCancelEditDebt}
-        onDebtPaymentAmountChange={(debtId, value) => {
-          setDebtPaymentAmount((current) => ({ ...current, [debtId]: value }));
-        }}
-        onDebtPaymentDateChange={(debtId, value) => {
-          setDebtPaymentDate((current) => ({ ...current, [debtId]: value }));
-        }}
-        onCreateDebtPayment={(debtId) => {
-          void handleCreateDebtPayment(debtId);
-        }}
-      />
+        <FinanceSection
+          active={activeSection === "finanzas"}
+          loadingFinance={loadingFinance}
+          editingCategoryId={editingCategoryId}
+          editingTransactionId={editingTransactionId}
+          editingDebtId={editingDebtId}
+          overview={financeOverview}
+          categories={financeCategories}
+          transactions={financeTransactions}
+          debts={financeDebts}
+          debtPayments={financeDebtPayments}
+          players={players}
+          categoryName={categoryName}
+          categoryType={categoryType}
+          transactionType={transactionType}
+          transactionCategoryId={transactionCategoryId}
+          transactionAmount={transactionAmount}
+          transactionDescription={transactionDescription}
+          transactionDate={transactionDate}
+          debtPlayerId={debtPlayerId}
+          debtAmountDue={debtAmountDue}
+          debtDescription={debtDescription}
+          debtDueDate={debtDueDate}
+          debtPaymentAmount={debtPaymentAmount}
+          debtPaymentDate={debtPaymentDate}
+          onCategoryNameChange={setCategoryName}
+          onCategoryTypeChange={setCategoryType}
+          onCreateCategory={handleCreateFinanceCategory}
+          onEditCategory={handleEditCategory}
+          onCancelEditCategory={handleCancelEditCategory}
+          onTransactionTypeChange={setTransactionType}
+          onTransactionCategoryIdChange={setTransactionCategoryId}
+          onTransactionAmountChange={setTransactionAmount}
+          onTransactionDescriptionChange={setTransactionDescription}
+          onTransactionDateChange={setTransactionDate}
+          onCreateTransaction={handleCreateFinanceTransaction}
+          onEditTransaction={handleEditTransaction}
+          onCancelEditTransaction={handleCancelEditTransaction}
+          onDebtPlayerIdChange={setDebtPlayerId}
+          onDebtAmountDueChange={setDebtAmountDue}
+          onDebtDescriptionChange={setDebtDescription}
+          onDebtDueDateChange={setDebtDueDate}
+          onCreateDebt={handleCreateDebt}
+          onEditDebt={handleEditDebt}
+          onCancelEditDebt={handleCancelEditDebt}
+          onDebtPaymentAmountChange={(debtId, value) => {
+            setDebtPaymentAmount((current) => ({
+              ...current,
+              [debtId]: value,
+            }));
+          }}
+          onDebtPaymentDateChange={(debtId, value) => {
+            setDebtPaymentDate((current) => ({ ...current, [debtId]: value }));
+          }}
+          onCreateDebtPayment={(debtId) => {
+            void handleCreateDebtPayment(debtId);
+          }}
+        />
 
-      <TopSection active={activeSection === 'top'} topPlayers={topPlayers} />
+        <TopSection active={activeSection === "top"} topPlayers={topPlayers} />
       </div>
     </div>
   );

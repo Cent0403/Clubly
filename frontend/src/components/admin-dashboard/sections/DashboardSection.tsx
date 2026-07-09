@@ -1,37 +1,66 @@
-import { GlobalStats } from '../../../types';
-import { MetricBars } from '../../charts/MetricBars';
-import { TOP_RANKINGS } from '../constants';
+import { GlobalStats } from "../../../types";
+import { MetricBars } from "../../charts/MetricBars";
+import { TOP_RANKINGS } from "../constants";
 
 interface DashboardSectionProps {
   active: boolean;
   globalStats: GlobalStats | null;
 }
 
-export function DashboardSection({ active, globalStats }: DashboardSectionProps) {
+export function DashboardSection({
+  active,
+  globalStats,
+}: DashboardSectionProps) {
   const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
   return (
-    <section className={active ? 'grid gap-4 md:grid-cols-2 xl:grid-cols-3' : 'hidden'}>
+    <section
+      className={active ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "hidden"}
+    >
       <article className="card xl:col-span-2">
-        <p className="text-xs uppercase tracking-[0.2em] text-sky-500">Rendimiento de equipo</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-sky-500">
+          Rendimiento de equipo
+        </p>
         <h2 className="mt-2 text-2xl font-bold">Dashboard global</h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Eficiencia global del roster: {formatPercent(globalStats?.teamOverview.team_overall_avg ?? 0)}
+          Eficiencia global del roster:{" "}
+          {formatPercent(globalStats?.teamOverview.team_overall_avg ?? 0)}
         </p>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Puntos de ataque por set del equipo: {globalStats?.teamOverview.team_attack_points_per_set_avg?.toFixed(2) ?? '0.00'}
+          Puntos de ataque por set del equipo:{" "}
+          {globalStats?.teamOverview.team_attack_points_per_set_avg?.toFixed(
+            2,
+          ) ?? "0.00"}
         </p>
         <div className="mt-4">
           <MetricBars
             maxValue={100}
             formatter={formatPercent}
             metrics={[
-              { label: 'Recepcion', value: globalStats?.teamOverview.team_reception_avg ?? 0 },
-              { label: 'Saque', value: globalStats?.teamOverview.team_serve_avg ?? 0 },
-              { label: 'Defensa', value: globalStats?.teamOverview.team_defense_avg ?? 0 },
-              { label: 'Ataque', value: globalStats?.teamOverview.team_attack_avg ?? 0 },
-              { label: 'Bloqueo', value: globalStats?.teamOverview.team_block_avg ?? 0 },
-              { label: 'Armado', value: globalStats?.teamOverview.team_setting_avg ?? 0 }
+              {
+                label: "Recepcion",
+                value: globalStats?.teamOverview.team_reception_avg ?? 0,
+              },
+              {
+                label: "Saque",
+                value: globalStats?.teamOverview.team_serve_avg ?? 0,
+              },
+              {
+                label: "Defensa",
+                value: globalStats?.teamOverview.team_defense_avg ?? 0,
+              },
+              {
+                label: "Ataque",
+                value: globalStats?.teamOverview.team_attack_avg ?? 0,
+              },
+              {
+                label: "Bloqueo",
+                value: globalStats?.teamOverview.team_block_avg ?? 0,
+              },
+              {
+                label: "Armado",
+                value: globalStats?.teamOverview.team_setting_avg ?? 0,
+              },
             ]}
           />
         </div>
@@ -39,10 +68,15 @@ export function DashboardSection({ active, globalStats }: DashboardSectionProps)
 
       {TOP_RANKINGS.map((ranking) => (
         <article key={ranking.key} className="card">
-          <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">{ranking.title}</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-500">
+            {ranking.title}
+          </h3>
           <ol className="mt-3 space-y-2 text-sm">
             {(globalStats?.topPlayers[ranking.key] ?? []).map((item) => (
-              <li key={item.full_name} className="card p-2 flex justify-between">
+              <li
+                key={item.full_name}
+                className="card p-2 flex justify-between"
+              >
                 <span>{item.full_name}</span>
                 <span className="font-semibold">{item.score.toFixed(2)}%</span>
               </li>

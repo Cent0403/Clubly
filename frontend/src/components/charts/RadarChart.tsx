@@ -18,7 +18,9 @@ export function RadarChart({ metrics, maxValue = 10 }: RadarChartProps) {
   const size = 260;
   const center = size / 2;
   const maxRadius = 90;
-  const levels = [0.2, 0.4, 0.6, 0.8, 1].map((step) => Number((maxValue * step).toFixed(2)));
+  const levels = [0.2, 0.4, 0.6, 0.8, 1].map((step) =>
+    Number((maxValue * step).toFixed(2)),
+  );
 
   const angleStep = (Math.PI * 2) / metrics.length;
 
@@ -30,10 +32,13 @@ export function RadarChart({ metrics, maxValue = 10 }: RadarChartProps) {
       const { x, y } = polarToCartesian(angle, radius, center);
       return `${x},${y}`;
     })
-    .join(' ');
+    .join(" ");
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto h-48 w-48 md:h-72 md:w-72">
+    <svg
+      viewBox={`0 0 ${size} ${size}`}
+      className="mx-auto h-48 w-48 md:h-72 md:w-72"
+    >
       {levels.map((level) => {
         const radius = (level / maxValue) * maxRadius;
         const ringPoints = metrics
@@ -42,7 +47,7 @@ export function RadarChart({ metrics, maxValue = 10 }: RadarChartProps) {
             const { x, y } = polarToCartesian(angle, radius, center);
             return `${x},${y}`;
           })
-          .join(' ');
+          .join(" ");
 
         return (
           <polygon
@@ -83,7 +88,12 @@ export function RadarChart({ metrics, maxValue = 10 }: RadarChartProps) {
         );
       })}
 
-      <polygon points={points} fill="rgba(14, 165, 233, 0.28)" stroke="#0ea5e9" strokeWidth="2" />
+      <polygon
+        points={points}
+        fill="rgba(14, 165, 233, 0.28)"
+        stroke="#0ea5e9"
+        strokeWidth="2"
+      />
     </svg>
   );
 }

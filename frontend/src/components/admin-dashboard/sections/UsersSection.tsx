@@ -1,16 +1,24 @@
-import { FormEvent } from 'react';
-import { AdminUserItem, PlayerHistoryItem, PlayerItem, PlayerSummary, Role } from '../../../types';
-import { MetricBars } from '../../charts/MetricBars';
-import { USER_POSITIONS } from '../constants';
-import { EditUserFormState, UserFormState } from '../types';
-import { formatPosition, formatPositionOption, formatRole } from '../utils';
-import { MedalsPanel } from '../../medals/MedalsPanel';
+import { FormEvent } from "react";
+import {
+  AdminUserItem,
+  PlayerHistoryItem,
+  PlayerItem,
+  PlayerSummary,
+  Role,
+} from "../../../types";
+import { MetricBars } from "../../charts/MetricBars";
+import { USER_POSITIONS } from "../constants";
+import { EditUserFormState, UserFormState } from "../types";
+import { formatPosition, formatPositionOption, formatRole } from "../utils";
+import { MedalsPanel } from "../../medals/MedalsPanel";
 
 interface UsersSectionProps {
   active: boolean;
   userForm: UserFormState;
   creatingUser: boolean;
-  onUserFormChange: (updater: (current: UserFormState) => UserFormState) => void;
+  onUserFormChange: (
+    updater: (current: UserFormState) => UserFormState,
+  ) => void;
   onCreateUser: (event: FormEvent<HTMLFormElement>) => void;
   selectedPlayerStatId: number | null;
   players: PlayerItem[];
@@ -25,13 +33,15 @@ interface UsersSectionProps {
   users: AdminUserItem[];
   filteredUsers: AdminUserItem[];
   userSearchTerm: string;
-  userRoleFilter: 'ALL' | Role;
+  userRoleFilter: "ALL" | Role;
   deletingUserId: number | null;
-  onEditingUserFormChange: (updater: (current: EditUserFormState) => EditUserFormState) => void;
+  onEditingUserFormChange: (
+    updater: (current: EditUserFormState) => EditUserFormState,
+  ) => void;
   onUpdateUser: (event: FormEvent<HTMLFormElement>) => void;
   onCancelEditUser: () => void;
   onUserSearchTermChange: (value: string) => void;
-  onUserRoleFilterChange: (value: 'ALL' | Role) => void;
+  onUserRoleFilterChange: (value: "ALL" | Role) => void;
   onLoadUserIntoEditForm: (user: AdminUserItem) => void;
   onDeleteUser: (user: AdminUserItem) => void;
 }
@@ -63,11 +73,11 @@ export function UsersSection({
   onUserSearchTermChange,
   onUserRoleFilterChange,
   onLoadUserIntoEditForm,
-  onDeleteUser
+  onDeleteUser,
 }: UsersSectionProps) {
   return (
     <>
-      <section className={active ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
+      <section className={active ? "grid gap-6 xl:grid-cols-5" : "hidden"}>
         <article className="card xl:col-span-2">
           <h3 className="text-xl font-bold">Crear usuario</h3>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
@@ -78,7 +88,12 @@ export function UsersSection({
               className="input"
               placeholder="Username"
               value={userForm.username}
-              onChange={(event) => onUserFormChange((s) => ({ ...s, username: event.target.value }))}
+              onChange={(event) =>
+                onUserFormChange((s) => ({
+                  ...s,
+                  username: event.target.value,
+                }))
+              }
               required
             />
             <input
@@ -86,26 +101,41 @@ export function UsersSection({
               type="password"
               placeholder="Password"
               value={userForm.password}
-              onChange={(event) => onUserFormChange((s) => ({ ...s, password: event.target.value }))}
+              onChange={(event) =>
+                onUserFormChange((s) => ({
+                  ...s,
+                  password: event.target.value,
+                }))
+              }
               required
             />
             <input
               className="input"
               placeholder="Nombre completo"
               value={userForm.fullName}
-              onChange={(event) => onUserFormChange((s) => ({ ...s, fullName: event.target.value }))}
+              onChange={(event) =>
+                onUserFormChange((s) => ({
+                  ...s,
+                  fullName: event.target.value,
+                }))
+              }
               required
             />
             <select
               className="input"
               value={userForm.role}
-              onChange={(event) => onUserFormChange((s) => ({ ...s, role: event.target.value as Role }))}
+              onChange={(event) =>
+                onUserFormChange((s) => ({
+                  ...s,
+                  role: event.target.value as Role,
+                }))
+              }
             >
               <option value="PLAYER">Jugador</option>
               <option value="ADMIN">Administrador</option>
             </select>
 
-            {userForm.role === 'PLAYER' ? (
+            {userForm.role === "PLAYER" ? (
               <>
                 <input
                   className="input"
@@ -113,17 +143,25 @@ export function UsersSection({
                   min={1}
                   placeholder="Numero de camiseta (opcional)"
                   value={userForm.jerseyNumber}
-                  onChange={(event) => onUserFormChange((s) => ({ ...s, jerseyNumber: event.target.value }))}
+                  onChange={(event) =>
+                    onUserFormChange((s) => ({
+                      ...s,
+                      jerseyNumber: event.target.value,
+                    }))
+                  }
                 />
                 <select
                   className="input"
                   value={userForm.position}
                   onChange={(event) =>
-                    onUserFormChange((s) => ({ ...s, position: event.target.value as UserFormState['position'] }))
+                    onUserFormChange((s) => ({
+                      ...s,
+                      position: event.target.value as UserFormState["position"],
+                    }))
                   }
                 >
                   {USER_POSITIONS.map((position) => (
-                    <option key={position || 'NONE'} value={position}>
+                    <option key={position || "NONE"} value={position}>
                       {formatPositionOption(position)}
                     </option>
                   ))}
@@ -131,20 +169,28 @@ export function UsersSection({
               </>
             ) : null}
 
-            <button className="btn-primary w-full" type="submit" disabled={creatingUser}>
-              {creatingUser ? 'Creando usuario...' : 'Crear usuario'}
+            <button
+              className="btn-primary w-full"
+              type="submit"
+              disabled={creatingUser}
+            >
+              {creatingUser ? "Creando usuario..." : "Crear usuario"}
             </button>
           </form>
         </article>
 
         <article className="card xl:col-span-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-xl font-bold">Estadisticas jugador por jugador</h3>
+            <h3 className="text-xl font-bold">
+              Estadisticas jugador por jugador
+            </h3>
             <div className="flex gap-2">
               <select
                 className="input w-full md:w-72"
-                value={selectedPlayerStatId ?? ''}
-                onChange={(event) => onSelectedPlayerStatChange(Number(event.target.value))}
+                value={selectedPlayerStatId ?? ""}
+                onChange={(event) =>
+                  onSelectedPlayerStatChange(Number(event.target.value))
+                }
               >
                 <option value="" disabled>
                   Selecciona un jugador
@@ -155,8 +201,12 @@ export function UsersSection({
                   </option>
                 ))}
               </select>
-              <button className="btn-muted" onClick={onLoadPlayerStats} disabled={loadingPlayerStats}>
-                {loadingPlayerStats ? 'Cargando...' : 'Ver stats'}
+              <button
+                className="btn-muted"
+                onClick={onLoadPlayerStats}
+                disabled={loadingPlayerStats}
+              >
+                {loadingPlayerStats ? "Cargando..." : "Ver stats"}
               </button>
             </div>
           </div>
@@ -165,15 +215,19 @@ export function UsersSection({
             <>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="card p-4">
-                  <p className="text-sm font-semibold">{selectedPlayerSummary.full_name}</p>
+                  <p className="text-sm font-semibold">
+                    {selectedPlayerSummary.full_name}
+                  </p>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                    Eficiencia global: {selectedPlayerSummary.overall_score.toFixed(2)}%
+                    Eficiencia global:{" "}
+                    {selectedPlayerSummary.overall_score.toFixed(2)}%
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
                     Partidos calificados: {selectedPlayerSummary.matches_rated}
                   </p>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Puntos de ataque por set: {selectedPlayerSummary.avg_attack_points_per_set.toFixed(2)}
+                    Puntos de ataque por set:{" "}
+                    {selectedPlayerSummary.avg_attack_points_per_set.toFixed(2)}
                   </p>
                 </div>
 
@@ -182,12 +236,30 @@ export function UsersSection({
                     maxValue={100}
                     formatter={(value) => `${value.toFixed(1)}%`}
                     metrics={[
-                      { label: 'Recepcion', value: selectedPlayerSummary.avg_reception },
-                      { label: 'Saque', value: selectedPlayerSummary.avg_serve },
-                      { label: 'Defensa', value: selectedPlayerSummary.avg_defense },
-                      { label: 'Ataque', value: selectedPlayerSummary.avg_attack },
-                      { label: 'Bloqueo', value: selectedPlayerSummary.avg_block },
-                      { label: 'Armado', value: selectedPlayerSummary.avg_setting }
+                      {
+                        label: "Recepcion",
+                        value: selectedPlayerSummary.avg_reception,
+                      },
+                      {
+                        label: "Saque",
+                        value: selectedPlayerSummary.avg_serve,
+                      },
+                      {
+                        label: "Defensa",
+                        value: selectedPlayerSummary.avg_defense,
+                      },
+                      {
+                        label: "Ataque",
+                        value: selectedPlayerSummary.avg_attack,
+                      },
+                      {
+                        label: "Bloqueo",
+                        value: selectedPlayerSummary.avg_block,
+                      },
+                      {
+                        label: "Armado",
+                        value: selectedPlayerSummary.avg_setting,
+                      },
                     ]}
                   />
                 </div>
@@ -199,7 +271,7 @@ export function UsersSection({
             </>
           ) : (
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
-              Selecciona un jugador y presiona "Ver stats".
+              Selecciona un jugador y presiona &quot;Ver stats&quot;.
             </p>
           )}
 
@@ -216,11 +288,16 @@ export function UsersSection({
                 </thead>
                 <tbody>
                   {selectedPlayerHistory.map((item) => (
-                    <tr key={item.match_id} className="border-t border-slate-200 dark:border-slate-800">
+                    <tr
+                      key={item.match_id}
+                      className="border-t border-slate-200 dark:border-slate-800"
+                    >
                       <td className="px-2 py-2">{item.match_date}</td>
                       <td className="px-2 py-2">{item.opponent}</td>
                       <td className="px-2 py-2">{item.tournament}</td>
-                      <td className="px-2 py-2 font-semibold text-sky-500">{item.match_performance.toFixed(2)}%</td>
+                      <td className="px-2 py-2 font-semibold text-sky-500">
+                        {item.match_performance.toFixed(2)}%
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -230,7 +307,7 @@ export function UsersSection({
         </article>
       </section>
 
-      <section className={active ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
+      <section className={active ? "grid gap-6 xl:grid-cols-5" : "hidden"}>
         <article className="card xl:col-span-2">
           <h3 className="text-xl font-bold">Editar usuario/jugador</h3>
 
@@ -240,14 +317,24 @@ export function UsersSection({
                 className="input"
                 placeholder="Username"
                 value={editingUserForm.username}
-                onChange={(event) => onEditingUserFormChange((current) => ({ ...current, username: event.target.value }))}
+                onChange={(event) =>
+                  onEditingUserFormChange((current) => ({
+                    ...current,
+                    username: event.target.value,
+                  }))
+                }
                 required
               />
               <input
                 className="input"
                 placeholder="Nombre completo"
                 value={editingUserForm.fullName}
-                onChange={(event) => onEditingUserFormChange((current) => ({ ...current, fullName: event.target.value }))}
+                onChange={(event) =>
+                  onEditingUserFormChange((current) => ({
+                    ...current,
+                    fullName: event.target.value,
+                  }))
+                }
                 required
               />
               <input
@@ -255,20 +342,28 @@ export function UsersSection({
                 type="password"
                 placeholder="Nueva password (opcional)"
                 value={editingUserForm.password}
-                onChange={(event) => onEditingUserFormChange((current) => ({ ...current, password: event.target.value }))}
+                onChange={(event) =>
+                  onEditingUserFormChange((current) => ({
+                    ...current,
+                    password: event.target.value,
+                  }))
+                }
               />
               <select
                 className="input"
                 value={editingUserForm.role}
                 onChange={(event) =>
-                  onEditingUserFormChange((current) => ({ ...current, role: event.target.value as Role }))
+                  onEditingUserFormChange((current) => ({
+                    ...current,
+                    role: event.target.value as Role,
+                  }))
                 }
               >
                 <option value="PLAYER">Jugador</option>
                 <option value="ADMIN">Admin</option>
               </select>
 
-              {editingUserForm.role === 'PLAYER' ? (
+              {editingUserForm.role === "PLAYER" ? (
                 <>
                   <input
                     className="input"
@@ -277,7 +372,10 @@ export function UsersSection({
                     placeholder="Numero de camiseta"
                     value={editingUserForm.jerseyNumber}
                     onChange={(event) =>
-                      onEditingUserFormChange((current) => ({ ...current, jerseyNumber: event.target.value }))
+                      onEditingUserFormChange((current) => ({
+                        ...current,
+                        jerseyNumber: event.target.value,
+                      }))
                     }
                   />
                   <select
@@ -286,12 +384,13 @@ export function UsersSection({
                     onChange={(event) =>
                       onEditingUserFormChange((current) => ({
                         ...current,
-                        position: event.target.value as EditUserFormState['position']
+                        position: event.target
+                          .value as EditUserFormState["position"],
                       }))
                     }
                   >
                     {USER_POSITIONS.map((position) => (
-                      <option key={position || 'NONE'} value={position}>
+                      <option key={position || "NONE"} value={position}>
                         {formatPositionOption(position)}
                       </option>
                     ))}
@@ -300,10 +399,18 @@ export function UsersSection({
               ) : null}
 
               <div className="flex flex-wrap gap-2">
-                <button className="btn-primary" type="submit" disabled={savingUserEdit}>
-                  {savingUserEdit ? 'Actualizando...' : 'Actualizar usuario'}
+                <button
+                  className="btn-primary"
+                  type="submit"
+                  disabled={savingUserEdit}
+                >
+                  {savingUserEdit ? "Actualizando..." : "Actualizar usuario"}
                 </button>
-                <button className="btn-muted" type="button" onClick={onCancelEditUser}>
+                <button
+                  className="btn-muted"
+                  type="button"
+                  onClick={onCancelEditUser}
+                >
                   Cancelar edicion
                 </button>
               </div>
@@ -327,7 +434,9 @@ export function UsersSection({
             <select
               className="input"
               value={userRoleFilter}
-              onChange={(event) => onUserRoleFilterChange(event.target.value as 'ALL' | Role)}
+              onChange={(event) =>
+                onUserRoleFilterChange(event.target.value as "ALL" | Role)
+              }
             >
               <option value="ALL">Todos los roles</option>
               <option value="PLAYER">Solo jugadores</option>
@@ -343,10 +452,16 @@ export function UsersSection({
                 <p className="font-semibold">{user.full_name}</p>
                 <p className="text-xs text-slate-600 dark:text-slate-300">
                   @{user.username} | {formatRole(user.role)}
-                  {user.role === 'PLAYER' ? ` | #${user.jersey_number ?? '-'} | ${formatPosition(user.position)}` : ''}
+                  {user.role === "PLAYER"
+                    ? ` | #${user.jersey_number ?? "-"} | ${formatPosition(user.position)}`
+                    : ""}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  <button className="btn-muted" type="button" onClick={() => onLoadUserIntoEditForm(user)}>
+                  <button
+                    className="btn-muted"
+                    type="button"
+                    onClick={() => onLoadUserIntoEditForm(user)}
+                  >
                     Editar
                   </button>
                   <button
@@ -355,7 +470,7 @@ export function UsersSection({
                     onClick={() => onDeleteUser(user)}
                     disabled={deletingUserId === user.id}
                   >
-                    {deletingUserId === user.id ? 'Eliminando...' : 'Eliminar'}
+                    {deletingUserId === user.id ? "Eliminando..." : "Eliminar"}
                   </button>
                 </div>
               </div>

@@ -151,8 +151,8 @@ async function getGlobalStatsPayload() {
       defense: topDefense,
       attack: topAttack,
       block: topBlock,
-      setting: topSetting
-    }
+      setting: topSetting,
+    },
   };
 }
 
@@ -162,7 +162,11 @@ statsRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
   const playerId = req.user?.playerId;
 
   if (!playerId) {
-    res.status(404).json({ message: 'Perfil de jugador no encontrado para el usuario actual' });
+    res
+      .status(404)
+      .json({
+        message: 'Perfil de jugador no encontrado para el usuario actual',
+      });
     return;
   }
 
@@ -238,7 +242,7 @@ statsRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
 
   res.json({
     summary: summaryRows[0] ?? null,
-    history: historyRows
+    history: historyRows,
   });
 });
 
@@ -253,7 +257,11 @@ statsRouter.get('/player/:playerId', async (req, res) => {
   }
 
   if (req.user?.role === 'PLAYER' && req.user.playerId !== playerId) {
-    res.status(403).json({ message: 'Los jugadores solo pueden ver sus propias estadísticas' });
+    res
+      .status(403)
+      .json({
+        message: 'Los jugadores solo pueden ver sus propias estadísticas',
+      });
     return;
   }
 
@@ -334,7 +342,7 @@ statsRouter.get('/player/:playerId', async (req, res) => {
 
   res.json({
     summary: summaryRows[0],
-    history: historyRows
+    history: historyRows,
   });
 });
 
@@ -343,7 +351,9 @@ statsRouter.get('/global', requireRole('ADMIN'), async (_req, res) => {
     res.json(await getGlobalStatsPayload());
   } catch (error) {
     console.error('Error al cargar /stats/global:', error);
-    res.status(500).json({ message: 'Error al cargar las estadísticas globales' });
+    res
+      .status(500)
+      .json({ message: 'Error al cargar las estadísticas globales' });
   }
 });
 
@@ -352,7 +362,9 @@ statsRouter.get('/global-summary', async (_req, res) => {
     res.json(await getGlobalStatsPayload());
   } catch (error) {
     console.error('Error al cargar /stats/global-summary:', error);
-    res.status(500).json({ message: 'Error al cargar el resumen de estadísticas globales' });
+    res
+      .status(500)
+      .json({ message: 'Error al cargar el resumen de estadísticas globales' });
   }
 });
 

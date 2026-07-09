@@ -1,11 +1,11 @@
 $root = "C:\git\Clubly"
 
 # --- BACKEND ---
-$backendCmd = "cd '$root\backend'; npm i; npm run build; npm run dev"
+$backendCmd = "cd '$root\backend'; npm i; npm run build; npm run lint; npm run dev"
 Start-Process powershell -ArgumentList "-NoExit", "-Command", $backendCmd -WindowStyle Normal
 
 # --- FRONTEND ---
-$frontendCmd = "cd '$root\frontend'; npm i; npm run build; npm run dev"
+$frontendCmd = "cd '$root\frontend'; npm i; npm run build; npm run lint; npm run dev"
 Start-Process powershell -ArgumentList "-NoExit", "-Command", $frontendCmd -WindowStyle Normal
 
 Write-Host "Ejecutando instalación, build y arranque..."

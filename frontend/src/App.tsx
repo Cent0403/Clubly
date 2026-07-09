@@ -1,29 +1,29 @@
-import { useEffect, useState } from 'react';
-import { Toaster, toast } from 'react-hot-toast';
-import { api } from './lib/api';
-import { getToastOptions } from './lib/toast';
-import { useDarkMode } from './hooks/useDarkMode';
-import { LoginForm } from './components/LoginForm';
-import AdminDashboard from './components/AdminDashboard';
-import { AuthUser, TeamSettings } from './types';
-import { PlayerDashboard } from './components/PlayerDashboard';
-import { SunIcon } from './components/icons/SunIcon';
-import { MoonIcon } from './components/icons/MoonIcon';
-
-function formatRole(role: AuthUser['role']) {
-  return role === 'ADMIN' ? 'Admin' : 'Jugador';
-}
+import { useEffect, useState } from "react";
+import { Toaster, toast } from "react-hot-toast";
+import { api } from "./lib/api";
+import { getToastOptions } from "./lib/toast";
+import { useDarkMode } from "./hooks/useDarkMode";
+import { LoginForm } from "./components/LoginForm";
+import AdminDashboard from "./components/AdminDashboard";
+import { AuthUser, TeamSettings } from "./types";
+import { PlayerDashboard } from "./components/PlayerDashboard";
+import { SunIcon } from "./components/icons/SunIcon";
+import { MoonIcon } from "./components/icons/MoonIcon";
 
 function App() {
   const { darkMode, toggleDarkMode } = useDarkMode();
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('clubly_token'));
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem("clubly_token"),
+  );
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
   const [loggingIn, setLoggingIn] = useState(false);
-  const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 767px)').matches);
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    () => window.matchMedia("(max-width: 767px)").matches,
+  );
   const [teamSettings, setTeamSettings] = useState<TeamSettings>({
-    teamName: 'Clubly',
-    teamLogoUrl: null
+    teamName: "Clubly",
+    teamLogoUrl: null,
   });
 
   useEffect(() => {
@@ -32,7 +32,7 @@ function App() {
         const response = await api.getTeamSettings();
         setTeamSettings(response.settings);
       } catch {
-        setTeamSettings({ teamName: 'Clubly', teamLogoUrl: null });
+        setTeamSettings({ teamName: "Clubly", teamLogoUrl: null });
       }
     }
 
@@ -40,16 +40,16 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
     const onMediaQueryChange = (event: MediaQueryListEvent) => {
       setIsMobileViewport(event.matches);
     };
 
-    mediaQuery.addEventListener('change', onMediaQueryChange);
+    mediaQuery.addEventListener("change", onMediaQueryChange);
     setIsMobileViewport(mediaQuery.matches);
 
     return () => {
-      mediaQuery.removeEventListener('change', onMediaQueryChange);
+      mediaQuery.removeEventListener("change", onMediaQueryChange);
     };
   }, []);
 
@@ -64,7 +64,7 @@ function App() {
         const response = await api.me(token);
         setUser(response.user);
       } catch {
-        localStorage.removeItem('clubly_token');
+        localStorage.removeItem("clubly_token");
         setToken(null);
       } finally {
         setLoadingSession(false);
@@ -79,7 +79,7 @@ function App() {
 
     try {
       const response = await api.login(username, password);
-      localStorage.setItem('clubly_token', response.token);
+      localStorage.setItem("clubly_token", response.token);
       setToken(response.token);
       setUser(response.user);
     } catch (loginError) {
@@ -90,7 +90,7 @@ function App() {
   }
 
   function handleLogout() {
-    localStorage.removeItem('clubly_token');
+    localStorage.removeItem("clubly_token");
     setUser(null);
     setToken(null);
   }
@@ -98,26 +98,37 @@ function App() {
   const shouldCenter = !user || !token;
 
   return (
-    <main 
+    <main
       className={`mx-auto min-h-screen max-w-screen-2xl p-4 md:p-6 flex flex-col ${
-        shouldCenter ? 'justify-center items-center' : ''
+        shouldCenter ? "justify-center items-center" : ""
       }`}
     >
       <Toaster
-        position={isMobileViewport ? 'top-center' : 'top-right'}
+        position={isMobileViewport ? "top-center" : "top-right"}
         gutter={10}
         containerStyle={{ top: 14, right: 14, left: 14 }}
         toastOptions={getToastOptions(darkMode)}
       />
-      
+
       {loadingSession ? (
-        <div className="p-2 text-sm text-slate-600 dark:text-slate-300">Validando sesion...</div>
+        <div className="p-2 text-sm text-slate-600 dark:text-slate-300">
+          Validando sesion...
+        </div>
       ) : (
-        <div className="w-full"> 
+        <div className="w-full">
           {!user || !token ? (
-            <LoginForm onSubmit={handleLogin} loading={loggingIn} teamSettings={teamSettings} />
-          ) : user.role === 'ADMIN' ? (
-            <AdminDashboard token={token} teamSettings={teamSettings} onTeamSettingsUpdated={setTeamSettings} onLogout={handleLogout} />
+            <LoginForm
+              onSubmit={handleLogin}
+              loading={loggingIn}
+              teamSettings={teamSettings}
+            />
+          ) : user.role === "ADMIN" ? (
+            <AdminDashboard
+              token={token}
+              teamSettings={teamSettings}
+              onTeamSettingsUpdated={setTeamSettings}
+              onLogout={handleLogout}
+            />
           ) : (
             <PlayerDashboard token={token} onLogout={handleLogout} />
           )}
@@ -126,9 +137,13 @@ function App() {
             type="button"
             className="fixed bottom-6 right-6 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
             onClick={toggleDarkMode}
-            aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
+            aria-label={darkMode ? "Activar modo claro" : "Activar modo oscuro"}
           >
-            {darkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-7 w-7" />}
+            {darkMode ? (
+              <SunIcon className="h-5 w-5" />
+            ) : (
+              <MoonIcon className="h-7 w-7" />
+            )}
           </button>
         </div>
       )}

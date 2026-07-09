@@ -30,7 +30,7 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'https://shadowsvc.club',
   'https://www.shadowsvc.club',
-  process.env.FRONTEND_URL
+  process.env.FRONTEND_URL,
 ]
   .filter((origin): origin is string => Boolean(origin))
   .map(normalizeOrigin);
@@ -50,7 +50,7 @@ const corsOptions: cors.CorsOptions = {
     callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));
@@ -70,20 +70,40 @@ app.use('/api/calendar', calendarRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/finance', financeRouter);
 
-app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  const requestOrigin = req.headers.origin;
-  if (typeof requestOrigin === 'string' && isAllowedOrigin(requestOrigin)) {
-    res.setHeader('Access-Control-Allow-Origin', normalizeOrigin(requestOrigin));
-    res.setHeader('Vary', 'Origin');
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    void next;
+
+    const requestOrigin = req.headers.origin;
+    if (typeof requestOrigin === 'string' && isAllowedOrigin(requestOrigin)) {
+      res.setHeader(
+        'Access-Control-Allow-Origin',
+        normalizeOrigin(requestOrigin)
+      );
+      res.setHeader('Vary', 'Origin');
+    }
+
+    const errorWithStatus = err as Error & { status?: number; type?: string };
+
+    if (
+      errorWithStatus.status === 413 ||
+      errorWithStatus.type === 'entity.too.large'
+    ) {
+      res
+        .status(413)
+        .json({
+          message:
+            'La imagen es demasiado grande. Por favor, sube un archivo más pequeño.',
+        });
+      return;
+    }
+
+    console.error(err);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
-
-  const errorWithStatus = err as Error & { status?: number; type?: string };
-
-  if (errorWithStatus.status === 413 || errorWithStatus.type === 'entity.too.large') {
-    res.status(413).json({ message: 'La imagen es demasiado grande. Por favor, sube un archivo más pequeño.' });
-    return;
-  }
-
-  console.error(err);
-  res.status(500).json({ message: 'Error interno del servidor' });
-});
+);

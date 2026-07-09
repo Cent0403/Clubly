@@ -2,7 +2,11 @@ import { Router } from 'express';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { pool } from '../db/pool';
 import { requireAuth, requireRole } from '../middleware/auth';
-import { calculateEfficiencyMetrics, EfficiencyRatingInput, ensureEfficiencySchema } from '../stats/efficiency';
+import {
+  calculateEfficiencyMetrics,
+  EfficiencyRatingInput,
+  ensureEfficiencySchema,
+} from '../stats/efficiency';
 
 interface CreateMatchBody {
   matchDate?: string;
@@ -32,20 +36,24 @@ interface MatchRow extends RowDataPacket {
 
 const matchesRouter = Router();
 
-function isNonNegativeNumber(value: number): boolean {
-  return Number.isFinite(value) && value >= 0;
-}
-
 function isNonNegativeInteger(value: number): boolean {
   return Number.isInteger(value) && value >= 0;
 }
 
-function normalizeEfficiencyRatingInput(item: EfficiencyRatingInput): EfficiencyRatingInput {
+function normalizeEfficiencyRatingInput(
+  item: EfficiencyRatingInput
+): EfficiencyRatingInput {
   return {
     ...item,
-    attackAttempts: Math.max(item.attackAttempts, item.attackPoints + item.attackErrors),
-    serveAttempts: Math.max(item.serveAttempts, item.serveAces + item.serveErrors),
-    setAttempts: Math.max(item.setAttempts, item.setAssists + item.setErrors)
+    attackAttempts: Math.max(
+      item.attackAttempts,
+      item.attackPoints + item.attackErrors
+    ),
+    serveAttempts: Math.max(
+      item.serveAttempts,
+      item.serveAces + item.serveErrors
+    ),
+    setAttempts: Math.max(item.setAttempts, item.setAssists + item.setErrors),
   };
 }
 
@@ -72,10 +80,13 @@ matchesRouter.get('/', async (_req, res) => {
 });
 
 matchesRouter.post('/', requireRole('ADMIN'), async (req, res) => {
-  const { matchDate, opponent, tournament, location, notes } = req.body as CreateMatchBody;
+  const { matchDate, opponent, tournament, location, notes } =
+    req.body as CreateMatchBody;
 
   if (!matchDate || !opponent || !tournament) {
-    res.status(400).json({ message: 'matchDate, opponent y tournament son obligatorios' });
+    res
+      .status(400)
+      .json({ message: 'matchDate, opponent y tournament son obligatorios' });
     return;
   }
 
@@ -84,7 +95,14 @@ matchesRouter.post('/', requireRole('ADMIN'), async (req, res) => {
       INSERT INTO matches (match_date, opponent, tournament, location, notes, created_by)
       VALUES (?, ?, ?, ?, ?, ?)
     `,
-    [matchDate, opponent, tournament, location ?? null, notes ?? null, req.user!.userId]
+    [
+      matchDate,
+      opponent,
+      tournament,
+      location ?? null,
+      notes ?? null,
+      req.user!.userId,
+    ]
   );
 
   res.status(201).json({ id: result.insertId, message: 'Match created' });
@@ -92,7 +110,8 @@ matchesRouter.post('/', requireRole('ADMIN'), async (req, res) => {
 
 matchesRouter.put('/:id', requireRole('ADMIN'), async (req, res) => {
   const matchId = Number(req.params.id);
-  const { matchDate, opponent, tournament, location, notes } = req.body as CreateMatchBody;
+  const { matchDate, opponent, tournament, location, notes } =
+    req.body as CreateMatchBody;
 
   if (!Number.isInteger(matchId) || matchId <= 0) {
     res.status(400).json({ message: 'ID de partido inválido' });
@@ -100,7 +119,9 @@ matchesRouter.put('/:id', requireRole('ADMIN'), async (req, res) => {
   }
 
   if (!matchDate || !opponent || !tournament) {
-    res.status(400).json({ message: 'matchDate, opponent y tournament son obligatorios' });
+    res
+      .status(400)
+      .json({ message: 'matchDate, opponent y tournament son obligatorios' });
     return;
   }
 
@@ -129,7 +150,10 @@ matchesRouter.delete('/:id', requireRole('ADMIN'), async (req, res) => {
     return;
   }
 
-  const [result] = await pool.query<ResultSetHeader>('DELETE FROM matches WHERE id = ?', [matchId]);
+  const [result] = await pool.query<ResultSetHeader>(
+    'DELETE FROM matches WHERE id = ?',
+    [matchId]
+  );
 
   if (result.affectedRows === 0) {
     res.status(404).json({ message: 'Partido no encontrado' });
@@ -153,14 +177,23 @@ matchesRouter.post('/:id/players', requireRole('ADMIN'), async (req, res) => {
     return;
   }
 
-  const sanitizedPlayerIds = [...new Set(playerIds.map(Number).filter((id) => Number.isInteger(id) && id > 0))];
+  const sanitizedPlayerIds = [
+    ...new Set(
+      playerIds.map(Number).filter((id) => Number.isInteger(id) && id > 0)
+    ),
+  ];
 
   if (sanitizedPlayerIds.length === 0) {
-    res.status(400).json({ message: 'No se proporcionaron IDs de jugadores válidos' });
+    res
+      .status(400)
+      .json({ message: 'No se proporcionaron IDs de jugadores válidos' });
     return;
   }
 
-  const [matchRows] = await pool.query<MatchRow[]>('SELECT id FROM matches WHERE id = ? LIMIT 1', [matchId]);
+  const [matchRows] = await pool.query<MatchRow[]>(
+    'SELECT id FROM matches WHERE id = ? LIMIT 1',
+    [matchId]
+  );
   if (!matchRows[0]) {
     res.status(404).json({ message: 'Partido no encontrado' });
     return;
@@ -170,7 +203,10 @@ matchesRouter.post('/:id/players', requireRole('ADMIN'), async (req, res) => {
 
   try {
     await connection.beginTransaction();
-    await connection.query('DELETE FROM match_participants WHERE match_id = ?', [matchId]);
+    await connection.query(
+      'DELETE FROM match_participants WHERE match_id = ?',
+      [matchId]
+    );
 
     for (const playerId of sanitizedPlayerIds) {
       await connection.query(
@@ -187,7 +223,10 @@ matchesRouter.post('/:id/players', requireRole('ADMIN'), async (req, res) => {
     connection.release();
   }
 
-  res.json({ message: 'Jugadores asignados exitosamente', playerIds: sanitizedPlayerIds });
+  res.json({
+    message: 'Jugadores asignados exitosamente',
+    playerIds: sanitizedPlayerIds,
+  });
 });
 
 matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
@@ -234,7 +273,8 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
       !isNonNegativeInteger(item.blockError)
     ) {
       res.status(400).json({
-        message: 'Cada calificación debe incluir contadores no negativos válidos, intentos y un playerId válido'
+        message:
+          'Cada calificación debe incluir contadores no negativos válidos, intentos y un playerId válido',
       });
       return;
     }
@@ -245,7 +285,10 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    const [matchRows] = await connection.query<MatchRow[]>('SELECT id FROM matches WHERE id = ? LIMIT 1', [matchId]);
+    const [matchRows] = await connection.query<MatchRow[]>(
+      'SELECT id FROM matches WHERE id = ? LIMIT 1',
+      [matchId]
+    );
     if (!matchRows[0]) {
       await connection.rollback();
       res.status(404).json({ message: 'Partido no encontrado' });
@@ -365,7 +408,7 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
           calculated.defenseEfficiency,
           calculated.blockEfficiency,
           calculated.overallEfficiency,
-          req.user!.userId
+          req.user!.userId,
         ]
       );
     }
@@ -378,7 +421,10 @@ matchesRouter.post('/:id/ratings', requireRole('ADMIN'), async (req, res) => {
     connection.release();
   }
 
-  res.json({ message: 'Calificaciones guardadas exitosamente', ratedPlayers: normalizedRatings.length });
+  res.json({
+    message: 'Calificaciones guardadas exitosamente',
+    ratedPlayers: normalizedRatings.length,
+  });
 });
 
 matchesRouter.get('/:id/ratings', async (req, res) => {

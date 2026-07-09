@@ -1,49 +1,51 @@
-import { PlayerSummary, PlayerHistoryItem } from '../../types';
-import { POSITION_LABELS } from './constants';
-import { RadarMetric, SummaryCard } from './types';
+import { PlayerSummary, PlayerHistoryItem } from "../../types";
+import { POSITION_LABELS } from "./constants";
+import { RadarMetric, SummaryCard } from "./types";
 
 export function formatRole(role: string | null | undefined) {
-  if (role === 'ADMIN') {
-    return 'Admin';
+  if (role === "ADMIN") {
+    return "Admin";
   }
 
-  if (role === 'PLAYER') {
-    return 'Jugador';
+  if (role === "PLAYER") {
+    return "Jugador";
   }
 
-  return role ?? 'Sin rol';
+  return role ?? "Sin rol";
 }
 
 export function formatPosition(position: string | null | undefined) {
   if (!position) {
-    return 'Sin posición';
+    return "Sin posición";
   }
 
   return POSITION_LABELS[position] ?? position;
 }
 
-export function buildRadarMetrics(summary: PlayerSummary | null): RadarMetric[] {
+export function buildRadarMetrics(
+  summary: PlayerSummary | null,
+): RadarMetric[] {
   return [
-    { label: 'Recepcion', value: summary?.avg_reception ?? 0 },
-    { label: 'Saque', value: summary?.avg_serve ?? 0 },
-    { label: 'Defensa', value: summary?.avg_defense ?? 0 },
-    { label: 'Ataque', value: summary?.avg_attack ?? 0 },
-    { label: 'Bloqueo', value: summary?.avg_block ?? 0 },
-    { label: 'Armado', value: summary?.avg_setting ?? 0 }
+    { label: "Recepcion", value: summary?.avg_reception ?? 0 },
+    { label: "Saque", value: summary?.avg_serve ?? 0 },
+    { label: "Defensa", value: summary?.avg_defense ?? 0 },
+    { label: "Ataque", value: summary?.avg_attack ?? 0 },
+    { label: "Bloqueo", value: summary?.avg_block ?? 0 },
+    { label: "Armado", value: summary?.avg_setting ?? 0 },
   ];
 }
 
 export function getBestFundament(metrics: RadarMetric[]) {
   return metrics.reduce(
     (best, metric) => (metric.value > best.value ? metric : best),
-    metrics[0] ?? { label: 'Recepcion', value: 0 }
+    metrics[0] ?? { label: "Recepcion", value: 0 },
   );
 }
 
 export function getWorstFundament(metrics: RadarMetric[]) {
   return metrics.reduce(
     (worst, metric) => (metric.value < worst.value ? metric : worst),
-    metrics[0] ?? { label: 'Recepcion', value: 0 }
+    metrics[0] ?? { label: "Recepcion", value: 0 },
   );
 }
 
@@ -63,27 +65,35 @@ const MEDAL_THRESHOLDS = [3, 6, 9, 12];
 
 function matchQualifies(category: string, match: PlayerHistoryItem): boolean {
   switch (category) {
-    case 'Recepción sin errores':
+    case "Recepción sin errores":
       return match.reception_zero === 0 && match.reception_attempts > 0;
-    case 'Bloqueo +3':
+    case "Bloqueo +3":
       return match.block_kill >= 3;
-    case 'Remates +10':
+    case "Remates +10":
       return match.attack_points >= 10;
-    case 'Saque +5':
+    case "Saque +5":
       return match.serve_aces >= 5;
-    case 'Defensas +10':
-      return match.defense_successes + match.block_kill + match.block_touch >= 10;
-    case 'Armado +25 asistencias':
+    case "Defensas +10":
+      return (
+        match.defense_successes + match.block_kill + match.block_touch >= 10
+      );
+    case "Armado +25 asistencias":
       return match.set_assists > 25;
-    case 'Racha de partidos asistidos':
+    case "Racha de partidos asistidos":
       return match.sets_played >= 1;
     default:
       return false;
   }
 }
 
-function buildStreak(category: string, history: PlayerHistoryItem[]): MedalGroup {
-  const badges = MEDAL_THRESHOLDS.map((threshold) => ({ threshold, achieved: false }));
+function buildStreak(
+  category: string,
+  history: PlayerHistoryItem[],
+): MedalGroup {
+  const badges = MEDAL_THRESHOLDS.map((threshold) => ({
+    threshold,
+    achieved: false,
+  }));
   let currentStreak = 0;
   let maxStreak = 0;
 
@@ -105,25 +115,27 @@ function buildStreak(category: string, history: PlayerHistoryItem[]): MedalGroup
   return {
     category,
     description:
-      category === 'Recepción sin errores'
-        ? 'Partidos consecutivos sin recepciones fallidas.'
-        : category === 'Bloqueo +3'
-        ? 'Partidos consecutivos con al menos 3 bloqueos efectivos.'
-        : category === 'Remates +10'
-        ? 'Partidos consecutivos con 10 o más puntos de ataque.'
-        : category === 'Saque +5'
-        ? 'Partidos consecutivos con 5 o más aces de saque.'
-        : category === 'Defensas +10'
-        ? 'Partidos consecutivos con 10 o más acciones defensivas.'
-        : category === 'Armado +25 asistencias'
-        ? 'Partidos consecutivos con más de 25 asistencias de armado.'
-        : 'Partidos consecutivos con al menos una asistencia de armado.',
+      category === "Recepción sin errores"
+        ? "Partidos consecutivos sin recepciones fallidas."
+        : category === "Bloqueo +3"
+          ? "Partidos consecutivos con al menos 3 bloqueos efectivos."
+          : category === "Remates +10"
+            ? "Partidos consecutivos con 10 o más puntos de ataque."
+            : category === "Saque +5"
+              ? "Partidos consecutivos con 5 o más aces de saque."
+              : category === "Defensas +10"
+                ? "Partidos consecutivos con 10 o más acciones defensivas."
+                : category === "Armado +25 asistencias"
+                  ? "Partidos consecutivos con más de 25 asistencias de armado."
+                  : "Partidos consecutivos con al menos una asistencia de armado.",
     currentStreak,
-    badges
+    badges,
   };
 }
 
-export function buildPlayerMedalGroups(history: PlayerHistoryItem[]): MedalGroup[] {
+export function buildPlayerMedalGroups(
+  history: PlayerHistoryItem[],
+): MedalGroup[] {
   if (history.length === 0) {
     return [];
   }
@@ -135,25 +147,40 @@ export function buildPlayerMedalGroups(history: PlayerHistoryItem[]): MedalGroup
   });
 
   return [
-    buildStreak('Recepción sin errores', sortedHistory),
-    buildStreak('Bloqueo +3', sortedHistory),
-    buildStreak('Remates +10', sortedHistory),
-    buildStreak('Saque +5', sortedHistory),
-    buildStreak('Defensas +10', sortedHistory),
-    buildStreak('Armado +25 asistencias', sortedHistory),
-    buildStreak('Racha de partidos asistidos', sortedHistory)
+    buildStreak("Recepción sin errores", sortedHistory),
+    buildStreak("Bloqueo +3", sortedHistory),
+    buildStreak("Remates +10", sortedHistory),
+    buildStreak("Saque +5", sortedHistory),
+    buildStreak("Defensas +10", sortedHistory),
+    buildStreak("Armado +25 asistencias", sortedHistory),
+    buildStreak("Racha de partidos asistidos", sortedHistory),
   ];
 }
 
-export function buildSummaryCards(summary: PlayerSummary | null, bestFundament: RadarMetric, worstFundament: RadarMetric): SummaryCard[] {
+export function buildSummaryCards(
+  summary: PlayerSummary | null,
+  bestFundament: RadarMetric,
+): SummaryCard[] {
   return [
-    { label: 'Eficiencia global', value: summary?.overall_score ?? 0, accent: 'text-sky-500' },
-    { label: 'Partidos calificados', value: summary?.matches_rated ?? 0, accent: 'text-amber-500' },
-    { label: 'Pts ataque/set', value: summary?.avg_attack_points_per_set ?? 0, accent: 'text-violet-500' },
+    {
+      label: "Eficiencia global",
+      value: summary?.overall_score ?? 0,
+      accent: "text-sky-500",
+    },
+    {
+      label: "Partidos calificados",
+      value: summary?.matches_rated ?? 0,
+      accent: "text-amber-500",
+    },
+    {
+      label: "Pts ataque/set",
+      value: summary?.avg_attack_points_per_set ?? 0,
+      accent: "text-violet-500",
+    },
     {
       label: `Mejor fundamento: ${bestFundament.label}`,
       value: bestFundament.value,
-      accent: 'text-emerald-500'
-    }
+      accent: "text-emerald-500",
+    },
   ];
 }

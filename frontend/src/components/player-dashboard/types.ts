@@ -1,6 +1,16 @@
-import type { ComponentType, SVGProps } from 'react';
-import { GlobalStats, MatchRatingRow, PlayerHistoryItem, PlayerItem, PlayerSummary } from '../../types';
-import { FinanceDebt, FinanceDebtPayment, PlayerFinanceDebtSummary } from '../../types';
+import type { ComponentType, SVGProps } from "react";
+import {
+  GlobalStats,
+  MatchRatingRow,
+  PlayerHistoryItem,
+  PlayerItem,
+  PlayerSummary,
+} from "../../types";
+import {
+  FinanceDebt,
+  FinanceDebtPayment,
+  PlayerFinanceDebtSummary,
+} from "../../types";
 
 export interface PlayerDashboardProps {
   token: string;
@@ -14,12 +24,19 @@ export interface ProfileFormState {
 }
 
 export interface PlayerSection {
-  key: 'resumen' | 'rendimiento' | 'historial' | 'calendario' | 'finanzas' | 'top' | 'perfil' ;
+  key:
+    | "resumen"
+    | "rendimiento"
+    | "historial"
+    | "calendario"
+    | "finanzas"
+    | "top"
+    | "perfil";
   label: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
-export type PlayerSectionKey = PlayerSection['key'];
+export type PlayerSectionKey = PlayerSection["key"];
 
 export interface RadarMetric {
   label: string;
@@ -75,10 +92,13 @@ export interface FinanceSectionProps {
 
 export interface CalendarSectionProps {
   active: boolean;
-  events: import('../../types').CalendarEvent[];
+  events: import("../../types").CalendarEvent[];
   savingAttendanceInstanceId: number | null;
   onSubmitAttendance: (
     instanceId: number,
-    payload: { estadoAsistencia: import('../../types').AttendanceStatus; comentario: string }
+    payload: {
+      estadoAsistencia: import("../../types").AttendanceStatus;
+      comentario: string;
+    },
   ) => Promise<void>;
 }

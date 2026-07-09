@@ -1,5 +1,6 @@
-export type Role = 'ADMIN' | 'PLAYER';
-export type PlayerPosition = 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO';
+export type Role = "ADMIN" | "PLAYER";
+export type PlayerPosition =
+  "SETTER" | "OUTSIDE" | "OPPOSITE" | "MIDDLE" | "LIBERO";
 
 export interface AuthUser {
   id: number;
@@ -144,9 +145,10 @@ export interface UpdateMyProfilePayload {
   jerseyNumber?: number | null;
 }
 
-export type CalendarEventType = 'partido' | 'entreno' | 'entrega' | 'otro';
-export type CalendarFrequency = 'diaria' | 'semanal' | 'mensual';
-export type AttendanceStatus = 'asistira' | 'no_asistira' | 'pendiente' | 'tarde';
+export type CalendarEventType = "partido" | "entreno" | "entrega" | "otro";
+export type CalendarFrequency = "diaria" | "semanal" | "mensual";
+export type AttendanceStatus =
+  "asistira" | "no_asistira" | "pendiente" | "tarde";
 
 export interface CalendarAttendanceCounts {
   asistira: number;
@@ -178,7 +180,7 @@ export interface CalendarEventInstance {
   fecha_hora_inicio: string;
   fecha_hora_fin: string;
   requiere_asistencia: boolean;
-  estado_instancia: 'programado' | 'cancelado' | 'completado';
+  estado_instancia: "programado" | "cancelado" | "completado";
   lugar: string | null;
   notas: string | null;
   attendance_counts: CalendarAttendanceCounts;
@@ -215,7 +217,7 @@ export interface CreateCalendarEventPayload {
 }
 
 export type UpdateCalendarEventPayload = CreateCalendarEventPayload & {
-  estadoInstancia?: 'programado' | 'cancelado' | 'completado';
+  estadoInstancia?: "programado" | "cancelado" | "completado";
 };
 
 export interface CalendarAttendancePayload {
@@ -310,7 +312,7 @@ export interface GlobalStats {
   };
 }
 
-export type FinanceType = 'income' | 'expense';
+export type FinanceType = "income" | "expense";
 
 export interface FinanceCategory {
   id: number;
@@ -338,7 +340,7 @@ export interface FinanceDebt {
   amount_paid: number;
   amount_pending: number;
   description: string | null;
-  status: 'pending' | 'partially_paid' | 'paid';
+  status: "pending" | "partially_paid" | "paid";
   due_date: string | null;
   created_at: string;
 }

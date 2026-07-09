@@ -8,7 +8,12 @@ function toBoolean(value: string | undefined, fallback: boolean): boolean {
   }
 
   const normalized = value.trim().toLowerCase();
-  return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
+  return (
+    normalized === '1' ||
+    normalized === 'true' ||
+    normalized === 'yes' ||
+    normalized === 'on'
+  );
 }
 
 function getEnv(name: string, fallback?: string): string {
@@ -30,5 +35,5 @@ export const env = {
   dbName: getEnv('DB_NAME', 'clubly'),
   dbSsl: toBoolean(process.env.DB_SSL, false),
   jwtSecret: getEnv('JWT_SECRET', 'super_secret_change_me'),
-  jwtExpiresIn: getEnv('JWT_EXPIRES_IN', '8h')
+  jwtExpiresIn: getEnv('JWT_EXPIRES_IN', '8h'),
 };

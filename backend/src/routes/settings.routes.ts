@@ -46,13 +46,17 @@ settingsRouter.get('/', async (_req, res) => {
     `
   );
 
-  const settings = rows[0] ?? { id: 1, team_name: 'Clubly', team_logo_url: null };
+  const settings = rows[0] ?? {
+    id: 1,
+    team_name: 'Clubly',
+    team_logo_url: null,
+  };
 
   res.json({
     settings: {
       teamName: settings.team_name,
-      teamLogoUrl: settings.team_logo_url
-    }
+      teamLogoUrl: settings.team_logo_url,
+    },
   });
 });
 
@@ -61,11 +65,17 @@ settingsRouter.put('/', requireAuth, requireRole('ADMIN'), async (req, res) => {
 
   const { teamName, teamLogoUrl } = req.body as UpdateSettingsBody;
   const nextTeamName = teamName?.trim();
-  const hasTeamName = typeof nextTeamName === 'string' && nextTeamName.length > 0;
+  const hasTeamName =
+    typeof nextTeamName === 'string' && nextTeamName.length > 0;
   const hasLogoField = typeof teamLogoUrl !== 'undefined';
 
   if (!hasTeamName && !hasLogoField) {
-    res.status(400).json({ message: 'Proporcione teamName o teamLogoUrl para actualizar la configuración' });
+    res
+      .status(400)
+      .json({
+        message:
+          'Proporcione teamName o teamLogoUrl para actualizar la configuración',
+      });
     return;
   }
 
@@ -105,14 +115,18 @@ settingsRouter.put('/', requireAuth, requireRole('ADMIN'), async (req, res) => {
     `
   );
 
-  const settings = rows[0] ?? { id: 1, team_name: 'Clubly', team_logo_url: null };
+  const settings = rows[0] ?? {
+    id: 1,
+    team_name: 'Clubly',
+    team_logo_url: null,
+  };
 
   res.json({
     message: 'Configuración del equipo actualizada exitosamente',
     settings: {
       teamName: settings.team_name,
-      teamLogoUrl: settings.team_logo_url
-    }
+      teamLogoUrl: settings.team_logo_url,
+    },
   });
 });
 

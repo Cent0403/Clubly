@@ -201,7 +201,11 @@ financeRouter.get('/my-debts', requireRole('PLAYER'), async (req, res) => {
   const playerId = req.user?.playerId;
 
   if (!playerId) {
-    res.status(404).json({ message: 'Perfil de jugador no encontrado para el usuario actual' });
+    res
+      .status(404)
+      .json({
+        message: 'Perfil de jugador no encontrado para el usuario actual',
+      });
     return;
   }
 
@@ -290,7 +294,7 @@ financeRouter.get('/my-debts', requireRole('PLAYER'), async (req, res) => {
     debt_count: 0,
     pending_count: 0,
     upcoming_count: 0,
-    next_due_date: null
+    next_due_date: null,
   };
 
   res.json({
@@ -301,11 +305,11 @@ financeRouter.get('/my-debts', requireRole('PLAYER'), async (req, res) => {
       debtCount: Number(summary.debt_count),
       pendingCount: Number(summary.pending_count),
       upcomingCount: Number(summary.upcoming_count),
-      nextDueDate: summary.next_due_date
+      nextDueDate: summary.next_due_date,
     },
     debts,
     upcomingDebts,
-    payments
+    payments,
   });
 });
 
@@ -339,7 +343,7 @@ financeRouter.get('/overview', async (_req, res) => {
 
   const totals = transactionTotalsRows[0] ?? {
     total_income: 0,
-    total_expense: 0
+    total_expense: 0,
   };
 
   const debtTotals = debtTotalsRows[0] ?? {
@@ -349,7 +353,7 @@ financeRouter.get('/overview', async (_req, res) => {
     debt_count: 0,
     pending_count: 0,
     partially_paid_count: 0,
-    paid_count: 0
+    paid_count: 0,
   };
 
   res.json({
@@ -364,9 +368,9 @@ financeRouter.get('/overview', async (_req, res) => {
       debtStatusCount: {
         pending: Number(debtTotals.pending_count),
         partiallyPaid: Number(debtTotals.partially_paid_count),
-        paid: Number(debtTotals.paid_count)
-      }
-    }
+        paid: Number(debtTotals.paid_count),
+      },
+    },
   });
 });
 
@@ -374,7 +378,8 @@ financeRouter.get('/categories', async (req, res) => {
   await ensureFinanceSchema();
 
   const queryType = req.query.type;
-  const hasTypeFilter = typeof queryType === 'string' && isFinanceType(queryType);
+  const hasTypeFilter =
+    typeof queryType === 'string' && isFinanceType(queryType);
 
   const [rows] = await pool.query<FinanceCategoryRow[]>(
     `
@@ -396,7 +401,11 @@ financeRouter.post('/categories', async (req, res) => {
   const nextName = name?.trim();
 
   if (!nextName || !isFinanceType(type)) {
-    res.status(400).json({ message: 'El nombre y el tipo (ingreso|gasto) son obligatorios' });
+    res
+      .status(400)
+      .json({
+        message: 'El nombre y el tipo (ingreso|gasto) son obligatorios',
+      });
     return;
   }
 
@@ -408,7 +417,9 @@ financeRouter.post('/categories', async (req, res) => {
     [nextName, type]
   );
 
-  res.status(201).json({ id: result.insertId, message: 'Categoría creada exitosamente' });
+  res
+    .status(201)
+    .json({ id: result.insertId, message: 'Categoría creada exitosamente' });
 });
 
 financeRouter.put('/categories/:id', async (req, res) => {
@@ -424,7 +435,11 @@ financeRouter.put('/categories/:id', async (req, res) => {
   }
 
   if (!nextName || !isFinanceType(type)) {
-    res.status(400).json({ message: 'El nombre y el tipo (ingreso|gasto) son obligatorios' });
+    res
+      .status(400)
+      .json({
+        message: 'El nombre y el tipo (ingreso|gasto) son obligatorios',
+      });
     return;
   }
 
@@ -494,12 +509,24 @@ financeRouter.get('/transactions', async (req, res) => {
 financeRouter.post('/transactions', async (req, res) => {
   await ensureFinanceSchema();
 
-  const { categoryId, amount, type, description, transactionDate } = req.body as CreateTransactionBody;
+  const { categoryId, amount, type, description, transactionDate } =
+    req.body as CreateTransactionBody;
   const parsedAmount = toDecimal(amount);
   const nextDescription = description?.trim() || null;
 
-  if (!isFinanceType(type) || parsedAmount === null || parsedAmount <= 0 || !transactionDate || !isIsoDate(transactionDate)) {
-    res.status(400).json({ message: 'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios' });
+  if (
+    !isFinanceType(type) ||
+    parsedAmount === null ||
+    parsedAmount <= 0 ||
+    !transactionDate ||
+    !isIsoDate(transactionDate)
+  ) {
+    res
+      .status(400)
+      .json({
+        message:
+          'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios',
+      });
     return;
   }
 
@@ -508,7 +535,12 @@ financeRouter.post('/transactions', async (req, res) => {
   if (categoryId !== undefined && categoryId !== null) {
     const parsedCategoryId = Number(categoryId);
     if (!Number.isInteger(parsedCategoryId) || parsedCategoryId <= 0) {
-      res.status(400).json({ message: 'El ID de categoría debe ser un número entero positivo cuando se proporciona' });
+      res
+        .status(400)
+        .json({
+          message:
+            'El ID de categoría debe ser un número entero positivo cuando se proporciona',
+        });
       return;
     }
 
@@ -525,7 +557,12 @@ financeRouter.post('/transactions', async (req, res) => {
     }
 
     if (category.type !== type) {
-      res.status(400).json({ message: 'El tipo de categoría seleccionada debe coincidir con el tipo de transacción' });
+      res
+        .status(400)
+        .json({
+          message:
+            'El tipo de categoría seleccionada debe coincidir con el tipo de transacción',
+        });
       return;
     }
 
@@ -540,14 +577,17 @@ financeRouter.post('/transactions', async (req, res) => {
     [nextCategoryId, parsedAmount, type, nextDescription, transactionDate]
   );
 
-  res.status(201).json({ id: result.insertId, message: 'Transacción creada exitosamente' });
+  res
+    .status(201)
+    .json({ id: result.insertId, message: 'Transacción creada exitosamente' });
 });
 
 financeRouter.put('/transactions/:id', async (req, res) => {
   await ensureFinanceSchema();
 
   const transactionId = Number(req.params.id);
-  const { categoryId, amount, type, description, transactionDate } = req.body as UpdateTransactionBody;
+  const { categoryId, amount, type, description, transactionDate } =
+    req.body as UpdateTransactionBody;
   const parsedAmount = toDecimal(amount);
   const nextDescription = description?.trim() || null;
 
@@ -556,8 +596,19 @@ financeRouter.put('/transactions/:id', async (req, res) => {
     return;
   }
 
-  if (!isFinanceType(type) || parsedAmount === null || parsedAmount <= 0 || !transactionDate || !isIsoDate(transactionDate)) {
-    res.status(400).json({ message: 'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios' });
+  if (
+    !isFinanceType(type) ||
+    parsedAmount === null ||
+    parsedAmount <= 0 ||
+    !transactionDate ||
+    !isIsoDate(transactionDate)
+  ) {
+    res
+      .status(400)
+      .json({
+        message:
+          'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios',
+      });
     return;
   }
 
@@ -566,7 +617,12 @@ financeRouter.put('/transactions/:id', async (req, res) => {
   if (categoryId !== undefined && categoryId !== null) {
     const parsedCategoryId = Number(categoryId);
     if (!Number.isInteger(parsedCategoryId) || parsedCategoryId <= 0) {
-      res.status(400).json({ message: 'El ID de categoría debe ser un número entero positivo cuando se proporciona' });
+      res
+        .status(400)
+        .json({
+          message:
+            'El ID de categoría debe ser un número entero positivo cuando se proporciona',
+        });
       return;
     }
 
@@ -583,7 +639,12 @@ financeRouter.put('/transactions/:id', async (req, res) => {
     }
 
     if (category.type !== type) {
-      res.status(400).json({ message: 'El tipo de categoría seleccionada debe coincidir con el tipo de transacción' });
+      res
+        .status(400)
+        .json({
+          message:
+            'El tipo de categoría seleccionada debe coincidir con el tipo de transacción',
+        });
       return;
     }
 
@@ -596,7 +657,14 @@ financeRouter.put('/transactions/:id', async (req, res) => {
       SET category_id = ?, amount = ?, type = ?, description = ?, transaction_date = ?
       WHERE id = ?
     `,
-    [nextCategoryId, parsedAmount, type, nextDescription, transactionDate, transactionId]
+    [
+      nextCategoryId,
+      parsedAmount,
+      type,
+      nextDescription,
+      transactionDate,
+      transactionId,
+    ]
   );
 
   if (result.affectedRows === 0) {
@@ -644,21 +712,37 @@ financeRouter.get('/debts', async (_req, res) => {
 financeRouter.post('/debts', async (req, res) => {
   await ensureFinanceSchema();
 
-  const { playerId, amountDue, description, dueDate } = req.body as CreateDebtBody;
+  const { playerId, amountDue, description, dueDate } =
+    req.body as CreateDebtBody;
   const parsedAmountDue = toDecimal(amountDue);
   const nextDescription = description?.trim() || null;
 
-  if (!Number.isInteger(playerId) || Number(playerId) <= 0 || parsedAmountDue === null || parsedAmountDue <= 0) {
-    res.status(400).json({ message: 'playerId y amountDue (>0) son obligatorios' });
+  if (
+    !Number.isInteger(playerId) ||
+    Number(playerId) <= 0 ||
+    parsedAmountDue === null ||
+    parsedAmountDue <= 0
+  ) {
+    res
+      .status(400)
+      .json({ message: 'playerId y amountDue (>0) son obligatorios' });
     return;
   }
 
   if (dueDate && !isIsoDate(dueDate)) {
-    res.status(400).json({ message: 'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona' });
+    res
+      .status(400)
+      .json({
+        message:
+          'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona',
+      });
     return;
   }
 
-  const [playerRows] = await pool.query<RowDataPacket[]>('SELECT id FROM players WHERE id = ? LIMIT 1', [playerId]);
+  const [playerRows] = await pool.query<RowDataPacket[]>(
+    'SELECT id FROM players WHERE id = ? LIMIT 1',
+    [playerId]
+  );
   if (!playerRows[0]) {
     res.status(404).json({ message: 'Jugador no encontrado' });
     return;
@@ -672,7 +756,9 @@ financeRouter.post('/debts', async (req, res) => {
     [playerId, parsedAmountDue, nextDescription, dueDate ?? null]
   );
 
-  res.status(201).json({ id: result.insertId, message: 'Deuda creada exitosamente' });
+  res
+    .status(201)
+    .json({ id: result.insertId, message: 'Deuda creada exitosamente' });
 });
 
 financeRouter.patch('/debts/:id', async (req, res) => {
@@ -687,19 +773,39 @@ financeRouter.patch('/debts/:id', async (req, res) => {
     return;
   }
 
-  const hasAnyField = amountDue !== undefined || description !== undefined || dueDate !== undefined;
+  const hasAnyField =
+    amountDue !== undefined ||
+    description !== undefined ||
+    dueDate !== undefined;
   if (!hasAnyField) {
-    res.status(400).json({ message: 'Proporcione al menos un campo para actualizar la deuda' });
+    res
+      .status(400)
+      .json({
+        message: 'Proporcione al menos un campo para actualizar la deuda',
+      });
     return;
   }
 
-  if (amountDue !== undefined && (parsedAmountDue === null || parsedAmountDue <= 0)) {
+  if (
+    amountDue !== undefined &&
+    (parsedAmountDue === null || parsedAmountDue <= 0)
+  ) {
     res.status(400).json({ message: 'amountDue debe ser mayor que 0' });
     return;
   }
 
-  if (dueDate !== undefined && dueDate !== null && dueDate !== '' && !isIsoDate(dueDate)) {
-    res.status(400).json({ message: 'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona' });
+  if (
+    dueDate !== undefined &&
+    dueDate !== null &&
+    dueDate !== '' &&
+    !isIsoDate(dueDate)
+  ) {
+    res
+      .status(400)
+      .json({
+        message:
+          'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona',
+      });
     return;
   }
 
@@ -734,15 +840,26 @@ financeRouter.patch('/debts/:id', async (req, res) => {
   const currentAmountPaid = Number(existingDebt.amount_paid);
 
   if (nextAmountDue < currentAmountPaid) {
-    res.status(400).json({ message: 'amountDue no puede ser menor que el amount_paid actual' });
+    res
+      .status(400)
+      .json({
+        message: 'amountDue no puede ser menor que el amount_paid actual',
+      });
     return;
   }
 
   const nextPending = Number((nextAmountDue - currentAmountPaid).toFixed(2));
   const nextStatus: 'pending' | 'partially_paid' | 'paid' =
-    nextPending <= 0 ? 'paid' : currentAmountPaid > 0 ? 'partially_paid' : 'pending';
+    nextPending <= 0
+      ? 'paid'
+      : currentAmountPaid > 0
+        ? 'partially_paid'
+        : 'pending';
 
-  const nextDescription = description === undefined ? existingDebt.description : description?.trim() || null;
+  const nextDescription =
+    description === undefined
+      ? existingDebt.description
+      : description?.trim() || null;
   const nextDueDate =
     dueDate === undefined
       ? existingDebt.due_date
@@ -774,8 +891,17 @@ financeRouter.post('/debts/:id/payments', async (req, res) => {
     return;
   }
 
-  if (parsedAmountPaid === null || parsedAmountPaid <= 0 || !paymentDate || !isIsoDate(paymentDate)) {
-    res.status(400).json({ message: 'amountPaid (>0) y paymentDate (YYYY-MM-DD) son obligatorios' });
+  if (
+    parsedAmountPaid === null ||
+    parsedAmountPaid <= 0 ||
+    !paymentDate ||
+    !isIsoDate(paymentDate)
+  ) {
+    res
+      .status(400)
+      .json({
+        message: 'amountPaid (>0) y paymentDate (YYYY-MM-DD) son obligatorios',
+      });
     return;
   }
 
@@ -811,10 +937,17 @@ financeRouter.post('/debts/:id/payments', async (req, res) => {
       return;
     }
 
-    const currentPending = Number((Number(debt.amount_due) - Number(debt.amount_paid)).toFixed(2));
+    const currentPending = Number(
+      (Number(debt.amount_due) - Number(debt.amount_paid)).toFixed(2)
+    );
     if (parsedAmountPaid > currentPending) {
       await connection.rollback();
-      res.status(400).json({ message: 'El monto del pago no puede exceder el monto pendiente de la deuda' });
+      res
+        .status(400)
+        .json({
+          message:
+            'El monto del pago no puede exceder el monto pendiente de la deuda',
+        });
       return;
     }
 
@@ -826,10 +959,18 @@ financeRouter.post('/debts/:id/payments', async (req, res) => {
       [debtId, parsedAmountPaid, paymentDate]
     );
 
-    const updatedAmountPaid = Number((Number(debt.amount_paid) + parsedAmountPaid).toFixed(2));
-    const updatedPending = Number((Number(debt.amount_due) - updatedAmountPaid).toFixed(2));
+    const updatedAmountPaid = Number(
+      (Number(debt.amount_paid) + parsedAmountPaid).toFixed(2)
+    );
+    const updatedPending = Number(
+      (Number(debt.amount_due) - updatedAmountPaid).toFixed(2)
+    );
     const nextStatus: 'pending' | 'partially_paid' | 'paid' =
-      updatedPending <= 0 ? 'paid' : updatedAmountPaid > 0 ? 'partially_paid' : 'pending';
+      updatedPending <= 0
+        ? 'paid'
+        : updatedAmountPaid > 0
+          ? 'partially_paid'
+          : 'pending';
 
     await connection.query(
       `

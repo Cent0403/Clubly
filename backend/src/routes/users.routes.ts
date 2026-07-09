@@ -37,7 +37,7 @@ const VALID_POSITIONS = new Set([
   'OUTSIDE',
   'OPPOSITE',
   'MIDDLE',
-  'LIBERO'
+  'LIBERO',
 ]);
 
 const usersRouter = Router();
@@ -66,10 +66,13 @@ usersRouter.get('/', async (_req, res) => {
 });
 
 usersRouter.post('/', async (req, res) => {
-  const { username, password, fullName, role, jerseyNumber, position } = req.body as CreateUserBody;
+  const { username, password, fullName, role, jerseyNumber, position } =
+    req.body as CreateUserBody;
 
   if (!username || !password || !fullName || !role) {
-    res.status(400).json({ message: 'Proporcione username, password, fullName y role' });
+    res
+      .status(400)
+      .json({ message: 'Proporcione username, password, fullName y role' });
     return;
   }
 
@@ -78,19 +81,28 @@ usersRouter.post('/', async (req, res) => {
     return;
   }
 
-  if (position !== undefined && position !== null && !VALID_POSITIONS.has(position)) {
+  if (
+    position !== undefined &&
+    position !== null &&
+    !VALID_POSITIONS.has(position)
+  ) {
     res.status(400).json({ message: 'Valor de posición inválido' });
     return;
   }
 
   if (jerseyNumber !== undefined && jerseyNumber !== null) {
     if (!Number.isInteger(jerseyNumber) || jerseyNumber <= 0) {
-      res.status(400).json({ message: 'jerseyNumber debe ser un número entero positivo' });
+      res
+        .status(400)
+        .json({ message: 'jerseyNumber debe ser un número entero positivo' });
       return;
     }
   }
 
-  const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+  const hashedPassword = crypto
+    .createHash('sha256')
+    .update(password)
+    .digest('hex');
   const connection = await pool.getConnection();
 
   try {
@@ -139,8 +151,8 @@ usersRouter.post('/', async (req, res) => {
         username,
         fullName,
         role,
-        playerId
-      }
+        playerId,
+      },
     });
   } catch (error) {
     await connection.rollback();
@@ -157,7 +169,8 @@ usersRouter.patch('/:id', async (req, res) => {
     return;
   }
 
-  const { username, password, fullName, role, jerseyNumber, position } = req.body as UpdateUserBody;
+  const { username, password, fullName, role, jerseyNumber, position } =
+    req.body as UpdateUserBody;
   const hasAtLeastOneField =
     username !== undefined ||
     password !== undefined ||
@@ -167,7 +180,9 @@ usersRouter.patch('/:id', async (req, res) => {
     position !== undefined;
 
   if (!hasAtLeastOneField) {
-    res.status(400).json({ message: 'Proporcione al menos un campo para actualizar' });
+    res
+      .status(400)
+      .json({ message: 'Proporcione al menos un campo para actualizar' });
     return;
   }
 
@@ -195,14 +210,20 @@ usersRouter.patch('/:id', async (req, res) => {
     return;
   }
 
-  if (position !== undefined && position !== null && !VALID_POSITIONS.has(position)) {
+  if (
+    position !== undefined &&
+    position !== null &&
+    !VALID_POSITIONS.has(position)
+  ) {
     res.status(400).json({ message: 'Valor de posición inválido' });
     return;
   }
 
   if (jerseyNumber !== undefined && jerseyNumber !== null) {
     if (!Number.isInteger(jerseyNumber) || jerseyNumber <= 0) {
-      res.status(400).json({ message: 'jerseyNumber debe ser un número entero positivo' });
+      res
+        .status(400)
+        .json({ message: 'jerseyNumber debe ser un número entero positivo' });
       return;
     }
   }
@@ -240,9 +261,17 @@ usersRouter.patch('/:id', async (req, res) => {
 
     const targetRole = role ?? existingUser.role;
 
-    if (targetRole === 'ADMIN' && (jerseyNumber !== undefined || position !== undefined)) {
+    if (
+      targetRole === 'ADMIN' &&
+      (jerseyNumber !== undefined || position !== undefined)
+    ) {
       await connection.rollback();
-      res.status(400).json({ message: 'jerseyNumber y position solo se pueden actualizar para el rol PLAYER' });
+      res
+        .status(400)
+        .json({
+          message:
+            'jerseyNumber y position solo se pueden actualizar para el rol PLAYER',
+        });
       return;
     }
 
@@ -273,7 +302,10 @@ usersRouter.patch('/:id', async (req, res) => {
     }
 
     if (nextPassword) {
-      const hashedPassword = crypto.createHash('sha256').update(nextPassword).digest('hex');
+      const hashedPassword = crypto
+        .createHash('sha256')
+        .update(nextPassword)
+        .digest('hex');
       userFields.push('password_hash = ?');
       userValues.push(hashedPassword);
     }
@@ -341,7 +373,7 @@ usersRouter.patch('/:id', async (req, res) => {
 
     res.json({
       message: 'Usuario actualizado exitosamente',
-      user: updatedRows[0]
+      user: updatedRows[0],
     });
   } catch (error) {
     await connection.rollback();
@@ -359,12 +391,17 @@ usersRouter.delete('/:id', async (req, res) => {
   }
 
   if (req.user?.userId === userId) {
-    res.status(400).json({ message: 'No puedes eliminar tu propia cuenta activa' });
+    res
+      .status(400)
+      .json({ message: 'No puedes eliminar tu propia cuenta activa' });
     return;
   }
 
   try {
-    const [result] = await pool.query<ResultSetHeader>('DELETE FROM users WHERE id = ?', [userId]);
+    const [result] = await pool.query<ResultSetHeader>(
+      'DELETE FROM users WHERE id = ?',
+      [userId]
+    );
 
     if (result.affectedRows === 0) {
       res.status(404).json({ message: 'Usuario no encontrado' });
@@ -375,9 +412,13 @@ usersRouter.delete('/:id', async (req, res) => {
   } catch (error) {
     const sqlError = error as { code?: string };
 
-    if (sqlError.code === 'ER_ROW_IS_REFERENCED_2' || sqlError.code === 'ER_ROW_IS_REFERENCED') {
+    if (
+      sqlError.code === 'ER_ROW_IS_REFERENCED_2' ||
+      sqlError.code === 'ER_ROW_IS_REFERENCED'
+    ) {
       res.status(409).json({
-        message: 'Este usuario no se puede eliminar porque está referenciado por partidos o calificaciones existentes'
+        message:
+          'Este usuario no se puede eliminar porque está referenciado por partidos o calificaciones existentes',
       });
       return;
     }

@@ -1,5 +1,13 @@
-import type { ComponentType, SVGProps } from 'react';
-import { CalendarEvent, CalendarEventType, CalendarFrequency, PlayerPosition, RatingItem, Role, TeamSettings } from '../../types';
+import type { ComponentType, SVGProps } from "react";
+import {
+  CalendarEvent,
+  CalendarEventType,
+  CalendarFrequency,
+  PlayerPosition,
+  RatingItem,
+  Role,
+  TeamSettings,
+} from "../../types";
 
 export interface AdminDashboardProps {
   token: string;
@@ -13,7 +21,7 @@ export interface CalendarEventFormState {
   descripcion: string;
   tipoEvento: CalendarEventType;
   esRepetitivo: boolean;
-  frecuenciaRepeticion: '' | CalendarFrequency;
+  frecuenciaRepeticion: "" | CalendarFrequency;
   fechaHoraInicio: string;
   fechaHoraFin: string;
   fechaFinSerie: string;
@@ -35,7 +43,7 @@ export interface UserFormState {
   fullName: string;
   role: Role;
   jerseyNumber: string;
-  position: '' | PlayerPosition;
+  position: "" | PlayerPosition;
 }
 
 export interface EditUserFormState {
@@ -44,18 +52,28 @@ export interface EditUserFormState {
   fullName: string;
   role: Role;
   jerseyNumber: string;
-  position: '' | PlayerPosition;
+  position: "" | PlayerPosition;
 }
 
-export type EventFieldKey = keyof Omit<RatingItem, 'playerId' | 'minutesPlayed'>;
+export type EventFieldKey = keyof Omit<
+  RatingItem,
+  "playerId" | "minutesPlayed"
+>;
 
 export interface AdminSection {
-  key: 'dashboard' | 'personalización' | 'usuarios' | 'partidos' | 'calendario' | 'finanzas' | 'top';
+  key:
+    | "dashboard"
+    | "personalización"
+    | "usuarios"
+    | "partidos"
+    | "calendario"
+    | "finanzas"
+    | "top";
   label: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
-export type AdminSectionKey = AdminSection['key'];
+export type AdminSectionKey = AdminSection["key"];
 
 export interface CalendarSectionProps {
   active: boolean;
@@ -63,7 +81,9 @@ export interface CalendarSectionProps {
   calendarForm: CalendarEventFormState;
   editingCalendarInstanceId: number | null;
   savingCalendarEvent: boolean;
-  onCalendarFormChange: (updater: (current: CalendarEventFormState) => CalendarEventFormState) => void;
+  onCalendarFormChange: (
+    updater: (current: CalendarEventFormState) => CalendarEventFormState,
+  ) => void;
   onCreateCalendarEvent: (event: React.FormEvent<HTMLFormElement>) => void;
   onEditCalendarEvent: (event: CalendarEvent, instanceId: number) => void;
   onDeleteCalendarEvent: (event: CalendarEvent, instanceId: number) => void;

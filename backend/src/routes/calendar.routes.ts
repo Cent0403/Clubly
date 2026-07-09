@@ -177,7 +177,12 @@ function addFrequency(date: Date, frequency: CalendarFrequency): Date {
   return nextDate;
 }
 
-function buildOccurrences(start: Date, end: Date, frequency: CalendarFrequency | null, untilDate: string | null) {
+function buildOccurrences(
+  start: Date,
+  end: Date,
+  frequency: CalendarFrequency | null,
+  untilDate: string | null
+) {
   const occurrences: Array<{ start: Date; end: Date }> = [];
 
   if (!frequency) {
@@ -193,7 +198,10 @@ function buildOccurrences(start: Date, end: Date, frequency: CalendarFrequency |
   let currentEnd = new Date(end);
 
   while (currentStart <= until) {
-    occurrences.push({ start: new Date(currentStart), end: new Date(currentEnd) });
+    occurrences.push({
+      start: new Date(currentStart),
+      end: new Date(currentEnd),
+    });
     currentStart = addFrequency(currentStart, frequency);
     currentEnd = addFrequency(currentEnd, frequency);
   }
@@ -210,13 +218,22 @@ function normalizeText(value: unknown): string | null {
   return nextValue.length > 0 ? nextValue : null;
 }
 
-function normalizeResponseCounts(row: Pick<CalendarAdminRow, 'count_asistira' | 'count_no_asistira' | 'count_pendiente' | 'count_tarde' | 'responded_count'>): CalendarCounts {
+function normalizeResponseCounts(
+  row: Pick<
+    CalendarAdminRow,
+    | 'count_asistira'
+    | 'count_no_asistira'
+    | 'count_pendiente'
+    | 'count_tarde'
+    | 'responded_count'
+  >
+): CalendarCounts {
   return {
     asistira: Number(row.count_asistira ?? 0),
     no_asistira: Number(row.count_no_asistira ?? 0),
     pendiente: Number(row.count_pendiente ?? 0),
     tarde: Number(row.count_tarde ?? 0),
-    responded: Number(row.responded_count ?? 0)
+    responded: Number(row.responded_count ?? 0),
   };
 }
 
@@ -224,7 +241,9 @@ function emptyAttendeeMap(): Map<number, CalendarAttendee[]> {
   return new Map<number, CalendarAttendee[]>();
 }
 
-async function loadAttendingPlayers(): Promise<Map<number, CalendarAttendee[]>> {
+async function loadAttendingPlayers(): Promise<
+  Map<number, CalendarAttendee[]>
+> {
   const [rows] = await pool.query<CalendarAttendeeRow[]>(
     `
       SELECT
@@ -255,7 +274,7 @@ async function loadAttendingPlayers(): Promise<Map<number, CalendarAttendee[]>> 
       jersey_number: row.jersey_number,
       estado_asistencia: row.estado_asistencia,
       comentario: row.comentario,
-      respondido_en: row.respondido_en
+      respondido_en: row.respondido_en,
     });
     attendeeMap.set(row.instancia_evento_id, current);
   }
@@ -321,7 +340,7 @@ async function loadAdminCalendarEvents(): Promise<CalendarEventResponse[]> {
       lugar: row.lugar,
       notas: row.notas,
       attendance_counts: normalizeResponseCounts(row),
-      attending_players: attendingPlayers.get(row.instance_id) ?? []
+      attending_players: attendingPlayers.get(row.instance_id) ?? [],
     };
 
     if (existingEvent) {
@@ -340,14 +359,16 @@ async function loadAdminCalendarEvents(): Promise<CalendarEventResponse[]> {
       fecha_fin_serie: row.fecha_fin_serie,
       creado_en: row.creado_en,
       actualizado_en: row.actualizado_en,
-      instances: [instance]
+      instances: [instance],
     });
   }
 
   return Array.from(eventMap.values());
 }
 
-async function loadPlayerCalendarEvents(playerId: number): Promise<CalendarEventResponse[]> {
+async function loadPlayerCalendarEvents(
+  playerId: number
+): Promise<CalendarEventResponse[]> {
   const [rows] = await pool.query<CalendarPlayerRow[]>(
     `
       SELECT
@@ -406,7 +427,7 @@ async function loadPlayerCalendarEvents(playerId: number): Promise<CalendarEvent
       ? {
           estado_asistencia: row.estado_asistencia,
           comentario: row.comentario,
-          respondido_en: row.respondido_en
+          respondido_en: row.respondido_en,
         }
       : null;
 
@@ -421,7 +442,7 @@ async function loadPlayerCalendarEvents(playerId: number): Promise<CalendarEvent
       notas: row.notas,
       attendance_counts: normalizeResponseCounts(row),
       attending_players: attendingPlayers.get(row.instance_id) ?? [],
-      my_response: myResponse
+      my_response: myResponse,
     };
 
     if (existingEvent) {
@@ -440,7 +461,7 @@ async function loadPlayerCalendarEvents(playerId: number): Promise<CalendarEvent
       fecha_fin_serie: row.fecha_fin_serie,
       creado_en: row.creado_en,
       actualizado_en: row.actualizado_en,
-      instances: [instance]
+      instances: [instance],
     });
   }
 
@@ -455,7 +476,9 @@ calendarRouter.get('/', async (req, res) => {
   }
 
   if (!req.user?.playerId) {
-    res.status(404).json({ message: 'Perfil de jugador no encontrado para este usuario' });
+    res
+      .status(404)
+      .json({ message: 'Perfil de jugador no encontrado para este usuario' });
     return;
   }
 
@@ -475,31 +498,51 @@ calendarRouter.post('/', requireRole('ADMIN'), async (req, res) => {
     fechaFinSerie = null,
     requiereAsistencia = true,
     lugar,
-    notas
+    notas,
   } = req.body as CalendarEventBody;
 
   if (!titulo?.trim() || !tipoEvento || !fechaHoraInicio || !fechaHoraFin) {
-    res.status(400).json({ message: 'titulo, tipoEvento, fechaHoraInicio y fechaHoraFin son obligatorios' });
+    res
+      .status(400)
+      .json({
+        message:
+          'titulo, tipoEvento, fechaHoraInicio y fechaHoraFin son obligatorios',
+      });
     return;
   }
 
   if (!['partido', 'entreno', 'entrega', 'otro'].includes(tipoEvento)) {
-    res.status(400).json({ message: 'tipoEvento debe ser partido, entreno, entrega u otro' });
+    res
+      .status(400)
+      .json({
+        message: 'tipoEvento debe ser partido, entreno, entrega u otro',
+      });
     return;
   }
 
   if (esRepetitivo && !frecuenciaRepeticion) {
-    res.status(400).json({ message: 'La frecuencia es obligatoria cuando el evento es repetitivo' });
+    res
+      .status(400)
+      .json({
+        message: 'La frecuencia es obligatoria cuando el evento es repetitivo',
+      });
     return;
   }
 
-  if (frecuenciaRepeticion && !['diaria', 'semanal', 'mensual'].includes(frecuenciaRepeticion)) {
+  if (
+    frecuenciaRepeticion &&
+    !['diaria', 'semanal', 'mensual'].includes(frecuenciaRepeticion)
+  ) {
     res.status(400).json({ message: 'frecuenciaRepeticion inválida' });
     return;
   }
 
   if (!esRepetitivo && frecuenciaRepeticion) {
-    res.status(400).json({ message: 'No debe enviar frecuenciaRepeticion para un evento único' });
+    res
+      .status(400)
+      .json({
+        message: 'No debe enviar frecuenciaRepeticion para un evento único',
+      });
     return;
   }
 
@@ -507,24 +550,39 @@ calendarRouter.post('/', requireRole('ADMIN'), async (req, res) => {
   const end = parseDateTime(fechaHoraFin);
 
   if (end <= start) {
-    res.status(400).json({ message: 'fechaHoraFin debe ser posterior a fechaHoraInicio' });
+    res
+      .status(400)
+      .json({ message: 'fechaHoraFin debe ser posterior a fechaHoraInicio' });
     return;
   }
 
   if (esRepetitivo && !fechaFinSerie) {
-    res.status(400).json({ message: 'fechaFinSerie es obligatoria para eventos repetitivos' });
+    res
+      .status(400)
+      .json({
+        message: 'fechaFinSerie es obligatoria para eventos repetitivos',
+      });
     return;
   }
 
   if (fechaFinSerie) {
     const seriesEnd = new Date(`${fechaFinSerie}T23:59:59`);
     if (seriesEnd < start) {
-      res.status(400).json({ message: 'fechaFinSerie no puede ser anterior al primer evento' });
+      res
+        .status(400)
+        .json({
+          message: 'fechaFinSerie no puede ser anterior al primer evento',
+        });
       return;
     }
   }
 
-  const occurrences = buildOccurrences(start, end, esRepetitivo ? frecuenciaRepeticion : null, fechaFinSerie);
+  const occurrences = buildOccurrences(
+    start,
+    end,
+    esRepetitivo ? frecuenciaRepeticion : null,
+    fechaFinSerie
+  );
 
   const connection = await pool.getConnection();
 
@@ -550,7 +608,7 @@ calendarRouter.post('/', requireRole('ADMIN'), async (req, res) => {
         esRepetitivo ? 1 : 0,
         esRepetitivo ? frecuenciaRepeticion : null,
         formatDateOnly(start),
-        fechaFinSerie ?? null
+        fechaFinSerie ?? null,
       ]
     );
 
@@ -573,7 +631,7 @@ calendarRouter.post('/', requireRole('ADMIN'), async (req, res) => {
           occurrence.end,
           requiereAsistencia ? 1 : 0,
           normalizeText(lugar),
-          normalizeText(notas)
+          normalizeText(notas),
         ]
       );
     }
@@ -583,7 +641,7 @@ calendarRouter.post('/', requireRole('ADMIN'), async (req, res) => {
     res.status(201).json({
       message: 'Evento de calendario creado correctamente',
       eventId: eventResult.insertId,
-      instancesCreated: occurrences.length
+      instancesCreated: occurrences.length,
     });
   } catch (error) {
     await connection.rollback();
@@ -593,51 +651,68 @@ calendarRouter.post('/', requireRole('ADMIN'), async (req, res) => {
   }
 });
 
-calendarRouter.put('/instances/:instanceId', requireRole('ADMIN'), async (req, res) => {
-  const instanceId = Number(req.params.instanceId);
+calendarRouter.put(
+  '/instances/:instanceId',
+  requireRole('ADMIN'),
+  async (req, res) => {
+    const instanceId = Number(req.params.instanceId);
 
-  if (!Number.isInteger(instanceId) || instanceId <= 0) {
-    res.status(400).json({ message: 'ID de instancia inválido' });
-    return;
-  }
+    if (!Number.isInteger(instanceId) || instanceId <= 0) {
+      res.status(400).json({ message: 'ID de instancia inválido' });
+      return;
+    }
 
-  const {
-    titulo,
-    descripcion,
-    tipoEvento,
-    fechaHoraInicio,
-    fechaHoraFin,
-    requiereAsistencia = true,
-    lugar,
-    notas,
-    estadoInstancia
-  } = req.body as CalendarEventBody;
+    const {
+      titulo,
+      descripcion,
+      tipoEvento,
+      fechaHoraInicio,
+      fechaHoraFin,
+      requiereAsistencia = true,
+      lugar,
+      notas,
+      estadoInstancia,
+    } = req.body as CalendarEventBody;
 
-  if (!titulo?.trim() || !tipoEvento || !fechaHoraInicio || !fechaHoraFin) {
-    res.status(400).json({ message: 'titulo, tipoEvento, fechaHoraInicio y fechaHoraFin son obligatorios' });
-    return;
-  }
+    if (!titulo?.trim() || !tipoEvento || !fechaHoraInicio || !fechaHoraFin) {
+      res
+        .status(400)
+        .json({
+          message:
+            'titulo, tipoEvento, fechaHoraInicio y fechaHoraFin son obligatorios',
+        });
+      return;
+    }
 
-  if (!['partido', 'entreno', 'entrega', 'otro'].includes(tipoEvento)) {
-    res.status(400).json({ message: 'tipoEvento debe ser partido, entreno, entrega u otro' });
-    return;
-  }
+    if (!['partido', 'entreno', 'entrega', 'otro'].includes(tipoEvento)) {
+      res
+        .status(400)
+        .json({
+          message: 'tipoEvento debe ser partido, entreno, entrega u otro',
+        });
+      return;
+    }
 
-  if (estadoInstancia && !['programado', 'cancelado', 'completado'].includes(estadoInstancia)) {
-    res.status(400).json({ message: 'estadoInstancia inválido' });
-    return;
-  }
+    if (
+      estadoInstancia &&
+      !['programado', 'cancelado', 'completado'].includes(estadoInstancia)
+    ) {
+      res.status(400).json({ message: 'estadoInstancia inválido' });
+      return;
+    }
 
-  const start = parseDateTime(fechaHoraInicio);
-  const end = parseDateTime(fechaHoraFin);
+    const start = parseDateTime(fechaHoraInicio);
+    const end = parseDateTime(fechaHoraFin);
 
-  if (end <= start) {
-    res.status(400).json({ message: 'fechaHoraFin debe ser posterior a fechaHoraInicio' });
-    return;
-  }
+    if (end <= start) {
+      res
+        .status(400)
+        .json({ message: 'fechaHoraFin debe ser posterior a fechaHoraInicio' });
+      return;
+    }
 
-  const [instanceRows] = await pool.query<RowDataPacket[]>(
-    `
+    const [instanceRows] = await pool.query<RowDataPacket[]>(
+      `
       SELECT
         ei.id,
         ei.evento_id
@@ -645,23 +720,23 @@ calendarRouter.put('/instances/:instanceId', requireRole('ADMIN'), async (req, r
       WHERE ei.id = ?
       LIMIT 1
     `,
-    [instanceId]
-  );
+      [instanceId]
+    );
 
-  const instance = instanceRows[0];
+    const instance = instanceRows[0];
 
-  if (!instance) {
-    res.status(404).json({ message: 'Instancia de evento no encontrada' });
-    return;
-  }
+    if (!instance) {
+      res.status(404).json({ message: 'Instancia de evento no encontrada' });
+      return;
+    }
 
-  const connection = await pool.getConnection();
+    const connection = await pool.getConnection();
 
-  try {
-    await connection.beginTransaction();
+    try {
+      await connection.beginTransaction();
 
-    await connection.query(
-      `
+      await connection.query(
+        `
         UPDATE events
         SET
           titulo = ?,
@@ -670,11 +745,16 @@ calendarRouter.put('/instances/:instanceId', requireRole('ADMIN'), async (req, r
           actualizado_en = CURRENT_TIMESTAMP
         WHERE id = ?
       `,
-      [titulo.trim(), normalizeText(descripcion), tipoEvento, instance.evento_id]
-    );
+        [
+          titulo.trim(),
+          normalizeText(descripcion),
+          tipoEvento,
+          instance.evento_id,
+        ]
+      );
 
-    await connection.query(
-      `
+      await connection.query(
+        `
         UPDATE events_instances
         SET
           fecha_hora_inicio = ?,
@@ -686,38 +766,42 @@ calendarRouter.put('/instances/:instanceId', requireRole('ADMIN'), async (req, r
           actualizado_en = CURRENT_TIMESTAMP
         WHERE id = ?
       `,
-      [
-        start,
-        end,
-        requiereAsistencia ? 1 : 0,
-        estadoInstancia ?? 'programado',
-        normalizeText(lugar),
-        normalizeText(notas),
-        instanceId
-      ]
-    );
+        [
+          start,
+          end,
+          requiereAsistencia ? 1 : 0,
+          estadoInstancia ?? 'programado',
+          normalizeText(lugar),
+          normalizeText(notas),
+          instanceId,
+        ]
+      );
 
-    await connection.commit();
+      await connection.commit();
 
-    res.json({ message: 'Evento actualizado correctamente' });
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
+      res.json({ message: 'Evento actualizado correctamente' });
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   }
-});
+);
 
-calendarRouter.delete('/instances/:instanceId', requireRole('ADMIN'), async (req, res) => {
-  const instanceId = Number(req.params.instanceId);
+calendarRouter.delete(
+  '/instances/:instanceId',
+  requireRole('ADMIN'),
+  async (req, res) => {
+    const instanceId = Number(req.params.instanceId);
 
-  if (!Number.isInteger(instanceId) || instanceId <= 0) {
-    res.status(400).json({ message: 'ID de instancia inválido' });
-    return;
-  }
+    if (!Number.isInteger(instanceId) || instanceId <= 0) {
+      res.status(400).json({ message: 'ID de instancia inválido' });
+      return;
+    }
 
-  const [instanceRows] = await pool.query<RowDataPacket[]>(
-    `
+    const [instanceRows] = await pool.query<RowDataPacket[]>(
+      `
       SELECT
         ei.id,
         ei.evento_id
@@ -725,116 +809,131 @@ calendarRouter.delete('/instances/:instanceId', requireRole('ADMIN'), async (req
       WHERE ei.id = ?
       LIMIT 1
     `,
-    [instanceId]
-  );
+      [instanceId]
+    );
 
-  const instance = instanceRows[0];
+    const instance = instanceRows[0];
 
-  if (!instance) {
-    res.status(404).json({ message: 'Instancia de evento no encontrada' });
-    return;
-  }
+    if (!instance) {
+      res.status(404).json({ message: 'Instancia de evento no encontrada' });
+      return;
+    }
 
-  const connection = await pool.getConnection();
+    const connection = await pool.getConnection();
 
-  try {
-    await connection.beginTransaction();
+    try {
+      await connection.beginTransaction();
 
-    await connection.query(
-      `
+      await connection.query(
+        `
         DELETE FROM attendance_event
         WHERE instancia_evento_id = ?
       `,
-      [instanceId]
-    );
+        [instanceId]
+      );
 
-    await connection.query(
-      `
+      await connection.query(
+        `
         DELETE FROM events_instances
         WHERE id = ?
       `,
-      [instanceId]
-    );
+        [instanceId]
+      );
 
-    const [remainingRows] = await connection.query<RowDataPacket[]>(
-      `
+      const [remainingRows] = await connection.query<RowDataPacket[]>(
+        `
         SELECT COUNT(*) AS total
         FROM events_instances
         WHERE evento_id = ?
       `,
-      [instance.evento_id]
-    );
+        [instance.evento_id]
+      );
 
-    if (Number(remainingRows[0]?.total ?? 0) === 0) {
-      await connection.query(
-        `
+      if (Number(remainingRows[0]?.total ?? 0) === 0) {
+        await connection.query(
+          `
           DELETE FROM events
           WHERE id = ?
         `,
-        [instance.evento_id]
-      );
+          [instance.evento_id]
+        );
+      }
+
+      await connection.commit();
+
+      res.json({ message: 'Evento eliminado correctamente' });
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+);
+
+calendarRouter.post(
+  '/instances/:instanceId/attendance',
+  requireRole('PLAYER'),
+  async (req, res) => {
+    const instanceId = Number(req.params.instanceId);
+
+    if (!Number.isInteger(instanceId) || instanceId <= 0) {
+      res.status(400).json({ message: 'ID de instancia inválido' });
+      return;
     }
 
-    await connection.commit();
+    if (!req.user?.playerId) {
+      res
+        .status(404)
+        .json({ message: 'Perfil de jugador no encontrado para este usuario' });
+      return;
+    }
 
-    res.json({ message: 'Evento eliminado correctamente' });
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
-  }
-});
+    const { estadoAsistencia = 'pendiente', comentario } =
+      req.body as CalendarAttendanceBody;
 
-calendarRouter.post('/instances/:instanceId/attendance', requireRole('PLAYER'), async (req, res) => {
-  const instanceId = Number(req.params.instanceId);
+    if (
+      !['asistira', 'no_asistira', 'pendiente', 'tarde'].includes(
+        estadoAsistencia
+      )
+    ) {
+      res.status(400).json({ message: 'estadoAsistencia inválido' });
+      return;
+    }
 
-  if (!Number.isInteger(instanceId) || instanceId <= 0) {
-    res.status(400).json({ message: 'ID de instancia inválido' });
-    return;
-  }
-
-  if (!req.user?.playerId) {
-    res.status(404).json({ message: 'Perfil de jugador no encontrado para este usuario' });
-    return;
-  }
-
-  const { estadoAsistencia = 'pendiente', comentario } = req.body as CalendarAttendanceBody;
-
-  if (!['asistira', 'no_asistira', 'pendiente', 'tarde'].includes(estadoAsistencia)) {
-    res.status(400).json({ message: 'estadoAsistencia inválido' });
-    return;
-  }
-
-  const [instanceRows] = await pool.query<RowDataPacket[]>(
-    `
+    const [instanceRows] = await pool.query<RowDataPacket[]>(
+      `
       SELECT id, requiere_asistencia, estado_instancia
       FROM events_instances
       WHERE id = ?
       LIMIT 1
     `,
-    [instanceId]
-  );
+      [instanceId]
+    );
 
-  const instance = instanceRows[0];
+    const instance = instanceRows[0];
 
-  if (!instance) {
-    res.status(404).json({ message: 'Instancia de evento no encontrada' });
-    return;
-  }
+    if (!instance) {
+      res.status(404).json({ message: 'Instancia de evento no encontrada' });
+      return;
+    }
 
-  if (instance.estado_instancia === 'cancelado') {
-    res.status(409).json({ message: 'La instancia está cancelada' });
-    return;
-  }
+    if (instance.estado_instancia === 'cancelado') {
+      res.status(409).json({ message: 'La instancia está cancelada' });
+      return;
+    }
 
-  if (!instance.requiere_asistencia) {
-    res.status(409).json({ message: 'Esta instancia no tiene encuesta de asistencia activa' });
-    return;
-  }
+    if (!instance.requiere_asistencia) {
+      res
+        .status(409)
+        .json({
+          message: 'Esta instancia no tiene encuesta de asistencia activa',
+        });
+      return;
+    }
 
-  await pool.query(
-    `
+    await pool.query(
+      `
       INSERT INTO attendance_event (
         instancia_evento_id,
         jugador_id,
@@ -847,10 +946,16 @@ calendarRouter.post('/instances/:instanceId/attendance', requireRole('PLAYER'), 
         comentario = VALUES(comentario),
         respondido_en = NOW()
     `,
-    [instanceId, req.user.playerId, estadoAsistencia, normalizeText(comentario)]
-  );
+      [
+        instanceId,
+        req.user.playerId,
+        estadoAsistencia,
+        normalizeText(comentario),
+      ]
+    );
 
-  res.json({ message: 'Respuesta de asistencia guardada correctamente' });
-});
+    res.json({ message: 'Respuesta de asistencia guardada correctamente' });
+  }
+);
 
 export { calendarRouter };

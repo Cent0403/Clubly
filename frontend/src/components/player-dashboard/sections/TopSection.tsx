@@ -1,14 +1,18 @@
-import { TopSectionProps } from '../types';
-import { formatPosition } from '../utils';
+import { TopSectionProps } from "../types";
+import { formatPosition } from "../utils";
 
 export function TopSection({ active, topPlayers }: TopSectionProps) {
   return (
-    <section className={active ? 'grid gap-6 xl:grid-cols-5' : 'hidden'}>
+    <section className={active ? "grid gap-6 xl:grid-cols-5" : "hidden"}>
       <article className="card xl:col-span-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Ranking general</p>
-            <h3 className="text-xl font-bold">Top jugadores por eficiencia global</h3>
+            <p className="text-xs uppercase tracking-[0.18em] text-sky-500">
+              Ranking general
+            </p>
+            <h3 className="text-xl font-bold">
+              Top jugadores por eficiencia global
+            </h3>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-300">
             Ordenado de mayor a menor según la eficiencia global promedio
@@ -22,12 +26,16 @@ export function TopSection({ active, topPlayers }: TopSectionProps) {
               className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800/60"
             >
               <div className="min-w-0">
-                <p className="font-semibold">#{index + 1} {player.full_name}</p>
+                <p className="font-semibold">
+                  #{index + 1} {player.full_name}
+                </p>
                 <p className="break-words text-xs text-slate-600 dark:text-slate-300">
                   @{player.username} | {formatPosition(player.position)}
                 </p>
               </div>
-              <p className="shrink-0 text-lg font-extrabold text-sky-500">{player.overall_score.toFixed(2)}%</p>
+              <p className="shrink-0 text-lg font-extrabold text-sky-500">
+                {player.overall_score.toFixed(2)}%
+              </p>
             </div>
           ))}
 

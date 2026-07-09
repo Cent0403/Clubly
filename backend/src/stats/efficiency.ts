@@ -126,8 +126,12 @@ export async function ensureEfficiencySchema(): Promise<void> {
         `
       );
 
-      const matchIdColumnType = String(matchTypeRows[0]?.COLUMN_TYPE ?? 'int').toUpperCase();
-      const playerIdColumnType = String(playerTypeRows[0]?.COLUMN_TYPE ?? 'int unsigned').toUpperCase();
+      const matchIdColumnType = String(
+        matchTypeRows[0]?.COLUMN_TYPE ?? 'int'
+      ).toUpperCase();
+      const playerIdColumnType = String(
+        playerTypeRows[0]?.COLUMN_TYPE ?? 'int unsigned'
+      ).toUpperCase();
 
       await pool.query(`
         CREATE TABLE IF NOT EXISTS efficiency_ratings (
@@ -191,26 +195,45 @@ export async function ensureEfficiencySchema(): Promise<void> {
   await efficiencySchemaReady;
 }
 
-export function calculateEfficiencyMetrics(item: EfficiencyRatingInput): EfficiencyMetrics {
-  const receptionAttempts = item.receptionThree + item.receptionTwo + item.receptionOne + item.receptionZero;
+export function calculateEfficiencyMetrics(
+  item: EfficiencyRatingInput
+): EfficiencyMetrics {
+  const receptionAttempts =
+    item.receptionThree +
+    item.receptionTwo +
+    item.receptionOne +
+    item.receptionZero;
   const blockTotal = item.blockKill + item.blockTouch + item.blockError;
   const defenseTotal = item.defenseSuccesses + item.defenseFailures;
 
-  const attackEfficiency = roundMetric(safeDivide(item.attackPoints - item.attackErrors, item.attackAttempts));
-  const attackPointsPerSet = roundMetric(safeDivide(item.attackPoints, item.setsPlayed));
-  const serveInPercentage = roundMetric(safeDivide(item.serveAttempts - item.serveErrors, item.serveAttempts));
-  const serveEfficiency = roundMetric(safeDivide(item.serveAces - item.serveErrors, item.serveAttempts));
+  const attackEfficiency = roundMetric(
+    safeDivide(item.attackPoints - item.attackErrors, item.attackAttempts)
+  );
+  const attackPointsPerSet = roundMetric(
+    safeDivide(item.attackPoints, item.setsPlayed)
+  );
+  const serveInPercentage = roundMetric(
+    safeDivide(item.serveAttempts - item.serveErrors, item.serveAttempts)
+  );
+  const serveEfficiency = roundMetric(
+    safeDivide(item.serveAces - item.serveErrors, item.serveAttempts)
+  );
   const receptionEfficiency = roundMetric(
     safeDivide(
       item.receptionThree * 3 + item.receptionTwo * 2 + item.receptionOne,
       receptionAttempts * 3
     )
   );
-  const settingEfficiency = roundMetric(safeDivide(item.setAssists - item.setErrors, item.setAttempts));
+  const settingEfficiency = roundMetric(
+    safeDivide(item.setAssists - item.setErrors, item.setAttempts)
+  );
   const defenseEfficiency = roundMetric(
     safeDivide(item.defenseSuccesses - item.defenseFailures, defenseTotal)
   );
-  const blockWeightedAverage = safeDivide(item.blockKill * 2 + item.blockTouch, blockTotal);
+  const blockWeightedAverage = safeDivide(
+    item.blockKill * 2 + item.blockTouch,
+    blockTotal
+  );
   const blockEfficiency = roundMetric(
     blockWeightedAverage === null ? null : blockWeightedAverage / 2
   );
@@ -232,7 +255,7 @@ export function calculateEfficiencyMetrics(item: EfficiencyRatingInput): Efficie
       receptionEfficiency,
       settingEfficiency,
       defenseEfficiency,
-      blockEfficiency
-    ])
+      blockEfficiency,
+    ]),
   };
 }

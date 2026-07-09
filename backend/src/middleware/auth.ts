@@ -11,11 +11,17 @@ interface JwtPayload {
   playerId: number | null;
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+export function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   const header = req.headers.authorization;
 
   if (!header || !header.startsWith('Bearer ')) {
-    res.status(401).json({ message: 'Falta o es inválido el encabezado de autorización' });
+    res
+      .status(401)
+      .json({ message: 'Falta o es inválido el encabezado de autorización' });
     return;
   }
 
@@ -29,7 +35,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
       username: payload.username,
       fullName: payload.fullName,
       role: payload.role,
-      playerId: payload.playerId
+      playerId: payload.playerId,
     };
 
     req.user = user;

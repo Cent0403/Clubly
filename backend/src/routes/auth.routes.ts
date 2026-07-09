@@ -18,9 +18,15 @@ interface LoginRow extends RowDataPacket {
 const authRouter = Router();
 
 authRouter.post('/login', async (req, res) => {
-  const { username = '', password = '' } = req.body as { username?: string; password?: string };
+  const { username = '', password = '' } = req.body as {
+    username?: string;
+    password?: string;
+  };
 
-  const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+  const hashedPassword = crypto
+    .createHash('sha256')
+    .update(password)
+    .digest('hex');
 
   const [rows] = await pool.query<LoginRow[]>(
     `
@@ -47,7 +53,7 @@ authRouter.post('/login', async (req, res) => {
   }
 
   const signOptions: jwt.SignOptions = {
-    expiresIn: env.jwtExpiresIn as jwt.SignOptions['expiresIn']
+    expiresIn: env.jwtExpiresIn as jwt.SignOptions['expiresIn'],
   };
 
   const token = jwt.sign(
@@ -56,7 +62,7 @@ authRouter.post('/login', async (req, res) => {
       username: user.username,
       fullName: user.full_name,
       role: user.role,
-      playerId: user.player_id
+      playerId: user.player_id,
     },
     env.jwtSecret,
     signOptions
@@ -69,8 +75,8 @@ authRouter.post('/login', async (req, res) => {
       username: user.username,
       fullName: user.full_name,
       role: user.role,
-      playerId: user.player_id
-    }
+      playerId: user.player_id,
+    },
   });
 });
 
