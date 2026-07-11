@@ -70,12 +70,10 @@ settingsRouter.put('/', requireAuth, requireRole('ADMIN'), async (req, res) => {
   const hasLogoField = typeof teamLogoUrl !== 'undefined';
 
   if (!hasTeamName && !hasLogoField) {
-    res
-      .status(400)
-      .json({
-        message:
-          'Proporcione teamName o teamLogoUrl para actualizar la configuración',
-      });
+    res.status(400).json({
+      message:
+        'Proporcione teamName o teamLogoUrl para actualizar la configuración',
+    });
     return;
   }
 

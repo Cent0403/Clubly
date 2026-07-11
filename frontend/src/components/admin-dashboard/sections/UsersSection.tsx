@@ -11,6 +11,7 @@ import { USER_POSITIONS } from "../constants";
 import { EditUserFormState, UserFormState } from "../types";
 import { formatPosition, formatPositionOption, formatRole } from "../utils";
 import { MedalsPanel } from "../../medals/MedalsPanel";
+import DotLoader from "../../loader/DotLoader";
 
 interface UsersSectionProps {
   active: boolean;
@@ -206,7 +207,7 @@ export function UsersSection({
                 onClick={onLoadPlayerStats}
                 disabled={loadingPlayerStats}
               >
-                {loadingPlayerStats ? "Cargando..." : "Ver stats"}
+                {loadingPlayerStats ? <DotLoader /> : "Ver stats"}
               </button>
             </div>
           </div>

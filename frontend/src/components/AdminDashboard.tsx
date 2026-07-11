@@ -44,6 +44,7 @@ import {
   UserFormState,
 } from "./admin-dashboard/types";
 import { mapMatchRatingRowToRating } from "./admin-dashboard/utils";
+import DotLoader from "./loader/DotLoader";
 
 export function AdminDashboard({
   token,
@@ -1265,7 +1266,7 @@ export function AdminDashboard({
   }
 
   if (loading) {
-    return <div className="card">Cargando panel administrador...</div>;
+    return <div className="flex justify-center items-center min-h-screen"><DotLoader /></div>;
   }
 
   return (

@@ -32,6 +32,7 @@ import {
   getBestFundament,
 } from "./player-dashboard/utils";
 import { ProfileSection } from "./player-dashboard/sections/ProfileSection";
+import DotLoader from "./loader/DotLoader";
 
 export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
   const [activeSection, setActiveSection] = useState<PlayerSectionKey>(() => {
@@ -220,7 +221,7 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
   }
 
   if (loading) {
-    return <div className="card">Cargando dashboard de jugador...</div>;
+    return <div className="flex justify-center items-center min-h-screen"><DotLoader /></div>;
   }
 
   return (

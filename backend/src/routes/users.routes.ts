@@ -266,12 +266,10 @@ usersRouter.patch('/:id', async (req, res) => {
       (jerseyNumber !== undefined || position !== undefined)
     ) {
       await connection.rollback();
-      res
-        .status(400)
-        .json({
-          message:
-            'jerseyNumber y position solo se pueden actualizar para el rol PLAYER',
-        });
+      res.status(400).json({
+        message:
+          'jerseyNumber y position solo se pueden actualizar para el rol PLAYER',
+      });
       return;
     }
 

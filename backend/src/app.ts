@@ -94,12 +94,10 @@ app.use(
       errorWithStatus.status === 413 ||
       errorWithStatus.type === 'entity.too.large'
     ) {
-      res
-        .status(413)
-        .json({
-          message:
-            'La imagen es demasiado grande. Por favor, sube un archivo más pequeño.',
-        });
+      res.status(413).json({
+        message:
+          'La imagen es demasiado grande. Por favor, sube un archivo más pequeño.',
+      });
       return;
     }
 

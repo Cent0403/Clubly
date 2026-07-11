@@ -162,11 +162,9 @@ statsRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
   const playerId = req.user?.playerId;
 
   if (!playerId) {
-    res
-      .status(404)
-      .json({
-        message: 'Perfil de jugador no encontrado para el usuario actual',
-      });
+    res.status(404).json({
+      message: 'Perfil de jugador no encontrado para el usuario actual',
+    });
     return;
   }
 
@@ -257,11 +255,9 @@ statsRouter.get('/player/:playerId', async (req, res) => {
   }
 
   if (req.user?.role === 'PLAYER' && req.user.playerId !== playerId) {
-    res
-      .status(403)
-      .json({
-        message: 'Los jugadores solo pueden ver sus propias estadísticas',
-      });
+    res.status(403).json({
+      message: 'Los jugadores solo pueden ver sus propias estadísticas',
+    });
     return;
   }
 

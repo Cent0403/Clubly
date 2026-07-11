@@ -2,6 +2,7 @@ import { MatchItem, PlayerItem, RatingItem } from "../../../types";
 import { EVENT_FIELDS, FUNDAMENT_GROUPS } from "../constants";
 import { MatchFormState } from "../types";
 import { createDefaultRating } from "../constants";
+import DotLoader from "../../loader/DotLoader";
 
 interface MatchesSectionProps {
   active: boolean;
@@ -188,9 +189,9 @@ export function MatchesSection({
         </p>
 
         {loadingMatchRatings ? (
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Cargando estadisticas del partido...
-          </p>
+          <div className="mt-2 flex justify-center">
+            <DotLoader />
+          </div>
         ) : null}
 
         <div className="mt-4 grid max-h-[34rem] gap-4 overflow-y-auto pr-1">

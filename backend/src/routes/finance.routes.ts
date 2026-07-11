@@ -201,11 +201,9 @@ financeRouter.get('/my-debts', requireRole('PLAYER'), async (req, res) => {
   const playerId = req.user?.playerId;
 
   if (!playerId) {
-    res
-      .status(404)
-      .json({
-        message: 'Perfil de jugador no encontrado para el usuario actual',
-      });
+    res.status(404).json({
+      message: 'Perfil de jugador no encontrado para el usuario actual',
+    });
     return;
   }
 
@@ -401,11 +399,9 @@ financeRouter.post('/categories', async (req, res) => {
   const nextName = name?.trim();
 
   if (!nextName || !isFinanceType(type)) {
-    res
-      .status(400)
-      .json({
-        message: 'El nombre y el tipo (ingreso|gasto) son obligatorios',
-      });
+    res.status(400).json({
+      message: 'El nombre y el tipo (ingreso|gasto) son obligatorios',
+    });
     return;
   }
 
@@ -435,11 +431,9 @@ financeRouter.put('/categories/:id', async (req, res) => {
   }
 
   if (!nextName || !isFinanceType(type)) {
-    res
-      .status(400)
-      .json({
-        message: 'El nombre y el tipo (ingreso|gasto) son obligatorios',
-      });
+    res.status(400).json({
+      message: 'El nombre y el tipo (ingreso|gasto) son obligatorios',
+    });
     return;
   }
 
@@ -521,12 +515,10 @@ financeRouter.post('/transactions', async (req, res) => {
     !transactionDate ||
     !isIsoDate(transactionDate)
   ) {
-    res
-      .status(400)
-      .json({
-        message:
-          'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios',
-      });
+    res.status(400).json({
+      message:
+        'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios',
+    });
     return;
   }
 
@@ -535,12 +527,10 @@ financeRouter.post('/transactions', async (req, res) => {
   if (categoryId !== undefined && categoryId !== null) {
     const parsedCategoryId = Number(categoryId);
     if (!Number.isInteger(parsedCategoryId) || parsedCategoryId <= 0) {
-      res
-        .status(400)
-        .json({
-          message:
-            'El ID de categoría debe ser un número entero positivo cuando se proporciona',
-        });
+      res.status(400).json({
+        message:
+          'El ID de categoría debe ser un número entero positivo cuando se proporciona',
+      });
       return;
     }
 
@@ -557,12 +547,10 @@ financeRouter.post('/transactions', async (req, res) => {
     }
 
     if (category.type !== type) {
-      res
-        .status(400)
-        .json({
-          message:
-            'El tipo de categoría seleccionada debe coincidir con el tipo de transacción',
-        });
+      res.status(400).json({
+        message:
+          'El tipo de categoría seleccionada debe coincidir con el tipo de transacción',
+      });
       return;
     }
 
@@ -603,12 +591,10 @@ financeRouter.put('/transactions/:id', async (req, res) => {
     !transactionDate ||
     !isIsoDate(transactionDate)
   ) {
-    res
-      .status(400)
-      .json({
-        message:
-          'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios',
-      });
+    res.status(400).json({
+      message:
+        'El tipo, el monto (>0) y la fecha de la transacción (YYYY-MM-DD) son obligatorios',
+    });
     return;
   }
 
@@ -617,12 +603,10 @@ financeRouter.put('/transactions/:id', async (req, res) => {
   if (categoryId !== undefined && categoryId !== null) {
     const parsedCategoryId = Number(categoryId);
     if (!Number.isInteger(parsedCategoryId) || parsedCategoryId <= 0) {
-      res
-        .status(400)
-        .json({
-          message:
-            'El ID de categoría debe ser un número entero positivo cuando se proporciona',
-        });
+      res.status(400).json({
+        message:
+          'El ID de categoría debe ser un número entero positivo cuando se proporciona',
+      });
       return;
     }
 
@@ -639,12 +623,10 @@ financeRouter.put('/transactions/:id', async (req, res) => {
     }
 
     if (category.type !== type) {
-      res
-        .status(400)
-        .json({
-          message:
-            'El tipo de categoría seleccionada debe coincidir con el tipo de transacción',
-        });
+      res.status(400).json({
+        message:
+          'El tipo de categoría seleccionada debe coincidir con el tipo de transacción',
+      });
       return;
     }
 
@@ -730,12 +712,9 @@ financeRouter.post('/debts', async (req, res) => {
   }
 
   if (dueDate && !isIsoDate(dueDate)) {
-    res
-      .status(400)
-      .json({
-        message:
-          'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona',
-      });
+    res.status(400).json({
+      message: 'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona',
+    });
     return;
   }
 
@@ -778,11 +757,9 @@ financeRouter.patch('/debts/:id', async (req, res) => {
     description !== undefined ||
     dueDate !== undefined;
   if (!hasAnyField) {
-    res
-      .status(400)
-      .json({
-        message: 'Proporcione al menos un campo para actualizar la deuda',
-      });
+    res.status(400).json({
+      message: 'Proporcione al menos un campo para actualizar la deuda',
+    });
     return;
   }
 
@@ -800,12 +777,9 @@ financeRouter.patch('/debts/:id', async (req, res) => {
     dueDate !== '' &&
     !isIsoDate(dueDate)
   ) {
-    res
-      .status(400)
-      .json({
-        message:
-          'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona',
-      });
+    res.status(400).json({
+      message: 'dueDate debe tener el formato YYYY-MM-DD cuando se proporciona',
+    });
     return;
   }
 
@@ -840,11 +814,9 @@ financeRouter.patch('/debts/:id', async (req, res) => {
   const currentAmountPaid = Number(existingDebt.amount_paid);
 
   if (nextAmountDue < currentAmountPaid) {
-    res
-      .status(400)
-      .json({
-        message: 'amountDue no puede ser menor que el amount_paid actual',
-      });
+    res.status(400).json({
+      message: 'amountDue no puede ser menor que el amount_paid actual',
+    });
     return;
   }
 
@@ -897,11 +869,9 @@ financeRouter.post('/debts/:id/payments', async (req, res) => {
     !paymentDate ||
     !isIsoDate(paymentDate)
   ) {
-    res
-      .status(400)
-      .json({
-        message: 'amountPaid (>0) y paymentDate (YYYY-MM-DD) son obligatorios',
-      });
+    res.status(400).json({
+      message: 'amountPaid (>0) y paymentDate (YYYY-MM-DD) son obligatorios',
+    });
     return;
   }
 
@@ -942,12 +912,10 @@ financeRouter.post('/debts/:id/payments', async (req, res) => {
     );
     if (parsedAmountPaid > currentPending) {
       await connection.rollback();
-      res
-        .status(400)
-        .json({
-          message:
-            'El monto del pago no puede exceder el monto pendiente de la deuda',
-        });
+      res.status(400).json({
+        message:
+          'El monto del pago no puede exceder el monto pendiente de la deuda',
+      });
       return;
     }
 

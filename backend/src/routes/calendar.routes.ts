@@ -502,30 +502,24 @@ calendarRouter.post('/', requireRole('ADMIN'), async (req, res) => {
   } = req.body as CalendarEventBody;
 
   if (!titulo?.trim() || !tipoEvento || !fechaHoraInicio || !fechaHoraFin) {
-    res
-      .status(400)
-      .json({
-        message:
-          'titulo, tipoEvento, fechaHoraInicio y fechaHoraFin son obligatorios',
-      });
+    res.status(400).json({
+      message:
+        'titulo, tipoEvento, fechaHoraInicio y fechaHoraFin son obligatorios',
+    });
     return;
   }
 
   if (!['partido', 'entreno', 'entrega', 'otro'].includes(tipoEvento)) {
-    res
-      .status(400)
-      .json({
-        message: 'tipoEvento debe ser partido, entreno, entrega u otro',
-      });
+    res.status(400).json({
+      message: 'tipoEvento debe ser partido, entreno, entrega u otro',
+    });
     return;
   }
 
   if (esRepetitivo && !frecuenciaRepeticion) {
-    res
-      .status(400)
-      .json({
-        message: 'La frecuencia es obligatoria cuando el evento es repetitivo',
-      });
+    res.status(400).json({
+      message: 'La frecuencia es obligatoria cuando el evento es repetitivo',
+    });
     return;
   }
 
@@ -538,11 +532,9 @@ calendarRouter.post('/', requireRole('ADMIN'), async (req, res) => {
   }
 
   if (!esRepetitivo && frecuenciaRepeticion) {
-    res
-      .status(400)
-      .json({
-        message: 'No debe enviar frecuenciaRepeticion para un evento único',
-      });
+    res.status(400).json({
+      message: 'No debe enviar frecuenciaRepeticion para un evento único',
+    });
     return;
   }
 
@@ -557,22 +549,18 @@ calendarRouter.post('/', requireRole('ADMIN'), async (req, res) => {
   }
 
   if (esRepetitivo && !fechaFinSerie) {
-    res
-      .status(400)
-      .json({
-        message: 'fechaFinSerie es obligatoria para eventos repetitivos',
-      });
+    res.status(400).json({
+      message: 'fechaFinSerie es obligatoria para eventos repetitivos',
+    });
     return;
   }
 
   if (fechaFinSerie) {
     const seriesEnd = new Date(`${fechaFinSerie}T23:59:59`);
     if (seriesEnd < start) {
-      res
-        .status(400)
-        .json({
-          message: 'fechaFinSerie no puede ser anterior al primer evento',
-        });
+      res.status(400).json({
+        message: 'fechaFinSerie no puede ser anterior al primer evento',
+      });
       return;
     }
   }
@@ -675,21 +663,17 @@ calendarRouter.put(
     } = req.body as CalendarEventBody;
 
     if (!titulo?.trim() || !tipoEvento || !fechaHoraInicio || !fechaHoraFin) {
-      res
-        .status(400)
-        .json({
-          message:
-            'titulo, tipoEvento, fechaHoraInicio y fechaHoraFin son obligatorios',
-        });
+      res.status(400).json({
+        message:
+          'titulo, tipoEvento, fechaHoraInicio y fechaHoraFin son obligatorios',
+      });
       return;
     }
 
     if (!['partido', 'entreno', 'entrega', 'otro'].includes(tipoEvento)) {
-      res
-        .status(400)
-        .json({
-          message: 'tipoEvento debe ser partido, entreno, entrega u otro',
-        });
+      res.status(400).json({
+        message: 'tipoEvento debe ser partido, entreno, entrega u otro',
+      });
       return;
     }
 
@@ -924,11 +908,9 @@ calendarRouter.post(
     }
 
     if (!instance.requiere_asistencia) {
-      res
-        .status(409)
-        .json({
-          message: 'Esta instancia no tiene encuesta de asistencia activa',
-        });
+      res.status(409).json({
+        message: 'Esta instancia no tiene encuesta de asistencia activa',
+      });
       return;
     }
 

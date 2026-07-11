@@ -1,6 +1,7 @@
 import { MatchRatingRow, PlayerHistoryItem } from "../../../types";
 import { MetricBars } from "../../charts/MetricBars";
 import { HistorySectionProps } from "../types";
+import DotLoader from "../../loader/DotLoader";
 
 function formatPerformance(value: number | null | undefined) {
   return `${Math.max(Number(value ?? 0), 0).toFixed(2)}%`;
@@ -256,9 +257,9 @@ function MatchTop({ matchRatingsLoading, matchRatings }: MatchTopProps) {
       <p className="text-xs uppercase tracking-[0.18em] text-sky-500">Top</p>
       <h3 className="text-xl font-bold">Top del partido</h3>
       {matchRatingsLoading ? (
-        <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
-          Cargando top del partido...
-        </p>
+        <div className="mt-4 flex justify-center">
+          <DotLoader />
+        </div>
       ) : matchRatings.length > 0 ? (
         <div className="mt-4 max-h-full space-y-2 overflow-y-auto pr-1">
           {matchRatings.map((rating, idx) => (

@@ -103,11 +103,9 @@ playersRouter.patch('/me', requireRole('PLAYER'), async (req, res) => {
   const nextPassword = password?.trim();
 
   if (!nextFullName && !nextPassword) {
-    res
-      .status(400)
-      .json({
-        message: 'Proporcione fullName o password para actualizar el perfil',
-      });
+    res.status(400).json({
+      message: 'Proporcione fullName o password para actualizar el perfil',
+    });
     return;
   }
 
