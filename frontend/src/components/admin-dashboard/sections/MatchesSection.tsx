@@ -2,7 +2,6 @@ import { MatchItem, PlayerItem, RatingItem } from "../../../types";
 import { EVENT_FIELDS, FUNDAMENT_GROUPS } from "../constants";
 import { MatchFormState } from "../types";
 import { createDefaultRating } from "../constants";
-import DotLoader from "../../loader/DotLoader";
 
 interface MatchesSectionProps {
   active: boolean;
@@ -16,7 +15,6 @@ interface MatchesSectionProps {
   evaluationPlayerSearchTerm: string;
   selectedPlayers: number[];
   ratings: Record<number, RatingItem>;
-  loadingMatchRatings: boolean;
   saving: boolean;
   onMatchFormChange: (
     updater: (current: MatchFormState) => MatchFormState,
@@ -51,7 +49,6 @@ export function MatchesSection({
   evaluationPlayerSearchTerm,
   selectedPlayers,
   ratings,
-  loadingMatchRatings,
   saving,
   onMatchFormChange,
   onCreateMatch,
@@ -188,11 +185,7 @@ export function MatchesSection({
             : "Selecciona un partido para iniciar evaluacion."}
         </p>
 
-        {loadingMatchRatings ? (
-          <div className="mt-2 flex justify-center">
-            <DotLoader />
-          </div>
-        ) : null}
+        
 
         <div className="mt-4 grid max-h-[34rem] gap-4 overflow-y-auto pr-1">
           {filteredEvaluationPlayers.map((player) => {

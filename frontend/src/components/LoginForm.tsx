@@ -1,6 +1,5 @@
 import { FormEvent, useState } from "react";
 import { TeamSettings } from "../types";
-import DotLoader from "./loader/DotLoader";
 
 interface LoginFormProps {
   onSubmit: (username: string, password: string) => Promise<void>;
@@ -78,7 +77,7 @@ export function LoginForm({ onSubmit, loading, teamSettings }: LoginFormProps) {
               disabled={loading}
               type="submit"
             >
-              {loading ? <DotLoader /> : "Entrar"}
+              Entrar
             </button>
           </div>
         </form>

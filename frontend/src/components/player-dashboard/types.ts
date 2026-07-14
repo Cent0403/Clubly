@@ -78,7 +78,6 @@ export interface HistorySectionProps {
   history: PlayerHistoryItem[];
   selectedMatch: PlayerHistoryItem | null;
   matchRatings: MatchRatingRow[];
-  matchRatingsLoading: boolean;
   onSelectMatch: (match: PlayerHistoryItem) => void;
 }
 

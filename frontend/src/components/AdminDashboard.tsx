@@ -77,7 +77,6 @@ export function AdminDashboard({
   const [matchForm, setMatchForm] = useState<MatchFormState>(EMPTY_MATCH_FORM);
   const [userForm, setUserForm] = useState<UserFormState>(EMPTY_USER_FORM);
   const [editingMatchId, setEditingMatchId] = useState<number | null>(null);
-  const [loadingMatchRatings, setLoadingMatchRatings] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [editingUserForm, setEditingUserForm] =
@@ -92,7 +91,7 @@ export function AdminDashboard({
   const [selectedPlayerHistory, setSelectedPlayerHistory] = useState<
     PlayerHistoryItem[]
   >([]);
-  const [loadingPlayerStats, setLoadingPlayerStats] = useState(false);
+  
   const [settingsForm, setSettingsForm] = useState<TeamSettings>(teamSettings);
   const [savingSettings, setSavingSettings] = useState(false);
   const [financeOverview, setFinanceOverview] =
@@ -278,8 +277,6 @@ export function AdminDashboard({
 
   useEffect(() => {
     async function loadSelectedMatchRatings(matchId: number) {
-      setLoadingMatchRatings(true);
-
       try {
         const response = await api.getMatchRatings(token, matchId);
 
@@ -302,8 +299,6 @@ export function AdminDashboard({
       } catch {
         setSelectedPlayers([]);
         setRatings({});
-      } finally {
-        setLoadingMatchRatings(false);
       }
     }
 
@@ -598,9 +593,6 @@ export function AdminDashboard({
       toast.error("Selecciona un jugador para consultar estadisticas.");
       return;
     }
-
-    setLoadingPlayerStats(true);
-
     try {
       const response = await api.getPlayerStats(token, selectedPlayerStatId);
       setSelectedPlayerSummary(response.summary);
@@ -608,7 +600,7 @@ export function AdminDashboard({
     } catch (playerStatsError) {
       toast.error((playerStatsError as Error).message);
     } finally {
-      setLoadingPlayerStats(false);
+      // loading state for player stats removed per UX change
     }
   }
 
@@ -1299,7 +1291,7 @@ export function AdminDashboard({
           onCreateUser={handleCreateUser}
           selectedPlayerStatId={selectedPlayerStatId}
           players={players}
-          loadingPlayerStats={loadingPlayerStats}
+          
           selectedPlayerSummary={selectedPlayerSummary}
           selectedPlayerHistory={selectedPlayerHistory}
           onSelectedPlayerStatChange={setSelectedPlayerStatId}
@@ -1338,7 +1330,7 @@ export function AdminDashboard({
           evaluationPlayerSearchTerm={evaluationPlayerSearchTerm}
           selectedPlayers={selectedPlayers}
           ratings={ratings}
-          loadingMatchRatings={loadingMatchRatings}
+          
           saving={saving}
           onMatchFormChange={(updater) => setMatchForm(updater)}
           onCreateMatch={handleCreateMatch}

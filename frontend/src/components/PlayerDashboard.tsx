@@ -59,7 +59,6 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
   );
   const [loading, setLoading] = useState(true);
   const [matchRatings, setMatchRatings] = useState<MatchRatingRow[]>([]);
-  const [matchRatingsLoading, setMatchRatingsLoading] = useState(false);
   const [financeSummary, setFinanceSummary] =
     useState<PlayerFinanceDebtSummary | null>(null);
   const [financeDebts, setFinanceDebts] = useState<FinanceDebt[]>([]);
@@ -125,7 +124,7 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
         return;
       }
 
-      setMatchRatingsLoading(true);
+      
 
       try {
         const data = await api.getMatchRatings(token, selectedMatch.match_id);
@@ -137,7 +136,7 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
       } catch {
         setMatchRatings([]);
       } finally {
-        setMatchRatingsLoading(false);
+        // removed matchRatingsLoading toggles per UX change
       }
     }
 
@@ -270,7 +269,6 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
           history={history}
           selectedMatch={selectedMatch}
           matchRatings={matchRatings}
-          matchRatingsLoading={matchRatingsLoading}
           onSelectMatch={setSelectedMatch}
         />
 

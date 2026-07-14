@@ -1,13 +1,4 @@
-import type { HTMLAttributes } from "react";
-
-interface DotLoaderProps extends HTMLAttributes<HTMLDivElement> {
-  text?: string;
-}
-
-export default function DotLoader({
-  className = "",
-  ...props
-}: DotLoaderProps) {
+export default function DotLoader() {
   return (
     <div>
         <div className="flex items-end gap-2">
@@ -25,6 +16,5 @@ export default function DotLoader({
         />
       </div>
     </div>
-      
   );
 }

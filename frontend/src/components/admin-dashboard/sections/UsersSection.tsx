@@ -11,7 +11,6 @@ import { USER_POSITIONS } from "../constants";
 import { EditUserFormState, UserFormState } from "../types";
 import { formatPosition, formatPositionOption, formatRole } from "../utils";
 import { MedalsPanel } from "../../medals/MedalsPanel";
-import DotLoader from "../../loader/DotLoader";
 
 interface UsersSectionProps {
   active: boolean;
@@ -23,7 +22,6 @@ interface UsersSectionProps {
   onCreateUser: (event: FormEvent<HTMLFormElement>) => void;
   selectedPlayerStatId: number | null;
   players: PlayerItem[];
-  loadingPlayerStats: boolean;
   selectedPlayerSummary: PlayerSummary | null;
   selectedPlayerHistory: PlayerHistoryItem[];
   onSelectedPlayerStatChange: (playerId: number) => void;
@@ -55,7 +53,6 @@ export function UsersSection({
   onCreateUser,
   selectedPlayerStatId,
   players,
-  loadingPlayerStats,
   selectedPlayerSummary,
   selectedPlayerHistory,
   onSelectedPlayerStatChange,
@@ -202,12 +199,8 @@ export function UsersSection({
                   </option>
                 ))}
               </select>
-              <button
-                className="btn-muted"
-                onClick={onLoadPlayerStats}
-                disabled={loadingPlayerStats}
-              >
-                {loadingPlayerStats ? <DotLoader /> : "Ver stats"}
+              <button className="btn-muted" onClick={onLoadPlayerStats}>
+                Ver stats
               </button>
             </div>
           </div>
