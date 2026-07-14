@@ -85,6 +85,7 @@ export interface FinanceSectionProps {
   active: boolean;
   summary: PlayerFinanceDebtSummary | null;
   debts: FinanceDebt[];
+  paidDebts: FinanceDebt[];
   upcomingDebts: FinanceDebt[];
   payments: FinanceDebtPayment[];
 }

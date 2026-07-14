@@ -62,6 +62,7 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
   const [financeSummary, setFinanceSummary] =
     useState<PlayerFinanceDebtSummary | null>(null);
   const [financeDebts, setFinanceDebts] = useState<FinanceDebt[]>([]);
+  const [financePaidDebts, setFinancePaidDebts] = useState<FinanceDebt[]>([]);
   const [upcomingDebts, setUpcomingDebts] = useState<FinanceDebt[]>([]);
   const [financePayments, setFinancePayments] = useState<FinanceDebtPayment[]>(
     [],
@@ -104,6 +105,7 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
         }));
         setFinanceSummary(debtsData.summary);
         setFinanceDebts(debtsData.debts);
+        setFinancePaidDebts(debtsData.paidDebts);
         setUpcomingDebts(debtsData.upcomingDebts);
         setFinancePayments(debtsData.payments);
         setCalendarEvents(calendarData.events);
@@ -283,6 +285,7 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
           active={activeSection === "finanzas"}
           summary={financeSummary}
           debts={financeDebts}
+          paidDebts={financePaidDebts}
           upcomingDebts={upcomingDebts}
           payments={financePayments}
         />

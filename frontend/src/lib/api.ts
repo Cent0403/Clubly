@@ -884,13 +884,24 @@ export const api = {
   getPlayerDebts: async (token: string) => {
     const response = await request<{
       debts: FinanceDebt[];
+      paidDebts: FinanceDebt[];
       payments: FinanceDebtPayment[];
     }>("/finance/debts", {}, token);
     return {
       debts: response.debts.map(normalizeFinanceDebt),
+      paidDebts: response.paidDebts.map(normalizeFinanceDebt),
       payments: response.payments.map(normalizeFinanceDebtPayment),
     };
   },
+
+  deletePlayerDebt: (token: string, debtId: number) =>
+    request<{ message: string }>(
+      `/finance/debts/${debtId}`,
+      {
+        method: "DELETE",
+      },
+      token,
+    ),
 
   createPlayerDebt: (
     token: string,
@@ -949,6 +960,7 @@ export const api = {
     const response = await request<{
       summary: PlayerFinanceDebtSummary;
       debts: FinanceDebt[];
+      paidDebts: FinanceDebt[];
       upcomingDebts: FinanceDebt[];
       payments: FinanceDebtPayment[];
     }>("/finance/my-debts", {}, token);
@@ -956,6 +968,7 @@ export const api = {
     return {
       summary: normalizePlayerFinanceDebtSummary(response.summary),
       debts: response.debts.map(normalizeFinanceDebt),
+      paidDebts: response.paidDebts.map(normalizeFinanceDebt),
       upcomingDebts: response.upcomingDebts.map(normalizeFinanceDebt),
       payments: response.payments.map(normalizeFinanceDebtPayment),
     };

@@ -103,6 +103,7 @@ export function AdminDashboard({
     FinanceTransaction[]
   >([]);
   const [financeDebts, setFinanceDebts] = useState<FinanceDebt[]>([]);
+  const [financePaidDebts, setFinancePaidDebts] = useState<FinanceDebt[]>([]);
   const [financeDebtPayments, setFinanceDebtPayments] = useState<
     FinanceDebtPayment[]
   >([]);
@@ -223,6 +224,7 @@ export function AdminDashboard({
       setFinanceCategories(categoriesRes.categories);
       setFinanceTransactions(transactionsRes.transactions);
       setFinanceDebts(debtsRes.debts);
+      setFinancePaidDebts(debtsRes.paidDebts);
       setFinanceDebtPayments(debtsRes.payments);
 
       if (matchesRes.matches.length > 0 && !selectedMatchId) {
@@ -261,6 +263,7 @@ export function AdminDashboard({
     setFinanceCategories(categoriesRes.categories);
     setFinanceTransactions(transactionsRes.transactions);
     setFinanceDebts(debtsRes.debts);
+    setFinancePaidDebts(debtsRes.paidDebts);
     setFinanceDebtPayments(debtsRes.payments);
   }
 
@@ -1003,7 +1006,9 @@ export function AdminDashboard({
   }
 
   function handleEditDebt(debtId: number) {
-    const debt = financeDebts.find((item) => item.id === debtId);
+    const debt =
+      financeDebts.find((item) => item.id === debtId) ??
+      financePaidDebts.find((item) => item.id === debtId);
 
     if (!debt) {
       toast.error("No se encontró la deuda a editar.");
@@ -1052,6 +1057,28 @@ export function AdminDashboard({
       setDebtPaymentAmount((current) => ({ ...current, [debtId]: "" }));
       setDebtPaymentDate((current) => ({ ...current, [debtId]: "" }));
       toast.success("Pago registrado correctamente.");
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setLoadingFinance(false);
+    }
+  }
+
+  async function handleDeleteDebt(debtId: number) {
+    const confirmed = window.confirm(
+      "¿Eliminar esta deuda? Esta acción no se puede deshacer.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setLoadingFinance(true);
+
+    try {
+      await api.deletePlayerDebt(token, debtId);
+      await loadFinanceData();
+      toast.success("Deuda eliminada correctamente.");
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
@@ -1380,6 +1407,7 @@ export function AdminDashboard({
           categories={financeCategories}
           transactions={financeTransactions}
           debts={financeDebts}
+          paidDebts={financePaidDebts}
           debtPayments={financeDebtPayments}
           players={players}
           categoryName={categoryName}
@@ -1426,6 +1454,9 @@ export function AdminDashboard({
           }}
           onCreateDebtPayment={(debtId) => {
             void handleCreateDebtPayment(debtId);
+          }}
+          onDeleteDebt={(debtId) => {
+            void handleDeleteDebt(debtId);
           }}
         />
 

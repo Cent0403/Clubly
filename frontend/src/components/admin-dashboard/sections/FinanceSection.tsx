@@ -1,4 +1,5 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   FinanceCategory,
   FinanceDebt,
@@ -19,6 +20,7 @@ interface FinanceSectionProps {
   categories: FinanceCategory[];
   transactions: FinanceTransaction[];
   debts: FinanceDebt[];
+  paidDebts: FinanceDebt[];
   debtPayments: FinanceDebtPayment[];
   players: PlayerItem[];
   categoryName: string;
@@ -57,6 +59,7 @@ interface FinanceSectionProps {
   onDebtPaymentAmountChange: (debtId: number, value: string) => void;
   onDebtPaymentDateChange: (debtId: number, value: string) => void;
   onCreateDebtPayment: (debtId: number) => void;
+  onDeleteDebt: (debtId: number) => void;
 }
 
 function formatMoney(value: number): string {
@@ -126,8 +129,37 @@ export function FinanceSection({
   onDebtPaymentAmountChange,
   onDebtPaymentDateChange,
   onCreateDebtPayment,
+  onDeleteDebt,
+  paidDebts,
 }: FinanceSectionProps) {
   const [transactionFilterTerm, setTransactionFilterTerm] = useState("");
+  const [debtToDelete, setDebtToDelete] = useState<FinanceDebt | null>(null);
+
+  useEffect(() => {
+    if (!debtToDelete) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [debtToDelete]);
+
+  function closeDeleteModal() {
+    setDebtToDelete(null);
+  }
+
+  function handleConfirmDelete() {
+    if (!debtToDelete) {
+      return;
+    }
+
+    onDeleteDebt(debtToDelete.id);
+    setDebtToDelete(null);
+  }
   const [transactionFilterType, setTransactionFilterType] =
     useState<TransactionFilterType>("ALL");
   const [debtFilterTerm, setDebtFilterTerm] = useState("");
@@ -182,6 +214,21 @@ export function FinanceSection({
       );
     });
   }, [debtFilterStatus, debtFilterTerm, debts]);
+
+  const filteredPaidDebts = useMemo(() => {
+    const search = debtFilterTerm.trim().toLowerCase();
+
+    return paidDebts.filter((debt) => {
+      if (!search) {
+        return true;
+      }
+
+      return (
+        debt.player_name.toLowerCase().includes(search) ||
+        (debt.description ?? "").toLowerCase().includes(search)
+      );
+    });
+  }, [debtFilterTerm, paidDebts]);
 
   return (
     <section className={active ? "space-y-6" : "hidden"}>
@@ -540,7 +587,6 @@ export function FinanceSection({
               <option value="ALL">Todos los estados</option>
               <option value="pending">Pendiente</option>
               <option value="partially_paid">Parcial</option>
-              <option value="paid">Pagada</option>
             </select>
           </div>
 
@@ -624,6 +670,14 @@ export function FinanceSection({
                     >
                       Editar deuda
                     </button>
+                    <button
+                      className="btn-primary flex-1 sm:flex-none"
+                      type="button"
+                      disabled={loadingFinance}
+                      onClick={() => setDebtToDelete(debt)}
+                    >
+                      Eliminar deuda
+                    </button>
                   </div>
 
                   {debtSpecificPayments.length > 0 ? (
@@ -647,6 +701,102 @@ export function FinanceSection({
           </div>
         </article>
       </section>
+
+      <article className="card">
+        <h3 className="text-xl font-bold">Historial de deudas pagadas</h3>
+        <div className="mt-3 max-h-[28rem] overflow-y-auto pr-1 space-y-3">
+          {filteredPaidDebts.length > 0 ? (
+            filteredPaidDebts.map((debt) => (
+              <div key={debt.id} className="card p-3 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-semibold">{debt.player_name}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    Pagada
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+                  Total: {formatMoney(debt.amount_due)} | Pagado: {formatMoney(debt.amount_paid)}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {debt.description || "Sin descripción"}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Vence: {debt.due_date ?? "Sin fecha"}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    className="btn-muted flex-1 sm:flex-none"
+                    type="button"
+                    onClick={() => onEditDebt(debt.id)}
+                  >
+                    Editar deuda
+                  </button>
+                  <button
+                    className="btn-primary flex-1 sm:flex-none"
+                    type="button"
+                    onClick={() => setDebtToDelete(debt)}
+                  >
+                    Eliminar deuda
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="card p-3 text-sm text-slate-600 dark:text-slate-300">
+              No hay deudas pagadas registradas.
+            </p>
+          )}
+        </div>
+      </article>
+      {debtToDelete &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+            <div className="card w-full max-w-lg">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-sky-500">
+                    Eliminar deuda
+                  </p>
+                  <h3 className="mt-1 text-xl font-bold">
+                    ¿Estás seguro de eliminar esta deuda?
+                  </h3>
+                </div>
+                <button className="btn-muted" type="button" onClick={closeDeleteModal}>
+                  Cerrar
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-4 text-sm text-slate-600 dark:text-slate-300">
+                <p>
+                  <span className="font-semibold">Jugador:</span> {debtToDelete.player_name}
+                </p>
+                <p>
+                  <span className="font-semibold">Total:</span> {formatMoney(debtToDelete.amount_due)}
+                </p>
+                <p>
+                  <span className="font-semibold">Pagado:</span> {formatMoney(debtToDelete.amount_paid)}
+                </p>
+                <p>
+                  <span className="font-semibold">Vence:</span> {debtToDelete.due_date ?? "Sin fecha"}
+                </p>
+                {debtToDelete.description ? (
+                  <p>{debtToDelete.description}</p>
+                ) : null}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  className="btn-primary"
+                  type="button"
+                  onClick={handleConfirmDelete}
+                >
+                  Eliminar deuda
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </section>
   );
 }

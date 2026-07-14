@@ -240,11 +240,31 @@ financeRouter.get('/my-debts', requireRole('PLAYER'), async (req, res) => {
       JOIN players p ON p.id = d.player_id
       JOIN users u ON u.id = p.user_id
       WHERE d.player_id = ?
-      ORDER BY
-        CASE WHEN d.status = 'paid' THEN 1 ELSE 0 END ASC,
-        d.due_date IS NULL ASC,
-        d.due_date ASC,
-        d.created_at DESC
+        AND d.status IN ('pending', 'partially_paid')
+      ORDER BY d.due_date IS NULL ASC, d.due_date ASC, d.created_at DESC
+    `,
+    [playerId]
+  );
+
+  const [paidDebts] = await pool.query<PlayerDebtRow[]>(
+    `
+      SELECT
+        d.id,
+        d.player_id,
+        u.full_name AS player_name,
+        d.amount_due,
+        d.amount_paid,
+        ROUND(d.amount_due - d.amount_paid, 2) AS amount_pending,
+        d.description,
+        d.status,
+        d.due_date,
+        d.created_at
+      FROM player_debts d
+      JOIN players p ON p.id = d.player_id
+      JOIN users u ON u.id = p.user_id
+      WHERE d.player_id = ?
+        AND d.status = 'paid'
+      ORDER BY d.created_at DESC
     `,
     [playerId]
   );
@@ -306,6 +326,7 @@ financeRouter.get('/my-debts', requireRole('PLAYER'), async (req, res) => {
       nextDueDate: summary.next_due_date,
     },
     debts,
+    paidDebts,
     upcomingDebts,
     payments,
   });
@@ -676,7 +697,29 @@ financeRouter.get('/debts', async (_req, res) => {
       FROM player_debts d
       JOIN players p ON p.id = d.player_id
       JOIN users u ON u.id = p.user_id
-      ORDER BY d.created_at DESC, d.id DESC
+      WHERE d.status IN ('pending', 'partially_paid')
+      ORDER BY d.due_date IS NULL ASC, d.due_date ASC, d.created_at DESC
+    `
+  );
+
+  const [paidDebts] = await pool.query<PlayerDebtRow[]>(
+    `
+      SELECT
+        d.id,
+        d.player_id,
+        u.full_name AS player_name,
+        d.amount_due,
+        d.amount_paid,
+        ROUND(d.amount_due - d.amount_paid, 2) AS amount_pending,
+        d.description,
+        d.status,
+        d.due_date,
+        d.created_at
+      FROM player_debts d
+      JOIN players p ON p.id = d.player_id
+      JOIN users u ON u.id = p.user_id
+      WHERE d.status = 'paid'
+      ORDER BY d.created_at DESC
     `
   );
 
@@ -688,7 +731,7 @@ financeRouter.get('/debts', async (_req, res) => {
     `
   );
 
-  res.json({ debts, payments });
+  res.json({ debts, paidDebts, payments });
 });
 
 financeRouter.post('/debts', async (req, res) => {
@@ -958,6 +1001,32 @@ financeRouter.post('/debts/:id/payments', async (req, res) => {
   }
 
   res.status(201).json({ message: 'Pago de deuda registrado exitosamente' });
+});
+
+financeRouter.delete('/debts/:id', async (req, res) => {
+  await ensureFinanceSchema();
+
+  const debtId = Number(req.params.id);
+
+  if (!Number.isInteger(debtId) || debtId <= 0) {
+    res.status(400).json({ message: 'ID de deuda inválido' });
+    return;
+  }
+
+  const [result] = await pool.query<ResultSetHeader>(
+    `
+      DELETE FROM player_debts
+      WHERE id = ?
+    `,
+    [debtId]
+  );
+
+  if (result.affectedRows === 0) {
+    res.status(404).json({ message: 'Deuda no encontrada' });
+    return;
+  }
+
+  res.json({ message: 'Deuda eliminada exitosamente' });
 });
 
 export { financeRouter };
