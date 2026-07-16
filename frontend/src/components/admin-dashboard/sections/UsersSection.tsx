@@ -158,8 +158,26 @@ export function UsersSection({
                     }))
                   }
                 >
-                  {USER_POSITIONS.map((position) => (
-                    <option key={position || "NONE"} value={position}>
+                  <option value="">Posición Principal</option>
+                  {USER_POSITIONS.filter((p) => p !== "").map((position) => (
+                    <option key={position} value={position}>
+                      {formatPositionOption(position)}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="input"
+                  value={userForm.secondaryPosition}
+                  onChange={(event) =>
+                    onUserFormChange((s) => ({
+                      ...s,
+                      secondaryPosition: event.target.value as UserFormState["secondaryPosition"],
+                    }))
+                  }
+                >
+                  <option value="">Posición Secundaria (opcional)</option>
+                  {USER_POSITIONS.filter((p) => p !== "").map((position) => (
+                    <option key={position} value={position}>
                       {formatPositionOption(position)}
                     </option>
                   ))}
@@ -383,8 +401,27 @@ export function UsersSection({
                       }))
                     }
                   >
-                    {USER_POSITIONS.map((position) => (
-                      <option key={position || "NONE"} value={position}>
+                    <option value="">Posición Principal</option>
+                    {USER_POSITIONS.filter((p) => p !== "").map((position) => (
+                      <option key={position} value={position}>
+                        {formatPositionOption(position)}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="input"
+                    value={editingUserForm.secondaryPosition}
+                    onChange={(event) =>
+                      onEditingUserFormChange((current) => ({
+                        ...current,
+                        secondaryPosition: event.target
+                          .value as EditUserFormState["secondaryPosition"],
+                      }))
+                    }
+                  >
+                    <option value="">Posición Secundaria (opcional)</option>
+                    {USER_POSITIONS.filter((p) => p !== "").map((position) => (
+                      <option key={position} value={position}>
                         {formatPositionOption(position)}
                       </option>
                     ))}

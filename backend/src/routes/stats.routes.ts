@@ -8,8 +8,35 @@ const statsRouter = Router();
 
 statsRouter.use(requireAuth);
 
-async function getGlobalStatsPayload() {
+const VALID_POSITIONS = new Set([
+  'SETTER',
+  'OUTSIDE',
+  'OPPOSITE',
+  'MIDDLE',
+  'LIBERO',
+] as const);
+
+type PlayerPosition = 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO';
+
+function parsePositionFilter(value: unknown): PlayerPosition | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.toUpperCase() as PlayerPosition;
+  return VALID_POSITIONS.has(normalized) ? normalized : null;
+}
+
+async function getGlobalStatsPayload(positionFilter: PlayerPosition | null = null) {
   await ensureEfficiencySchema();
+
+  const hasPositionFilter = Boolean(positionFilter);
+  const playerPositionWhereClause = hasPositionFilter
+    ? 'WHERE p.position = ?'
+    : '';
+  const playerPositionParams = hasPositionFilter
+    ? [positionFilter]
+    : [];
 
   const [teamRows] = await pool.query<RowDataPacket[]>(
     `
@@ -37,9 +64,12 @@ async function getGlobalStatsPayload() {
           ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.attack_points_per_set END), 0.0), 2) AS avg_attack_points_per_set
         FROM players p
         LEFT JOIN efficiency_ratings r ON r.player_id = p.id
+        ${playerPositionWhereClause}
         GROUP BY p.id
       ) v
     `
+    ,
+    playerPositionParams
   );
 
   const [evolutionRows] = await pool.query<RowDataPacket[]>(
@@ -65,10 +95,13 @@ async function getGlobalStatsPayload() {
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
+      ${playerPositionWhereClause}
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
       LIMIT 5
     `
+    ,
+    playerPositionParams
   );
 
   const [topServe] = await pool.query<RowDataPacket[]>(
@@ -79,10 +112,13 @@ async function getGlobalStatsPayload() {
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
+      ${playerPositionWhereClause}
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
       LIMIT 5
     `
+    ,
+    playerPositionParams
   );
 
   const [topDefense] = await pool.query<RowDataPacket[]>(
@@ -93,10 +129,13 @@ async function getGlobalStatsPayload() {
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
+      ${playerPositionWhereClause}
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
       LIMIT 5
     `
+    ,
+    playerPositionParams
   );
 
   const [topAttack] = await pool.query<RowDataPacket[]>(
@@ -107,10 +146,13 @@ async function getGlobalStatsPayload() {
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
+      ${playerPositionWhereClause}
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
       LIMIT 5
     `
+    ,
+    playerPositionParams
   );
 
   const [topBlock] = await pool.query<RowDataPacket[]>(
@@ -121,10 +163,13 @@ async function getGlobalStatsPayload() {
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
+      ${playerPositionWhereClause}
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
       LIMIT 5
     `
+    ,
+    playerPositionParams
   );
 
   const [topSetting] = await pool.query<RowDataPacket[]>(
@@ -135,11 +180,14 @@ async function getGlobalStatsPayload() {
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
-      WHERE p.position = 'SETTER'
+      WHERE (p.position = 'SETTER' OR p.secondary_position = 'SETTER')
+      ${hasPositionFilter ? 'AND p.position = ?' : ''}
       GROUP BY p.id, u.full_name
       ORDER BY score DESC, u.full_name ASC
       LIMIT 5
     `
+    ,
+    hasPositionFilter ? [positionFilter] : []
   );
 
   return {
@@ -342,9 +390,21 @@ statsRouter.get('/player/:playerId', async (req, res) => {
   });
 });
 
-statsRouter.get('/global', requireRole('ADMIN'), async (_req, res) => {
+statsRouter.get('/global', requireRole('ADMIN'), async (req, res) => {
+  const positionFilter =
+    req.query.position === undefined
+      ? null
+      : parsePositionFilter(req.query.position);
+
+  if (req.query.position !== undefined && !positionFilter) {
+    res.status(400).json({
+      message: 'Posición inválida. Debe ser: SETTER, OUTSIDE, OPPOSITE, MIDDLE, LIBERO',
+    });
+    return;
+  }
+
   try {
-    res.json(await getGlobalStatsPayload());
+    res.json(await getGlobalStatsPayload(positionFilter));
   } catch (error) {
     console.error('Error al cargar /stats/global:', error);
     res
@@ -353,9 +413,21 @@ statsRouter.get('/global', requireRole('ADMIN'), async (_req, res) => {
   }
 });
 
-statsRouter.get('/global-summary', async (_req, res) => {
+statsRouter.get('/global-summary', async (req, res) => {
+  const positionFilter =
+    req.query.position === undefined
+      ? null
+      : parsePositionFilter(req.query.position);
+
+  if (req.query.position !== undefined && !positionFilter) {
+    res.status(400).json({
+      message: 'Posición inválida. Debe ser: SETTER, OUTSIDE, OPPOSITE, MIDDLE, LIBERO',
+    });
+    return;
+  }
+
   try {
-    res.json(await getGlobalStatsPayload());
+    res.json(await getGlobalStatsPayload(positionFilter));
   } catch (error) {
     console.error('Error al cargar /stats/global-summary:', error);
     res
@@ -390,6 +462,46 @@ statsRouter.get('/top', async (_req, res) => {
   } catch (error) {
     console.error('Error al cargar /stats/top:', error);
     res.status(500).json({ message: 'Error al cargar los mejores jugadores' });
+  }
+});
+
+statsRouter.get('/by-position/:position', requireRole('ADMIN'), async (req, res) => {
+  await ensureEfficiencySchema();
+
+  const position = parsePositionFilter(req.params.position);
+
+  if (!position) {
+    res.status(400).json({ message: 'Posición inválida. Debe ser: SETTER, OUTSIDE, OPPOSITE, MIDDLE, LIBERO' });
+    return;
+  }
+
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `
+        SELECT
+          u.full_name,
+          ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.reception_efficiency END), 0.0) * 100, 2) AS avg_reception,
+          ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.serve_efficiency END), 0.0) * 100, 2) AS avg_serve,
+          ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.defense_efficiency END), 0.0) * 100, 2) AS avg_defense,
+          ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.attack_efficiency END), 0.0) * 100, 2) AS avg_attack,
+          ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.block_efficiency END), 0.0) * 100, 2) AS avg_block,
+          ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.setting_efficiency END), 0.0) * 100, 2) AS avg_setting,
+          ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS overall_score,
+          COUNT(CASE WHEN r.minutes_played = 1 THEN 1 END) AS matches_played
+        FROM players p
+        JOIN users u ON u.id = p.user_id
+        LEFT JOIN efficiency_ratings r ON r.player_id = p.id
+        WHERE p.position = ?
+        GROUP BY p.id, u.full_name
+        ORDER BY overall_score DESC, u.full_name ASC
+      `,
+      [position]
+    );
+
+    res.json({ players: rows });
+  } catch (error) {
+    console.error('Error al cargar /stats/by-position:', error);
+    res.status(500).json({ message: 'Error al cargar estadísticas por posición' });
   }
 });
 

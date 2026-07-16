@@ -11,6 +11,7 @@ interface CreateUserBody {
   role?: 'ADMIN' | 'PLAYER';
   jerseyNumber?: number | null;
   position?: 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | null;
+  secondaryPosition?: 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | null;
 }
 
 interface UpdateUserBody {
@@ -20,6 +21,7 @@ interface UpdateUserBody {
   role?: 'ADMIN' | 'PLAYER';
   jerseyNumber?: number | null;
   position?: 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | null;
+  secondaryPosition?: 'SETTER' | 'OUTSIDE' | 'OPPOSITE' | 'MIDDLE' | 'LIBERO' | null;
 }
 
 interface AdminUserRow extends RowDataPacket {
@@ -30,6 +32,7 @@ interface AdminUserRow extends RowDataPacket {
   player_id: number | null;
   jersey_number: number | null;
   position: string | null;
+  secondary_position: string | null;
 }
 
 const VALID_POSITIONS = new Set([
@@ -55,7 +58,8 @@ usersRouter.get('/', async (_req, res) => {
         u.role,
         p.id AS player_id,
         p.jersey_number,
-        p.position
+        p.position,
+        p.secondary_position
       FROM users u
       LEFT JOIN players p ON p.user_id = u.id
       ORDER BY u.full_name ASC, u.id ASC
@@ -66,7 +70,7 @@ usersRouter.get('/', async (_req, res) => {
 });
 
 usersRouter.post('/', async (req, res) => {
-  const { username, password, fullName, role, jerseyNumber, position } =
+  const { username, password, fullName, role, jerseyNumber, position, secondaryPosition } =
     req.body as CreateUserBody;
 
   if (!username || !password || !fullName || !role) {
@@ -87,6 +91,15 @@ usersRouter.post('/', async (req, res) => {
     !VALID_POSITIONS.has(position)
   ) {
     res.status(400).json({ message: 'Valor de posición inválido' });
+    return;
+  }
+
+  if (
+    secondaryPosition !== undefined &&
+    secondaryPosition !== null &&
+    !VALID_POSITIONS.has(secondaryPosition)
+  ) {
+    res.status(400).json({ message: 'Valor de posición secundaria inválido' });
     return;
   }
 
@@ -133,10 +146,10 @@ usersRouter.post('/', async (req, res) => {
     if (role === 'PLAYER') {
       const [insertPlayerResult] = await connection.query<ResultSetHeader>(
         `
-          INSERT INTO players (user_id, jersey_number, position)
-          VALUES (?, ?, ?)
+          INSERT INTO players (user_id, jersey_number, position, secondary_position)
+          VALUES (?, ?, ?, ?)
         `,
-        [userId, jerseyNumber ?? null, position ?? null]
+        [userId, jerseyNumber ?? null, position ?? null, secondaryPosition ?? null]
       );
 
       playerId = insertPlayerResult.insertId;
@@ -169,7 +182,7 @@ usersRouter.patch('/:id', async (req, res) => {
     return;
   }
 
-  const { username, password, fullName, role, jerseyNumber, position } =
+  const { username, password, fullName, role, jerseyNumber, position, secondaryPosition } =
     req.body as UpdateUserBody;
   const hasAtLeastOneField =
     username !== undefined ||
@@ -177,7 +190,8 @@ usersRouter.patch('/:id', async (req, res) => {
     fullName !== undefined ||
     role !== undefined ||
     jerseyNumber !== undefined ||
-    position !== undefined;
+    position !== undefined ||
+    secondaryPosition !== undefined;
 
   if (!hasAtLeastOneField) {
     res
@@ -242,7 +256,8 @@ usersRouter.patch('/:id', async (req, res) => {
           u.role,
           p.id AS player_id,
           p.jersey_number,
-          p.position
+          p.position,
+          p.secondary_position
         FROM users u
         LEFT JOIN players p ON p.user_id = u.id
         WHERE u.id = ?
@@ -263,12 +278,12 @@ usersRouter.patch('/:id', async (req, res) => {
 
     if (
       targetRole === 'ADMIN' &&
-      (jerseyNumber !== undefined || position !== undefined)
+      (jerseyNumber !== undefined || position !== undefined || secondaryPosition !== undefined)
     ) {
       await connection.rollback();
       res.status(400).json({
         message:
-          'jerseyNumber y position solo se pueden actualizar para el rol PLAYER',
+          'jerseyNumber, position y secondaryPosition solo se pueden actualizar para el rol PLAYER',
       });
       return;
     }
@@ -330,19 +345,19 @@ usersRouter.patch('/:id', async (req, res) => {
       if (!existingUser.player_id) {
         await connection.query<ResultSetHeader>(
           `
-            INSERT INTO players (user_id, jersey_number, position)
-            VALUES (?, ?, ?)
+            INSERT INTO players (user_id, jersey_number, position, secondary_position)
+            VALUES (?, ?, ?, ?)
           `,
-          [userId, jerseyNumber ?? null, position ?? null]
+          [userId, jerseyNumber ?? null, position ?? null, secondaryPosition ?? null]
         );
-      } else if (jerseyNumber !== undefined || position !== undefined) {
+      } else if (jerseyNumber !== undefined || position !== undefined || secondaryPosition !== undefined) {
         await connection.query(
           `
             UPDATE players
-            SET jersey_number = ?, position = ?
+            SET jersey_number = ?, position = ?, secondary_position = ?
             WHERE user_id = ?
           `,
-          [jerseyNumber ?? null, position ?? null, userId]
+          [jerseyNumber ?? null, position ?? null, secondaryPosition ?? null, userId]
         );
       }
     } else if (existingUser.player_id) {
@@ -358,7 +373,8 @@ usersRouter.patch('/:id', async (req, res) => {
           u.role,
           p.id AS player_id,
           p.jersey_number,
-          p.position
+          p.position,
+          p.secondary_position
         FROM users u
         LEFT JOIN players p ON p.user_id = u.id
         WHERE u.id = ?

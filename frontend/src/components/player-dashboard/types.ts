@@ -4,6 +4,7 @@ import {
   MatchRatingRow,
   PlayerHistoryItem,
   PlayerItem,
+  PlayerPosition,
   PlayerSummary,
 } from "../../types";
 import {
@@ -52,6 +53,8 @@ export interface SummaryCard {
 export interface SummarySectionProps {
   active: boolean;
   globalStats: GlobalStats | null;
+  selectedPositionFilter: "ALL" | PlayerPosition;
+  onPositionFilterChange: (value: "ALL" | PlayerPosition) => void;
 }
 
 export interface ProfileSectionProps {

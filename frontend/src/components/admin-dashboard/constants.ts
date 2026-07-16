@@ -32,6 +32,7 @@ export const EMPTY_USER_FORM: UserFormState = {
   role: "PLAYER",
   jerseyNumber: "",
   position: "",
+  secondaryPosition: "",
 };
 
 export const EMPTY_EDIT_USER_FORM: EditUserFormState = {
@@ -41,6 +42,7 @@ export const EMPTY_EDIT_USER_FORM: EditUserFormState = {
   role: "PLAYER",
   jerseyNumber: "",
   position: "",
+  secondaryPosition: "",
 };
 
 export const EMPTY_CALENDAR_EVENT_FORM: CalendarEventFormState = {
@@ -89,24 +91,24 @@ export const POSITION_OPTION_LABELS: Record<
 
 export const EVENT_FIELDS: Array<{ key: EventFieldKey; label: string }> = [
   { key: "setsPlayed", label: "Sets jugados" },
-  { key: "attackPoints", label: "Ataque: puntos" },
-  { key: "attackErrors", label: "Ataque: errores" },
-  { key: "attackAttempts", label: "Ataque: intentos" },
-  { key: "serveAces", label: "Saque: aces o oportunidad contraataque" },
-  { key: "serveErrors", label: "Saque: errores" },
-  { key: "serveAttempts", label: "Saque: intentos" },
-  { key: "blockKill", label: "Bloqueo: cantidad de acciones de 2 puntos" },
-  { key: "blockTouch", label: "Bloqueo: cantidad de acciones de 1 punto" },
-  { key: "blockError", label: "Bloqueo: cantidad de acciones de 0 puntos" },
-  { key: "defenseSuccesses", label: "Defensa: exitosas" },
-  { key: "defenseFailures", label: "Defensa: fallidas" },
-  { key: "receptionThree", label: "Recepcion: 3" },
-  { key: "receptionTwo", label: "Recepcion: 2" },
-  { key: "receptionOne", label: "Recepcion: 1" },
-  { key: "receptionZero", label: "Recepcion: 0" },
-  { key: "setAssists", label: "Armado: asistencias" },
-  { key: "setErrors", label: "Armado: errores" },
-  { key: "setAttempts", label: "Armado: intentos" },
+  { key: "attackPoints", label: "Ataque: Directo" },
+  { key: "attackErrors", label: "Ataque: Error" },
+  { key: "attackAttempts", label: "Ataque: Intentos" },
+  { key: "serveAces", label: "Saque: Ace" },
+  { key: "serveErrors", label: "Saque: Error" },
+  { key: "serveAttempts", label: "Saque: Intentos" },
+  { key: "blockKill", label: "Bloqueo: Bloqueo exitoso" },
+  { key: "blockTouch", label: "Bloqueo: Toque" },
+  { key: "blockError", label: "Bloqueo: Error" },
+  { key: "defenseSuccesses", label: "Defensa: Exitosa" },
+  { key: "defenseFailures", label: "Defensa: Fallida" },
+  { key: "receptionThree", label: "Recepcion: Perfecta" },
+  { key: "receptionTwo", label: "Recepcion: Buena" },
+  { key: "receptionOne", label: "Recepcion: Mala" },
+  { key: "receptionZero", label: "Recepcion: Error" },
+  { key: "setAssists", label: "Armado: Asistencia" },
+  { key: "setErrors", label: "Armado: Error" },
+  { key: "setAttempts", label: "Armado: Intentos" },
 ];
 
 export const FUNDAMENT_GROUPS = [
@@ -132,13 +134,13 @@ export const FUNDAMENT_GROUPS = [
   },
   {
     title: "Saque",
-    description: "Aces o complicado (max score), errores e intentos",
+    description: "Aces, errores e intentos",
     fields: ["serveAces", "serveErrors", "serveAttempts"] as const,
   },
   {
     title: "Bloqueo",
     description:
-      "Ingresa cantidades por categoria. El total se calcula como 2 + 1 + 0",
+      "Valoraciones 2, 1 y 0",
     fields: ["blockKill", "blockTouch", "blockError"] as const,
   },
   {

@@ -15,6 +15,7 @@ import {
   MatchRatingRow,
   PlayerHistoryItem,
   PlayerItem,
+  PlayerPosition,
   PlayerSummary,
   RatingItem,
   Role,
@@ -67,6 +68,9 @@ export function AdminDashboard({
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
+  const [dashboardPositionFilter, setDashboardPositionFilter] = useState<
+    "ALL" | PlayerPosition
+  >("ALL");
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
   const [evaluationPlayerSearchTerm, setEvaluationPlayerSearchTerm] =
     useState("");
@@ -207,7 +211,10 @@ export function AdminDashboard({
         api.getTopPlayers(token),
         api.getMatches(token),
         api.getCalendar(token),
-        api.getGlobalStats(token),
+        api.getGlobalStats(
+          token,
+          dashboardPositionFilter === "ALL" ? undefined : dashboardPositionFilter,
+        ),
         api.getFinanceOverview(token),
         api.getFinanceCategories(token),
         api.getFinanceTransactions(token),
@@ -389,6 +396,7 @@ export function AdminDashboard({
       jerseyNumber:
         user.jersey_number === null ? "" : String(user.jersey_number),
       position: (user.position as EditUserFormState["position"]) ?? "",
+      secondaryPosition: (user.secondary_position as EditUserFormState["secondaryPosition"]) ?? "",
     });
     toast(`Editando usuario: ${user.full_name}`);
   }
@@ -422,6 +430,7 @@ export function AdminDashboard({
                 ? Number(editingUserForm.jerseyNumber)
                 : null,
               position: editingUserForm.position || null,
+              secondaryPosition: editingUserForm.secondaryPosition || null,
             }
           : {}),
       };
@@ -534,6 +543,10 @@ export function AdminDashboard({
           userForm.role === "PLAYER" && userForm.position
             ? userForm.position
             : undefined,
+        secondaryPosition:
+          userForm.role === "PLAYER" && userForm.secondaryPosition
+            ? userForm.secondaryPosition
+            : undefined,
       });
 
       setUserForm(EMPTY_USER_FORM);
@@ -552,6 +565,8 @@ export function AdminDashboard({
               : null,
           position:
             userForm.role === "PLAYER" ? userForm.position || null : null,
+          secondary_position:
+            userForm.role === "PLAYER" ? userForm.secondaryPosition || null : null,
         },
       ]);
 
@@ -567,6 +582,7 @@ export function AdminDashboard({
               ? Number(userForm.jerseyNumber)
               : null,
             position: userForm.position || null,
+            secondary_position: userForm.secondaryPosition || null,
             overall_score: 0,
           },
         ]);
@@ -743,7 +759,10 @@ export function AdminDashboard({
 
       const [matchRatings, updatedStats] = await Promise.all([
         api.getMatchRatings(token, selectedMatchId),
-        api.getGlobalStats(token),
+        api.getGlobalStats(
+          token,
+          dashboardPositionFilter === "ALL" ? undefined : dashboardPositionFilter,
+        ),
       ]);
 
       setGlobalStats(updatedStats);
@@ -800,6 +819,22 @@ export function AdminDashboard({
       toast.error((updateError as Error).message);
     } finally {
       setSavingSettings(false);
+    }
+  }
+
+  async function handleDashboardPositionFilterChange(
+    nextFilter: "ALL" | PlayerPosition,
+  ) {
+    setDashboardPositionFilter(nextFilter);
+
+    try {
+      const stats = await api.getGlobalStats(
+        token,
+        nextFilter === "ALL" ? undefined : nextFilter,
+      );
+      setGlobalStats(stats);
+    } catch (error) {
+      toast.error((error as Error).message);
     }
   }
 
@@ -1300,6 +1335,8 @@ export function AdminDashboard({
         <DashboardSection
           active={activeSection === "dashboard"}
           globalStats={globalStats}
+          selectedPositionFilter={dashboardPositionFilter}
+          onPositionFilterChange={handleDashboardPositionFilterChange}
         />
         <TeamSettingsSection
           active={activeSection === "personalización"}

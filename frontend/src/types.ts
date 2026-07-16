@@ -42,6 +42,7 @@ export interface PlayerItem {
   full_name: string;
   jersey_number: number | null;
   position: string | null;
+  secondary_position: string | null;
   overall_score: number;
 }
 
@@ -57,6 +58,7 @@ export interface AdminUserItem {
   player_id: number | null;
   jersey_number: number | null;
   position: string | null;
+  secondary_position: string | null;
 }
 
 export interface RatingItem {
@@ -128,6 +130,7 @@ export interface CreateUserPayload {
   role: Role;
   jerseyNumber?: number;
   position?: PlayerPosition;
+  secondaryPosition?: PlayerPosition;
 }
 
 export interface UpdateUserPayload {
@@ -137,6 +140,7 @@ export interface UpdateUserPayload {
   role?: Role;
   jerseyNumber?: number | null;
   position?: PlayerPosition | null;
+  secondaryPosition?: PlayerPosition | null;
 }
 
 export interface UpdateMyProfilePayload {

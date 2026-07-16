@@ -633,14 +633,16 @@ export const api = {
     };
   },
 
-  getGlobalStats: async (token: string) => {
-    const response = await request<GlobalStats>("/stats/global", {}, token);
+  getGlobalStats: async (token: string, position?: string) => {
+    const query = position ? `?position=${encodeURIComponent(position)}` : "";
+    const response = await request<GlobalStats>(`/stats/global${query}`, {}, token);
     return normalizeGlobalStats(response);
   },
 
-  getGlobalSummary: async (token: string) => {
+  getGlobalSummary: async (token: string, position?: string) => {
+    const query = position ? `?position=${encodeURIComponent(position)}` : "";
     const response = await request<GlobalStats>(
-      "/stats/global-summary",
+      `/stats/global-summary${query}`,
       {},
       token,
     );
@@ -650,6 +652,17 @@ export const api = {
   getTopPlayers: async (token: string) => {
     const response = await request<{ players: PlayerItem[] }>(
       "/stats/top",
+      {},
+      token,
+    );
+    return {
+      players: response.players.map(normalizePlayer),
+    };
+  },
+
+  getStatsByPosition: async (token: string, position: string) => {
+    const response = await request<{ players: PlayerItem[] }>(
+      `/stats/by-position/${position}`,
       {},
       token,
     );

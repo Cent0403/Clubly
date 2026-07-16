@@ -10,6 +10,7 @@ import {
   PlayerFinanceDebtSummary,
   PlayerHistoryItem,
   PlayerItem,
+  PlayerPosition,
   PlayerSummary,
 } from "../types";
 import { FinanceSection } from "./player-dashboard/sections/FinanceSection";
@@ -51,6 +52,9 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
   const [savingProfile, setSavingProfile] = useState(false);
   const [summary, setSummary] = useState<PlayerSummary | null>(null);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
+  const [summaryPositionFilter, setSummaryPositionFilter] = useState<
+    "ALL" | PlayerPosition
+  >("ALL");
   const [history, setHistory] = useState<PlayerHistoryItem[]>([]);
   const [topPlayers, setTopPlayers] = useState<PlayerItem[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
@@ -118,6 +122,22 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
 
     void fetchData();
   }, [token]);
+
+  async function handleSummaryPositionFilterChange(
+    nextFilter: "ALL" | PlayerPosition,
+  ) {
+    setSummaryPositionFilter(nextFilter);
+
+    try {
+      const nextGlobalStats = await api.getGlobalSummary(
+        token,
+        nextFilter === "ALL" ? undefined : nextFilter,
+      );
+      setGlobalStats(nextGlobalStats);
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  }
 
   useEffect(() => {
     async function fetchMatchRatings() {
@@ -238,6 +258,8 @@ export function PlayerDashboard({ token, onLogout }: PlayerDashboardProps) {
         <SummarySection
           active={activeSection === "resumen"}
           globalStats={globalStats}
+          selectedPositionFilter={summaryPositionFilter}
+          onPositionFilterChange={handleSummaryPositionFilterChange}
         />
 
         <SummaryCardsSection

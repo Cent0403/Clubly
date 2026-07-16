@@ -1,7 +1,14 @@
 import { TOP_RANKINGS } from "../../admin-dashboard/constants";
+import { USER_POSITIONS } from "../../admin-dashboard/constants";
+import { formatPositionOption } from "../../admin-dashboard/utils";
 import { SummarySectionProps } from "../types";
 
-export function SummarySection({ active, globalStats }: SummarySectionProps) {
+export function SummarySection({
+  active,
+  globalStats,
+  selectedPositionFilter,
+  onPositionFilterChange,
+}: SummarySectionProps) {
   return (
     <section className={active ? "grid gap-6 xl:grid-cols-5" : "hidden"}>
       <article className="card xl:col-span-5">
@@ -12,10 +19,30 @@ export function SummarySection({ active, globalStats }: SummarySectionProps) {
             </p>
             <h3 className="text-xl font-bold">Primeros 5 del equipo</h3>
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Ranking global por recepción, saque, defensa, ataque, bloqueo y
-            armado
-          </p>
+          <div className="flex w-full flex-col gap-2 md:w-auto md:items-end">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Ranking global por recepción, saque, defensa, ataque, bloqueo y
+              armado
+            </p>
+            <select
+              className="input w-full md:w-64"
+              value={selectedPositionFilter}
+              onChange={(event) =>
+                onPositionFilterChange(
+                  event.target.value as SummarySectionProps["selectedPositionFilter"],
+                )
+              }
+            >
+              <option value="ALL">Todas las posiciones</option>
+              {USER_POSITIONS.filter((position) => position !== "").map(
+                (position) => (
+                  <option key={position} value={position}>
+                    {formatPositionOption(position)}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
         </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">

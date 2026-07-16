@@ -44,6 +44,7 @@ export interface UserFormState {
   role: Role;
   jerseyNumber: string;
   position: "" | PlayerPosition;
+  secondaryPosition: "" | PlayerPosition;
 }
 
 export interface EditUserFormState {
@@ -53,6 +54,7 @@ export interface EditUserFormState {
   role: Role;
   jerseyNumber: string;
   position: "" | PlayerPosition;
+  secondaryPosition: "" | PlayerPosition;
 }
 
 export type EventFieldKey = keyof Omit<

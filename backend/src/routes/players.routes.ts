@@ -12,6 +12,7 @@ interface PlayerRow extends RowDataPacket {
   full_name: string;
   jersey_number: number | null;
   position: string | null;
+  secondary_position: string | null;
   overall_score: number;
 }
 
@@ -36,11 +37,12 @@ playersRouter.get('/', requireRole('ADMIN'), async (_req, res) => {
         u.full_name,
         p.jersey_number,
         p.position,
+        p.secondary_position,
         ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS overall_score
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
-      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
+      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position, p.secondary_position
       ORDER BY u.full_name ASC
     `
   );
@@ -67,12 +69,13 @@ playersRouter.get('/me', requireRole('PLAYER'), async (req, res) => {
         u.full_name,
         p.jersey_number,
         p.position,
+        p.secondary_position,
         ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS overall_score
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       WHERE p.id = ?
-      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
+      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position, p.secondary_position
       LIMIT 1
     `,
     [req.user.playerId]
@@ -146,12 +149,13 @@ playersRouter.patch('/me', requireRole('PLAYER'), async (req, res) => {
         u.full_name,
         p.jersey_number,
         p.position,
+        p.secondary_position,
         ROUND(COALESCE(AVG(CASE WHEN r.minutes_played = 1 THEN r.overall_efficiency END), 0.0) * 100, 2) AS overall_score
       FROM players p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN efficiency_ratings r ON r.player_id = p.id
       WHERE p.id = ?
-      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position
+      GROUP BY p.id, u.id, u.username, u.full_name, p.jersey_number, p.position, p.secondary_position
       LIMIT 1
     `,
     [req.user.playerId]
